@@ -46,7 +46,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	value := args[2]
 
 	switch metricType {
-	case "guage":
+	case "gauge":
 		_, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			badRequest(w)

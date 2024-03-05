@@ -19,9 +19,9 @@ func TestNewMetric(t *testing.T) {
 		err     error
 	}{
 		{
-			name:    "normal create guage",
-			args:    args{name: "guage#1", metricType: 1},
-			want:    &metric{name: "guage#1", metricType: 1, value: metricValue{0, 0}},
+			name:    "normal create gauge",
+			args:    args{name: "gauge#1", metricType: 1},
+			want:    &metric{name: "gauge#1", metricType: 1, value: metricValue{0, 0}},
 			wantErr: false,
 			err:     nil,
 		},
@@ -84,9 +84,9 @@ func TestMetricType_String(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "metric type 1 (guage)",
+			name: "metric type 1 (gauge)",
 			mt:   1,
-			want: "guage",
+			want: "gauge",
 		},
 		{
 			name: "metric type 2 (counter)",

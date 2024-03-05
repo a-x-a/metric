@@ -5,12 +5,12 @@ import (
 )
 
 type (
-	MetricGuage   float64
+	MetricGauge   float64
 	MetricCounter int64
 	MetricType    int
 
 	metricValue struct {
-		guage   MetricGuage
+		gauge   MetricGauge
 		counter MetricCounter
 	}
 
@@ -22,13 +22,13 @@ type (
 )
 
 const (
-	Guage MetricType = iota + 1
+	Gauge MetricType = iota + 1
 	Counter
 )
 
 var (
 	// metricTypes - строковое представление допустимых типов метрик.
-	metricTypes = [...]string{"", "guage", "counter"}
+	metricTypes = [...]string{"", "gauge", "counter"}
 
 	// ErroMetricNameIsNull - не указано имя метрики
 	ErroMetricNameIsNull = errors.New("model: ошибка cоздания метрики, не указано име метрики")
@@ -64,7 +64,7 @@ func NewMetric(name string, metricType int) (*metric, error) {
 		name:       name,
 		metricType: MetricType(metricType),
 		value: metricValue{
-			guage:   0,
+			gauge:   0,
 			counter: 0,
 		},
 	}, nil

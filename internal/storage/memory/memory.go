@@ -6,9 +6,9 @@ import (
 )
 
 type memStorage struct {
-	muGuage   sync.Mutex
+	muGauge   sync.Mutex
 	muCounter sync.Mutex
-	guage     map[string]float64
+	gauge     map[string]float64
 	counter   map[string]int64
 }
 
@@ -18,8 +18,8 @@ func New() memStorage {
 
 func (s *memStorage) Save(metric, metricType, value string) error {
 	switch metricType {
-	case "guage":
-		err := s.saveGuage(metric, value)
+	case "gauge":
+		err := s.saveGauge(metric, value)
 		if err != nil {
 			return err
 		}
@@ -35,16 +35,16 @@ func (s *memStorage) Save(metric, metricType, value string) error {
 	return nil
 }
 
-func (s *memStorage) saveGuage(metric, value string) error {
+func (s *memStorage) saveGauge(metric, value string) error {
 	v, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return err
 	}
 
-	s.muGuage.Lock()
-	defer s.muGuage.Unlock()
+	s.muGauge.Lock()
+	defer s.muGauge.Unlock()
 
-	s.guage[metric] = v
+	s.gauge[metric] = v
 
 	return nil
 }
