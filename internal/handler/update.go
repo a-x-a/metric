@@ -72,26 +72,31 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func ok(w http.ResponseWriter) {
-	w.Header().Set("ContentType", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Add("Content-Type", "charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 }
 
 func methodNotAllowed(w http.ResponseWriter) {
-	w.Header().Set("ContentType", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Add("Content-Type", "charset=utf-8")
 	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 
 func notFound(w http.ResponseWriter) {
-	w.Header().Set("ContentType", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Add("Content-Type", "charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 func badRequest(w http.ResponseWriter) {
-	w.Header().Set("ContentType", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Add("Content-Type", "charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
 }
 
 func serverError(w http.ResponseWriter) {
-	w.Header().Set("ContentType", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Add("Content-Type", "charset=utf-8")
 	w.WriteHeader(http.StatusInternalServerError)
 }
