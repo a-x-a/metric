@@ -1,15 +1,22 @@
 package storage
 
-type Storage interface {
-	Save(metric, metricType, value string) error
+import "github.com/a-x-a/go-metric/internal/model/metric"
+
+type (
+	Record struct {
+		name  string
+		value metric.Metric
+	}
+
+	Storage interface {
+		Save(name string, rec Record) error
+	}
+)
+
+func NewRecord(name string) Record {
+	return Record{name: name}
 }
 
-type storage struct{}
-
-func New() Storage {
-	return storage{}
-}
-
-func (s storage) Save(metric, metricType, value string) error {
-	return nil
+func (rec *Record) SetValue(value metric.Metric) {
+	rec.value = value
 }

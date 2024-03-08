@@ -10,13 +10,17 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 )
 
 type metricSaver interface {
-	Save(metric string, metricType string, value string) error
+	Save(metric, metricType, value string) error
 }
+
+// type metricService interface {
+// 	SaveGauge(g metric.Gauge) error
+// 	SaveCounter(c metric.Counter) error
+// }
 
 type updateHandler struct {
 	saver metricSaver
@@ -45,58 +49,36 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	metric := args[1]
 	value := args[2]
 
-	switch metricType {
-	case "gauge":
-		_, err := strconv.ParseFloat(value, 64)
-		if err != nil {
-			badRequest(w)
-			return
-		}
-	case "counter":
-		_, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			badRequest(w)
-			return
-		}
-	default:
+	err := h.saver.Save(metric, metricType, value)
+	if err != nil {
 		badRequest(w)
 		return
 	}
 
-	err := h.saver.Save(metric, metricType, value)
-	if err != nil {
-		serverError(w)
-		return
-	}
 	ok(w)
 }
 
 func ok(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Add("Content-Type", "charset=utf-8")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
 func methodNotAllowed(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Add("Content-Type", "charset=utf-8")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 
 func notFound(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Add("Content-Type", "charset=utf-8")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 func badRequest(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Add("Content-Type", "charset=utf-8")
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func serverError(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Add("Content-Type", "charset=utf-8")
-	w.WriteHeader(http.StatusInternalServerError)
-}
+// func serverError(w http.ResponseWriter) {
+// 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+// 	w.WriteHeader(http.StatusInternalServerError)
+// }

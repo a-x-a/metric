@@ -1,64 +1,27 @@
 package memory
 
 import (
-	"strconv"
 	"sync"
+
+	"github.com/a-x-a/go-metric/internal/storage"
 )
 
 type memStorage struct {
-	muGauge   sync.Mutex
-	muCounter sync.Mutex
-	gauge     map[string]float64
-	counter   map[string]int64
+	data map[string]storage.Record
+	sync.RWMutex
 }
 
-func New() memStorage {
-	return memStorage{}
-}
-
-func (s *memStorage) Save(metric, metricType, value string) error {
-	switch metricType {
-	case "gauge":
-		err := s.saveGauge(metric, value)
-		if err != nil {
-			return err
-		}
-	case "counter":
-		err := s.saveCounter(metric, value)
-		if err != nil {
-			return err
-		}
-	default:
-
+func NewMemStorage() *memStorage {
+	return &memStorage{
+		data: make(map[string]storage.Record),
 	}
-
-	return nil
 }
 
-func (s *memStorage) saveGauge(metric, value string) error {
-	v, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return err
-	}
+func (ms *memStorage) Save(name string, rec storage.Record) error {
+	ms.Lock()
+	defer ms.Unlock()
 
-	s.muGauge.Lock()
-	defer s.muGauge.Unlock()
-
-	s.gauge[metric] = v
-
-	return nil
-}
-
-func (s *memStorage) saveCounter(metric, value string) error {
-	v, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return err
-	}
-
-	s.muCounter.Lock()
-	defer s.muCounter.Unlock()
-
-	s.counter[metric] += v
+	ms.data[name] = rec
 
 	return nil
 }
