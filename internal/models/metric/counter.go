@@ -1,5 +1,7 @@
 package metric
 
+import "fmt"
+
 type (
 	// Counter interface {
 	// 	Get() int64
@@ -14,4 +16,8 @@ type (
 
 func (c Counter) Kind() string {
 	return string(KindCounter)
+}
+
+func (c Counter) String() string {
+	return fmt.Sprintf("%d", c)
 }

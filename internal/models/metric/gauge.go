@@ -1,5 +1,7 @@
 package metric
 
+import "fmt"
+
 type (
 	// Gauge interface {
 	// 	Get() float64
@@ -11,4 +13,8 @@ type (
 
 func (g Gauge) Kind() string {
 	return string(KindGauge)
+}
+
+func (g Gauge) String() string {
+	return fmt.Sprintf("%f", g)
 }

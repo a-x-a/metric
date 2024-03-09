@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/a-x-a/go-metric/internal/model/metric"
+import "github.com/a-x-a/go-metric/internal/models/metric"
 
 type (
 	Record struct {

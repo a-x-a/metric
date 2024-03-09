@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/a-x-a/go-metric/internal/server"
+	"github.com/a-x-a/go-metric/internal/app"
 )
 
 func main() {
-	fmt.Println(server.Run())
+	srv := app.NewServer()
+	fmt.Println(srv.Run())
 }

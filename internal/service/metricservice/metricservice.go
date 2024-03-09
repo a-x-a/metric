@@ -1,9 +1,10 @@
 package metricservice
 
 import (
+	"fmt"
 	"strconv"
 
-	"github.com/a-x-a/go-metric/internal/model/metric"
+	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -39,6 +40,8 @@ func (s metricService) Save(name, kind, value string) error {
 	default:
 		return metric.ErrorInvalidMetricKind
 	}
+
+	fmt.Println("name:", name, rec)
 
 	return s.stor.Save(name, rec)
 }

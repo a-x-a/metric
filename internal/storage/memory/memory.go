@@ -11,6 +11,8 @@ type memStorage struct {
 	sync.RWMutex
 }
 
+var _ storage.Storage = &memStorage{}
+
 func NewMemStorage() *memStorage {
 	return &memStorage{
 		data: make(map[string]storage.Record),

@@ -17,11 +17,6 @@ type metricSaver interface {
 	Save(metric, metricType, value string) error
 }
 
-// type metricService interface {
-// 	SaveGauge(g metric.Gauge) error
-// 	SaveCounter(c metric.Counter) error
-// }
-
 type updateHandler struct {
 	saver metricSaver
 }
@@ -38,16 +33,16 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	path := strings.TrimPrefix(r.URL.Path, "/update/")
-	args := strings.Split(path, "/")
+	parts := strings.Split(path, "/")
 
-	if len(args) < 3 {
+	if len(parts) != 3 {
 		notFound(w)
 		return
 	}
 
-	metricType := args[0]
-	metric := args[1]
-	value := args[2]
+	metricType := parts[0]
+	metric := parts[1]
+	value := parts[2]
 
 	err := h.saver.Save(metric, metricType, value)
 	if err != nil {
@@ -77,8 +72,3 @@ func badRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusBadRequest)
 }
-
-// func serverError(w http.ResponseWriter) {
-// 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-// 	w.WriteHeader(http.StatusInternalServerError)
-// }

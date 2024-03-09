@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"fmt"
@@ -9,9 +9,20 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage/memory"
 )
 
-type Server interface {
-	Run() error
-}
+type (
+	Server interface {
+		Run() error
+	}
+	serverConfig struct {
+		// ListenAddress - адрес сервера сбора метрик
+		ListenAddress string
+	}
+	server struct {
+		Config serverConfig
+		// Service MetricService
+		// Storage storage.Storage
+	}
+)
 
 // type metricService interface {
 // 	Save(metric string, metricType string, value string) error
@@ -22,17 +33,26 @@ type Server interface {
 // 	storage storage.Storage
 // }
 
-func Run() error {
+func newServerConfig() serverConfig {
+	return serverConfig{
+		ListenAddress: "localhost:8080",
+	}
+}
+
+func NewServer() *server {
+	return &server{Config: newServerConfig()}
+}
+
+func (s *server) Run() error {
 	stor := memory.NewMemStorage()
 	service := metricservice.New(stor)
 	updateHandler := handler.NewUpdateHandler(service)
-
 	mux := http.NewServeMux()
 	mux.Handle("/update/", updateHandler)
 
-	fmt.Println("listening on 8080")
+	fmt.Println("listening on", s.Config.ListenAddress)
 
-	err := http.ListenAndServe("localhost:8080", mux)
+	err := http.ListenAndServe(s.Config.ListenAddress, mux)
 
 	if err != nil {
 		return err
