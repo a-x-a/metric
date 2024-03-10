@@ -6,7 +6,7 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
-	"github.com/a-x-a/go-metric/internal/storage/memory"
+	"github.com/a-x-a/go-metric/internal/storage"
 )
 
 type (
@@ -44,7 +44,7 @@ func NewServer() *server {
 }
 
 func (s *server) Run() error {
-	stor := memory.NewMemStorage()
+	stor := storage.NewMemStorage()
 	service := metricservice.New(stor)
 	updateHandler := handler.NewUpdateHandler(service)
 	mux := http.NewServeMux()

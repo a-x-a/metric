@@ -22,7 +22,7 @@ func (s metricService) Save(name, kind, value string) error {
 		return err
 	}
 
-	rec := storage.NewRecord(name)
+	record := storage.NewRecord(name)
 
 	switch metricKind {
 	case metric.KindGauge:
@@ -30,18 +30,18 @@ func (s metricService) Save(name, kind, value string) error {
 		if err != nil {
 			return err
 		}
-		rec.SetValue(metric.Gauge(val))
+		record.SetValue(metric.Gauge(val))
 	case metric.KindCounter:
 		val, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return err
 		}
-		rec.SetValue(metric.Counter(val))
+		record.SetValue(metric.Counter(val))
 	default:
 		return metric.ErrorInvalidMetricKind
 	}
 
-	fmt.Println("name:", name, rec)
+	fmt.Println("name:", name, record)
 
-	return s.stor.Save(name, rec)
+	return s.stor.Push(name, record)
 }

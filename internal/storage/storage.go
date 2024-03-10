@@ -9,7 +9,9 @@ type (
 	}
 
 	Storage interface {
-		Save(name string, rec Record) error
+		Push(name string, record Record) error
+		Get(name string) (Record, bool)
+		GetAll() []Record
 	}
 )
 

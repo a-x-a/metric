@@ -14,7 +14,7 @@ import (
 )
 
 type metricSaver interface {
-	Save(metric, metricType, value string) error
+	Save(name, kind, value string) error
 }
 
 type updateHandler struct {
@@ -40,11 +40,11 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricType := parts[0]
-	metric := parts[1]
+	metricKind := parts[0]
+	name := parts[1]
 	value := parts[2]
 
-	err := h.saver.Save(metric, metricType, value)
+	err := h.saver.Save(name, metricKind, value)
 	if err != nil {
 		badRequest(w)
 		return
