@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type saver struct{}
+type service struct{}
 
-func (s saver) Save(name, kind, value string) error {
+func (s service) Push(name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -38,8 +38,7 @@ func (s saver) Save(name, kind, value string) error {
 	return nil
 }
 func TestUpdateHandler(t *testing.T) {
-	updHandler := NewUpdateHandler(saver{})
-	srv := httptest.NewServer(updHandler)
+	srv := httptest.NewServer(Router(service{}))
 	defer srv.Close()
 
 	type result struct {

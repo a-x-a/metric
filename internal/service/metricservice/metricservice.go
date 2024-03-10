@@ -8,15 +8,21 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
-type metricService struct {
-	stor storage.Storage
-}
+type (
+	MetricService interface {
+		Push(name, kind, value string) error
+	}
+
+	metricService struct {
+		storage storage.Storage
+	}
+)
 
 func New(stor storage.Storage) metricService {
 	return metricService{stor}
 }
 
-func (s metricService) Save(name, kind, value string) error {
+func (s metricService) Push(name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -43,5 +49,5 @@ func (s metricService) Save(name, kind, value string) error {
 
 	fmt.Println("name:", name, record)
 
-	return s.stor.Push(name, record)
+	return s.storage.Push(name, record)
 }

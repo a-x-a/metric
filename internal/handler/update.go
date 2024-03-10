@@ -11,21 +11,19 @@ package handler
 import (
 	"net/http"
 	"strings"
+
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 )
 
-type metricSaver interface {
-	Save(name, kind, value string) error
+type metricHandlers struct {
+	metricService metricservice.MetricService
 }
 
-type updateHandler struct {
-	saver metricSaver
+func newMetricHandlers(metricService metricservice.MetricService) metricHandlers {
+	return metricHandlers{metricService}
 }
 
-func NewUpdateHandler(saver metricSaver) updateHandler {
-	return updateHandler{saver}
-}
-
-func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	// принимаем метрики методом POST
 	if r.Method != http.MethodPost {
 		methodNotAllowed(w)
@@ -40,11 +38,11 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metricKind := parts[0]
+	kind := parts[0]
 	name := parts[1]
 	value := parts[2]
 
-	err := h.saver.Save(name, metricKind, value)
+	err := h.metricService.Push(name, kind, value)
 	if err != nil {
 		badRequest(w)
 		return
