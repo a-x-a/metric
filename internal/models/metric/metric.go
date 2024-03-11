@@ -9,6 +9,8 @@ type (
 	Metric interface {
 		Kind() string   // Kind - возвращает тип метрики
 		String() string // Stringer
+		IsCounter() bool
+		IsGauge() bool
 	}
 
 	Metrics struct {

@@ -1,10 +1,12 @@
 package storage
 
-import "sync"
+import (
+	"sync"
+)
 
 type memStorage struct {
-	data map[string]Record
 	sync.Mutex
+	data map[string]Record
 }
 
 var _ Storage = &memStorage{}

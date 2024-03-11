@@ -31,7 +31,13 @@ func (s metricService) Push(name, kind, value string) error {
 	}
 
 	record := storage.NewRecord(name)
-
+	// recordValue := record.GetValue()
+	// if recordValue.IsCounter(){
+	// 	if v, ok := m.data[name]; ok{
+	// 		recordNewValue := metric.Gauge(v.GetValue()) + recordValue
+	// 		record.SetValue(v.value + record.value)
+	// 	}
+	// }
 	switch metricKind {
 	case metric.KindGauge:
 		val, err := strconv.ParseFloat(value, 64)
@@ -43,6 +49,9 @@ func (s metricService) Push(name, kind, value string) error {
 		val, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return err
+		}
+		if v, ok := s.storage.Get(name); ok {
+			val += int64(v.GetValue().(metric.Counter))
 		}
 		record.SetValue(metric.Counter(val))
 	default:
