@@ -8,16 +8,18 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/sender"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type (
 	agentConfig struct {
 		// PollInterval - частота обновления метрик, по умолчанию 2 сек
-		PollInterval time.Duration
+		PollInterval time.Duration `env:"POLL_INTERVAL"`
 		// ReportInterval - частота отправки метрик на сервер, по умолчанию 10 сек
-		ReportInterval time.Duration
+		ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 		// ServerAddress - адрес сервера сбора метрик
-		ServerAddress string
+		ServerAddress string `env:"ADDRESS"`
 	}
 	agent struct {
 		Config agentConfig
@@ -49,6 +51,8 @@ func newAgentConfig() agentConfig {
 
 	cfg.PollInterval = time.Duration(pollInterval) * time.Second
 	cfg.ReportInterval = time.Duration(reportInterval) * time.Second
+
+	_ = env.Parse(&cfg)
 
 	return cfg
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type (
@@ -17,7 +19,7 @@ type (
 
 	serverConfig struct {
 		// ListenAddress - адрес сервера сбора метрик
-		ListenAddress string
+		ListenAddress string `env:"ADDRESS"`
 	}
 
 	server struct {
@@ -39,6 +41,8 @@ func newServerConfig() serverConfig {
 	flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт сервера сбора метрик")
 
 	flag.Parse()
+
+	_ = env.Parse(&cfg)
 
 	return cfg
 }
