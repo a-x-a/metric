@@ -31,15 +31,24 @@ func newAgentConfig() agentConfig {
 		ServerAddress:  "localhost:8080",
 	}
 
+	pollInterval := 2
+	reportInterval := 10
+
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
 		flag.PrintDefaults()
 	}
 
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес и порт сервера сбора метрик")
-	flag.DurationVar(&cfg.PollInterval, "p", cfg.PollInterval, "частота обновления метрик")
-	flag.DurationVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "частота отправки метрик на сервер")
+	flag.IntVar(&pollInterval, "p", pollInterval, "частота обновления метрик")
+	flag.IntVar(&reportInterval, "r", reportInterval, "частота отправки метрик на сервер")
+	// flag.DurationVar(&cfg.PollInterval, "p", cfg.PollInterval, "частота обновления метрик")
+	// flag.DurationVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "частота отправки метрик на сервер")
+
 	flag.Parse()
+
+	cfg.PollInterval = time.Duration(pollInterval) * time.Second
+	cfg.ReportInterval = time.Duration(reportInterval) * time.Second
 
 	return cfg
 }
@@ -69,7 +78,7 @@ func (app *agent) Report(ctx context.Context, metrics *metric.Metrics) {
 	for {
 		select {
 		case <-ticker.C:
-			err := sender.SendMetrics(app.Config.ServerAddress, *metrics)
+			err := sender.SendMetrics(app.Config.ServerAddress, app.Config.PollInterval, *metrics)
 			if err != nil {
 				fmt.Println(err)
 			}

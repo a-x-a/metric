@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
@@ -14,9 +15,9 @@ type httpSender struct {
 	err     error
 }
 
-func NewSender(serverAddress string) httpSender {
+func NewSender(serverAddress string, timeout time.Duration) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
-	client := &http.Client{}
+	client := &http.Client{Timeout: timeout}
 
 	return httpSender{baseURL: baseURL, client: client, err: nil}
 }
@@ -64,8 +65,8 @@ func (hs *httpSender) exportCounter(name string, value metric.Counter) *httpSend
 	return hs.doSend(req)
 }
 
-func SendMetrics(serverAddress string, stats metric.Metrics) error {
-	sender := NewSender(serverAddress)
+func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metrics) error {
+	sender := NewSender(serverAddress, timeout)
 
 	// отправляем метрики пакета runtime
 	sender.
