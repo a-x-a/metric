@@ -34,12 +34,12 @@ func TestGauge_String(t *testing.T) {
 		{
 			name: "counter to string",
 			g:    Gauge(123.456),
-			want: "123.456000",
+			want: "123.456",
 		},
 		{
 			name: "zero counter to string",
 			g:    Gauge(0),
-			want: "0.000000",
+			want: "0.000",
 		},
 	}
 	for _, tt := range tests {

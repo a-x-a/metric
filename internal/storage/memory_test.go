@@ -122,9 +122,9 @@ func Test_Get(t *testing.T) {
 func Test_GetAll(t *testing.T) {
 	m := NewMemStorage()
 	records := [...]Record{
-		{name: "Alloc", value: metric.Gauge(12.3456)},
+		{name: "Alloc", value: metric.Gauge(12.345)},
 		{name: "PollCount", value: metric.Counter(123)},
-		{name: "Random", value: metric.Gauge(1313.1313)},
+		{name: "Random", value: metric.Gauge(1313.131)},
 	}
 	for _, v := range records {
 		m.Push(v.name, v)
