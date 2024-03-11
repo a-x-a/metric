@@ -16,5 +16,5 @@ func (g Gauge) Kind() string {
 }
 
 func (g Gauge) String() string {
-	return fmt.Sprintf("%f", g)
+	return fmt.Sprintf("%f.3", g)
 }
