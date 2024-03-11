@@ -4,7 +4,7 @@ import "sync"
 
 type memStorage struct {
 	data map[string]Record
-	sync.RWMutex
+	sync.Mutex
 }
 
 var _ Storage = &memStorage{}
@@ -24,8 +24,8 @@ func (m *memStorage) Push(name string, record Record) error {
 }
 
 func (m *memStorage) Get(name string) (Record, bool) {
-	m.RLock()
-	defer m.RUnlock()
+	m.Lock()
+	defer m.Unlock()
 	record, ok := m.data[name]
 
 	return record, ok
@@ -35,8 +35,8 @@ func (m *memStorage) GetAll() []Record {
 	records := make([]Record, len(m.data))
 	i := 0
 
-	m.RLock()
-	defer m.RUnlock()
+	m.Lock()
+	defer m.Unlock()
 	for _, v := range m.data {
 		records[i] = v
 		i++
