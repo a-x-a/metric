@@ -18,5 +18,8 @@ func (g Gauge) Kind() string {
 }
 
 func (g Gauge) String() string {
-	return strconv.FormatFloat(float64(g), 'f', 3, 64) //fmt.Sprintf("%.3f", g)
+	if g == 0 {
+		return strconv.FormatFloat(float64(g), 'f', 3, 64)
+	}
+	return strconv.FormatFloat(float64(g), 'f', -1, 64)
 }
