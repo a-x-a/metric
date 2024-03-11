@@ -1,6 +1,7 @@
 package app
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 
@@ -26,9 +27,20 @@ type (
 )
 
 func newServerConfig() serverConfig {
-	return serverConfig{
+	cfg := serverConfig{
 		ListenAddress: "localhost:8080",
 	}
+
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
+		flag.PrintDefaults()
+	}
+
+	flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт сервера сбора метрик")
+
+	flag.Parse()
+
+	return cfg
 }
 
 func NewServer() *server {

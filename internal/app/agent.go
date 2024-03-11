@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"time"
 
@@ -24,11 +25,23 @@ type (
 )
 
 func newAgentConfig() agentConfig {
-	return agentConfig{
+	cfg := agentConfig{
 		PollInterval:   2 * time.Second,
 		ReportInterval: 10 * time.Second,
 		ServerAddress:  "localhost:8080",
 	}
+
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
+		flag.PrintDefaults()
+	}
+
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес и порт сервера сбора метрик")
+	flag.DurationVar(&cfg.PollInterval, "p", cfg.PollInterval, "частота обновления метрик")
+	flag.DurationVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "частота отправки метрик на сервер")
+	flag.Parse()
+
+	return cfg
 }
 
 func NewAgent() *agent {

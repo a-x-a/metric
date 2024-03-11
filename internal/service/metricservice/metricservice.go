@@ -1,7 +1,6 @@
 package metricservice
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -31,13 +30,7 @@ func (s metricService) Push(name, kind, value string) error {
 	}
 
 	record := storage.NewRecord(name)
-	// recordValue := record.GetValue()
-	// if recordValue.IsCounter(){
-	// 	if v, ok := m.data[name]; ok{
-	// 		recordNewValue := metric.Gauge(v.GetValue()) + recordValue
-	// 		record.SetValue(v.value + record.value)
-	// 	}
-	// }
+
 	switch metricKind {
 	case metric.KindGauge:
 		val, err := strconv.ParseFloat(value, 64)
@@ -57,8 +50,6 @@ func (s metricService) Push(name, kind, value string) error {
 	default:
 		return metric.ErrorInvalidMetricKind
 	}
-
-	fmt.Println("name:", name, record)
 
 	return s.storage.Push(name, record)
 }
