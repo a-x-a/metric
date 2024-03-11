@@ -23,16 +23,6 @@ func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	for _, v := range records {
 		io.WriteString(w, fmt.Sprintf("%s\t%s\n", v.GetName(), v.GetValue().String()))
 	}
-	// t, err := template.ParseFiles("./assets/html/metrics.tmpl")
-	// if err != nil {
-	// 	internalServerError(w)
-	// 	return
-	// }
-
-	// if err := t.Execute(w, records); err != nil {
-	// 	internalServerError(w)
-	// 	return
-	// }
 
 	ok(w)
 }

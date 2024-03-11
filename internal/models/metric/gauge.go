@@ -5,11 +5,6 @@ import (
 )
 
 type (
-	// Gauge interface {
-	// 	Get() float64
-	// 	Set(v float64) error
-	// }
-
 	Gauge float64
 )
 
