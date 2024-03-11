@@ -1,6 +1,8 @@
 package metric
 
-import "fmt"
+import (
+	"strconv"
+)
 
 type (
 	// Counter interface {
@@ -19,5 +21,5 @@ func (c Counter) Kind() string {
 }
 
 func (c Counter) String() string {
-	return fmt.Sprintf("%d", c)
+	return strconv.FormatInt(int64(c), 10)
 }

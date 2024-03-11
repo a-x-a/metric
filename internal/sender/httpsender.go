@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
@@ -17,7 +16,8 @@ type httpSender struct {
 
 func NewSender(serverAddress string) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
-	client := &http.Client{Timeout: 2 * time.Second}
+	// client := &http.Client{Timeout: 2 * time.Second}
+	client := &http.Client{}
 
 	return httpSender{baseURL: baseURL, client: client, err: nil}
 }
