@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -45,9 +46,9 @@ func (s service) Get(name, kind string) (string, error) {
 	}
 
 	records := map[string]string{
-		"Alloc":     "12.3456",
-		"PollCount": "123",
-		"Random":    "1313.1313",
+		"Alloc":     fmt.Sprintf("%.3f", 12.345),
+		"PollCount": fmt.Sprintf("%d", 123),
+		"Random":    fmt.Sprintf("%.3f", 1313.131),
 	}
 	value, ok := records[name]
 	if !ok {
