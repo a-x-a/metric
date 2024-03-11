@@ -19,6 +19,14 @@ func NewRecord(name string) Record {
 	return Record{name: name}
 }
 
-func (rec *Record) SetValue(value metric.Metric) {
-	rec.value = value
+func (r *Record) SetValue(value metric.Metric) {
+	r.value = value
+}
+
+func (r *Record) GetValue() metric.Metric {
+	return r.value
+}
+
+func (r *Record) GetName() string {
+	return r.name
 }

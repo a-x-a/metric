@@ -24,7 +24,9 @@ type (
 
 var (
 	// ErrorMetricNameIsNull - не указано имя метрики
-	ErrorMetricNameIsNull = errors.New("model: ошибка cоздания метрики, не указано име метрики")
+	ErrorMetricNameIsNull = errors.New("metrics: ошибка cоздания метрики, не указано име метрики")
+	// ErrorMetricNotFound - метрика не найдена
+	ErrorMetricNotFound = errors.New("metrics: метрика не найдена")
 )
 
 func NewMetrics() *Metrics {

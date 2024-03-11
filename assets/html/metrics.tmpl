@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>All metrics</title>
+  </head>
+  <body>
+    <table summary="List of all available metrics">
+      <tr>
+        <th>Name</th>
+        <th>Kind</th>
+        <th>Value</th>
+      </tr>
+      <tbody>
+        {{range .}}
+        <tr>
+          <td>{{ .GetName }}</td>
+          <td>{{ .GetValue.Kind }}</td>
+          <td>{{ .GetValue.String }}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </body>
+</html>
