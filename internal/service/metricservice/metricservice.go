@@ -44,7 +44,9 @@ func (s metricService) Push(name, kind, value string) error {
 			return err
 		}
 		if v, ok := s.storage.Get(name); ok {
-			val += int64(v.GetValue().(metric.Counter))
+			if oldVal, ok := v.GetValue().(metric.Counter); ok {
+				val += int64(oldVal)
+			}
 		}
 		record.SetValue(metric.Counter(val))
 	default:
@@ -55,8 +57,7 @@ func (s metricService) Push(name, kind, value string) error {
 }
 
 func (s metricService) Get(name, kind string) (string, error) {
-	_, err := metric.GetKind(kind)
-	if err != nil {
+	if _, err := metric.GetKind(kind); err != nil {
 		return "", err
 	}
 
@@ -66,6 +67,7 @@ func (s metricService) Get(name, kind string) (string, error) {
 	}
 
 	value := record.GetValue().String()
+
 	return value, nil
 }
 
