@@ -251,7 +251,7 @@ linters:
     #   - forbidigo
     #   - forcetypeassert
     #   - funlen
-    # - gci
+    - gci
     #   - ginkgolinter
     #   - gocheckcompilerdirectives
     #   - gochecknoglobals
@@ -267,7 +267,7 @@ linters:
     #   - gofmt
     - gofumpt
     #   - goheader
-    # - goimports
+    - goimports
     #   - golint
     # - gomnd
     #   - gomoddirectives

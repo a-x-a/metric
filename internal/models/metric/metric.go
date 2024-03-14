@@ -7,27 +7,27 @@ import (
 
 type (
 	Metric interface {
-		Kind() string   // Kind - возвращает тип метрики
-		String() string // Stringer
+		Kind() string   // Kind - возвращает тип метрики.
+		String() string // Stringer.
 		IsCounter() bool
 		IsGauge() bool
 	}
 
 	Metrics struct {
-		// метрики пакета runtime
+		// метрики пакета runtime.
 		Memory MemoryMetrics
-		// дополнительные метрики
-		// PollCount - счётчик, увеличивающийся на 1 при каждом обновлении метрики из пакета runtime
+		// дополнительные метрики.
+		// PollCount - счётчик, увеличивающийся на 1 при каждом обновлении метрики из пакета runtime.
 		PollCount Counter
-		// RandomValue - обновляемое произвольное значение
+		// RandomValue - обновляемое произвольное значение.
 		RandomValue Gauge
 	}
 )
 
 var (
-	// ErrorMetricNameIsNull - не указано имя метрики
+	// ErrorMetricNameIsNull - не указано имя метрики.
 	ErrorMetricNameIsNull = errors.New("metrics: ошибка cоздания метрики, не указано име метрики")
-	// ErrorMetricNotFound - метрика не найдена
+	// ErrorMetricNotFound - метрика не найдена.
 	ErrorMetricNotFound = errors.New("metrics: метрика не найдена")
 )
 
