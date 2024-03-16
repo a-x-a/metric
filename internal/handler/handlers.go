@@ -5,8 +5,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/go-chi/chi"
+
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 )
 
 type metricHandlers struct {

@@ -3,8 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/go-chi/chi"
+
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 )
 
 func Router(metricService metricservice.MetricService) http.Handler {
