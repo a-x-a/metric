@@ -19,11 +19,13 @@ type (
 	}
 )
 
-func New(stor storage.Storage) metricService {
-	return metricService{stor}
+var _ MetricService = &metricService{}
+
+func New(stor storage.Storage) *metricService {
+	return &metricService{stor}
 }
 
-func (s metricService) Push(name, kind, value string) error {
+func (s *metricService) Push(name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
