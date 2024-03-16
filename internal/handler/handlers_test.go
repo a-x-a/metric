@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/a-x-a/go-metric/internal/models/metric"
-	"github.com/a-x-a/go-metric/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/storage"
 )
 
 type service struct{}

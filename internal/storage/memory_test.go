@@ -3,8 +3,9 @@ package storage
 import (
 	"testing"
 
-	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/stretchr/testify/require"
+
+	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 func Test_Push(t *testing.T) {
