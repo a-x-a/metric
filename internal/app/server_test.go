@@ -56,9 +56,9 @@ func Test_serverRun(t *testing.T) {
 			}()
 
 			conn, err := net.Dial("tcp", tt.a)
+			require.NoError(t, err)
 			defer conn.Close()
 
-			require.NoError(t, err)
 			require.NotNil(t, conn)
 		})
 	}
