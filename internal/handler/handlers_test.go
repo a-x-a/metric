@@ -61,17 +61,17 @@ func (s service) Get(name, kind string) (string, error) {
 
 func (s service) GetAll() []storage.Record {
 	records := []storage.Record{}
-	// record := storage.NewRecord("Alloc")
-	// record.SetValue(metric.Gauge(12.3456))
-	// records = append(records, record)
+	record := storage.NewRecord("Alloc")
+	record.SetValue(metric.Gauge(12.3456))
+	records = append(records, record)
 
-	// record = storage.NewRecord("PollCount")
-	// record.SetValue(metric.Counter(123))
-	// records = append(records, record)
+	record = storage.NewRecord("PollCount")
+	record.SetValue(metric.Counter(123))
+	records = append(records, record)
 
-	// record = storage.NewRecord("Random")
-	// record.SetValue(metric.Gauge(1313.1313))
-	// records = append(records, record)
+	record = storage.NewRecord("Random")
+	record.SetValue(metric.Gauge(1313.1313))
+	records = append(records, record)
 
 	return records
 }
