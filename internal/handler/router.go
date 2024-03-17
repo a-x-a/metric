@@ -34,7 +34,7 @@ func badRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func internalServerError(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusInternalServerError)
-}
+// func internalServerError(w http.ResponseWriter) {
+// 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+// 	w.WriteHeader(http.StatusInternalServerError)
+// }
