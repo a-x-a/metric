@@ -33,13 +33,13 @@ func Test_serverRun(t *testing.T) {
 		{
 			name:    "server run normal",
 			s:       &srv,
-			a:       "localhost:8081",
+			a:       "localhost:8091",
 			wantErr: false,
 		},
 		{
 			name:    "server run error",
 			s:       &srv,
-			a:       "localhost:8081",
+			a:       "localhost:8091",
 			wantErr: true,
 		},
 	}
