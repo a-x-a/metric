@@ -1,70 +1,80 @@
 package storage
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 func TestNewRecord(t *testing.T) {
-	type args struct {
-		name string
-	}
 	tests := []struct {
-		name string
-		args args
-		want Record
+		name       string
+		recordName string
+		want       Record
+		wantErr    bool
 	}{
 		{
-			name: "gauge1 record",
-			args: args{"gauge1"},
-			want: Record{name: "gauge1"},
+			name:       "gauge1 record",
+			recordName: "gauge1",
+			want:       Record{name: "gauge1"},
+			wantErr:    false,
 		},
 		{
-			name: "counter1 record",
-			args: args{"counter1"},
-			want: Record{name: "counter1"},
+			name:       "zero name record",
+			recordName: "",
+			want:       Record{},
+			wantErr:    true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewRecord(tt.args.name); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewRecord() = %v, want %v", got, tt.want)
+			got, err := NewRecord(tt.recordName)
+			if tt.wantErr {
+				require.Error(t, err)
+				require.Equal(t, tt.want, got)
+				return
 			}
+
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestRecord_SetValue(t *testing.T) {
-	recGauge := NewRecord("gauge1")
-	recGauge.SetValue(metric.Gauge(123.456))
-
-	recCounter := NewRecord("counter1")
-	recCounter.SetValue(metric.Counter(123))
-
-	type args struct {
-		value metric.Metric
+func TestRecordMetods(t *testing.T) {
+	record := Record{
+		name:  "counter",
+		value: metric.Counter(123),
 	}
+
 	tests := []struct {
-		name string
-		rec  *Record
-		args args
+		name   string
+		record *Record
+		value  metric.Metric
+		want   *Record
 	}{
 		{
-			name: "guage1 value",
-			rec:  &Record{name: "guage1"},
-			args: args{value: recGauge.value},
-		},
-		{
-			name: "counter1 value",
-			rec:  &Record{name: "counter1"},
-			args: args{value: recCounter.value},
+			name:   "set record value",
+			record: &Record{name: "counter"},
+			value:  metric.Counter(123),
+			want:   &record,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.rec.SetValue(tt.args.value)
+			tt.record.SetValue(tt.value)
+
+			v := tt.record.GetValue()
+			require.NotEmpty(t, v)
+			require.Equal(t, tt.want.value, v)
+
+			n := tt.record.GetName()
+			require.NotEmpty(t, n)
+			require.Equal(t, tt.want.name, n)
 		})
 	}
 }

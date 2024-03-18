@@ -31,7 +31,10 @@ func (s *metricService) Push(name, kind, value string) error {
 		return err
 	}
 
-	record := storage.NewRecord(name)
+	record, err := storage.NewRecord(name)
+	if err != nil {
+		return err
+	}
 
 	switch metricKind {
 	case metric.KindGauge:

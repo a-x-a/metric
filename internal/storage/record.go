@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/a-x-a/go-metric/internal/models/metric"
+import (
+	"errors"
+
+	"github.com/a-x-a/go-metric/internal/models/metric"
+)
 
 type (
 	Record struct {
@@ -9,8 +13,16 @@ type (
 	}
 )
 
-func NewRecord(name string) Record {
-	return Record{name: name}
+var (
+	// ErrInvalidName - не корректное имя записи.
+	ErrInvalidName = errors.New("record: a record has to have a valid name")
+)
+
+func NewRecord(name string) (Record, error) {
+	if name == "" {
+		return Record{}, ErrInvalidName
+	}
+	return Record{name: name}, nil
 }
 
 func (r *Record) SetValue(value metric.Metric) {
