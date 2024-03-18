@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewServer(t *testing.T) {
-	t.Run("create nw server", func(t *testing.T) {
+	t.Run("create new server", func(t *testing.T) {
 		got := NewServer()
 		require.NotNil(t, got)
 	})
@@ -33,13 +33,13 @@ func Test_serverRun(t *testing.T) {
 		{
 			name:    "server run normal",
 			s:       &srv,
-			a:       "localhost:8081",
+			a:       "localhost:8088",
 			wantErr: false,
 		},
 		{
 			name:    "server run error",
 			s:       &srv,
-			a:       "localhost:8081",
+			a:       "localhost:8088",
 			wantErr: true,
 		},
 	}
