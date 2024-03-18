@@ -2,6 +2,9 @@ package app
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,6 +46,7 @@ func Test_agent_Poll(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cancellingCtx, cancel := context.WithCancel(tt.args.ctx)
@@ -51,6 +55,54 @@ func Test_agent_Poll(t *testing.T) {
 
 			require.NotEmpty(t, tt.args.metrics)
 			require.NotEmpty(t, tt.args.metrics.PollCount)
+		})
+	}
+}
+
+func Test_agent_Report(t *testing.T) {
+	// Start a local HTTP server
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// Test request parameters
+		if strings.HasPrefix(req.URL.Path, "/update/counter/PollCount/12") {
+			rw.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			rw.WriteHeader(http.StatusOK)
+			return
+		}
+		rw.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		rw.WriteHeader(http.StatusNotFound)
+	}))
+	// Close the server when test finishes
+	defer server.Close()
+
+	cfg := config.AgentConfig{
+		PollInterval:   2 * time.Second,
+		ReportInterval: 10 * time.Second,
+		ServerAddress:  "localhost:8090",
+	}
+
+	metrics := metric.Metrics{
+		PollCount: metric.Counter(12),
+	}
+
+	tests := []struct {
+		name    string
+		app     *agent
+		ctx     context.Context
+		metrics *metric.Metrics
+	}{
+		{
+			name:    "poll",
+			app:     &agent{Config: cfg},
+			ctx:     context.Background(),
+			metrics: &metrics,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cancellingCtx, cancel := context.WithCancel(tt.ctx)
+			time.AfterFunc(tt.app.Config.ReportInterval, cancel)
+			tt.app.Report(cancellingCtx, tt.metrics)
 		})
 	}
 }
