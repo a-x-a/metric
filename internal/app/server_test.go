@@ -37,7 +37,7 @@ func Test_serverRun(t *testing.T) {
 		{
 			name:    "server run normal",
 			s:       &srv,
-			a:       "localhost:8088",
+			a:       "localhost:8888",
 			wantErr: false,
 		},
 	}
