@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -41,6 +42,7 @@ func Test_serverRun(t *testing.T) {
 		},
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(time.Second*10, cancel)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.s.srv.Addr = tt.a
@@ -56,5 +58,6 @@ func Test_serverRun(t *testing.T) {
 			require.NotNil(t, conn)
 		})
 	}
-	cancel()
+
+	// cancel()
 }
