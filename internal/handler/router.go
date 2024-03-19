@@ -4,12 +4,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-
-	"github.com/a-x-a/go-metric/internal/service/metricservice"
 )
 
-func Router(metricService metricservice.MetricService) http.Handler {
-	metricHendlers := newMetricHandlers(metricService)
+func Router(s metricService) http.Handler {
+	metricHendlers := newMetricHandlers(s)
 	r := chi.NewRouter()
 	// r.Use(logging.RequestsLogger)
 	r.Get("/", metricHendlers.List)
