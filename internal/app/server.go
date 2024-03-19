@@ -44,13 +44,14 @@ func NewServer() *server {
 func (s *server) Run(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 		fmt.Println("listening on", s.Config.ListenAddress)
 		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 			panic(fmt.Sprintf("failed to start http server: %v", err))
 		}
-		return
 	}()
+
 	wg.Wait()
 }
