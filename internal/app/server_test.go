@@ -26,7 +26,7 @@ func Test_serverRun(t *testing.T) {
 	srv := server{
 		Config:  cfg,
 		Storage: stor,
-		srv:     &http.Server{Addr: "localhost:8099"},
+		srv:     &http.Server{Addr: "localhost:9090"},
 	}
 	ctx := context.Background()
 
