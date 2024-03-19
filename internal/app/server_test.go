@@ -58,6 +58,6 @@ func Test_serverRun(t *testing.T) {
 			require.NotNil(t, conn)
 		})
 	}
-
+	_ = srv.srv.Shutdown(ctx)
 	// cancel()
 }
