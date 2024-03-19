@@ -24,7 +24,9 @@ func NewServerConfig() ServerConfig {
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт сервера сбора метрик")
+	if flag.Lookup("a") == nil {
+		flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт сервера сбора метрик")
+	}
 
 	flag.Parse()
 

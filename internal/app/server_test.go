@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -22,13 +23,17 @@ func TestNewServer(t *testing.T) {
 
 func Test_serverRun(t *testing.T) {
 	stor := storage.NewMemStorage()
-	cfg := config.ServerConfig{}
+	cfg := config.NewServerConfig()
+	// cfg.ListenAddress = "localhost:9092"
 	srv := server{
-		Config:  cfg,
-		Storage: stor,
-		srv:     &http.Server{Addr: "localhost:9090"},
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
 	ctx := context.Background()
+	time.AfterFunc(time.Second*5, func() {
+		_ = srv.httpServer.Shutdown(ctx)
+	})
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -37,11 +42,10 @@ func Test_serverRun(t *testing.T) {
 		srv.Run(ctx)
 	}()
 
-	conn, err := net.Dial("tcp", srv.srv.Addr)
+	conn, err := net.Dial("tcp", srv.httpServer.Addr)
 	require.NoError(t, err)
 	defer conn.Close()
 	require.NotNil(t, conn)
-	_ = srv.srv.Shutdown(ctx)
 
 	wg.Wait()
 }
