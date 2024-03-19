@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/a-x-a/go-metric/internal/app"
 )
 
 func main() {
 	srv := app.NewServer()
-	fmt.Println(srv.Run())
+	ctx := context.Background()
+	srv.Run(ctx)
 }
