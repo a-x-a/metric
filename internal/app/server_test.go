@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -26,38 +26,22 @@ func Test_serverRun(t *testing.T) {
 	srv := server{
 		Config:  cfg,
 		Storage: stor,
-		srv:     &http.Server{},
+		srv:     &http.Server{Addr: "localhost:8099"},
 	}
-	tests := []struct {
-		name    string
-		s       *server
-		a       string
-		wantErr bool
-	}{
-		{
-			name:    "server run normal",
-			s:       &srv,
-			a:       "localhost:8888",
-			wantErr: false,
-		},
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(time.Second*10, cancel)
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.s.srv.Addr = tt.a
+	ctx := context.Background()
 
-			go func() {
-				tt.s.Run(ctx)
-			}()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		srv.Run(ctx)
+	}()
 
-			conn, err := net.Dial("tcp", tt.a)
-			require.NoError(t, err)
-			defer conn.Close()
-
-			require.NotNil(t, conn)
-		})
-	}
+	conn, err := net.Dial("tcp", srv.srv.Addr)
+	require.NoError(t, err)
+	defer conn.Close()
+	require.NotNil(t, conn)
 	_ = srv.srv.Shutdown(ctx)
-	// cancel()
+
+	wg.Wait()
 }
