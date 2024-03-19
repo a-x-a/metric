@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,31 +24,28 @@ func TestNewServer(t *testing.T) {
 func Test_serverRun(t *testing.T) {
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
+	// cfg.ListenAddress = "localhost:9092"
 	srv := server{
-		Config:  cfg,
-		Storage: stor,
-		srv:     &http.Server{Addr: cfg.ListenAddress},
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
-	// ctx := context.Background()
-	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(time.Second*10, cancel)
-	defer cancel()
-	// wg := sync.WaitGroup{}
-	// wg.Add(1)
+	ctx := context.Background()
+	time.AfterFunc(time.Second*5, func() {
+		_ = srv.httpServer.Shutdown(ctx)
+	})
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
-		// defer wg.Done()
+		defer wg.Done()
 		srv.Run(ctx)
 	}()
 
-	conn, err := net.Dial("tcp", srv.srv.Addr)
+	conn, err := net.Dial("tcp", srv.httpServer.Addr)
 	require.NoError(t, err)
 	defer conn.Close()
 	require.NotNil(t, conn)
 
-	_ = srv.srv.Shutdown(ctx)
-	// if err := srv.srv.Shutdown(ctx); err != nil {
-	// 	// panic(err) // failure/timeout shutting down the server gracefully
-	// }
-
-	// wg.Wait()
+	wg.Wait()
 }

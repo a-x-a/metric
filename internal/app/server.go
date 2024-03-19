@@ -18,9 +18,9 @@ type (
 	}
 
 	server struct {
-		Config  config.ServerConfig
-		Storage storage.Storage
-		srv     *http.Server
+		Config     config.ServerConfig
+		Storage    storage.Storage
+		httpServer *http.Server
 	}
 )
 
@@ -35,9 +35,9 @@ func NewServer() *server {
 	}
 
 	return &server{
-		Config:  cfg,
-		Storage: ds,
-		srv:     srv,
+		Config:     cfg,
+		Storage:    ds,
+		httpServer: srv,
 	}
 }
 
@@ -48,7 +48,7 @@ func (s *server) Run(ctx context.Context) {
 	go func() {
 		defer wg.Done()
 		fmt.Println("listening on", s.Config.ListenAddress)
-		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 			panic(fmt.Sprintf("failed to start http server: %v", err))
 		}
 	}()
