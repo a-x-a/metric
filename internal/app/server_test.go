@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -31,9 +30,9 @@ func Test_serverRun(t *testing.T) {
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
 	ctx := context.Background()
-	time.AfterFunc(time.Second*10, func() {
-		_ = srv.httpServer.Shutdown(ctx)
-	})
+	// time.AfterFunc(time.Second*10, func() {
+	// 	_ = srv.httpServer.Shutdown(ctx)
+	// })
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -46,6 +45,6 @@ func Test_serverRun(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 	require.NotNil(t, conn)
-
+	_ = srv.httpServer.Shutdown(ctx)
 	wg.Wait()
 }
