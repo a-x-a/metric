@@ -27,11 +27,12 @@ func Test_serverRun(t *testing.T) {
 	srv := server{
 		Config:  cfg,
 		Storage: stor,
-		srv:     &http.Server{Addr: "localhost:9090"},
+		srv:     &http.Server{Addr: "localhost:9091"},
 	}
 	// ctx := context.Background()
 	ctx, cancel := context.WithCancel(context.Background())
 	time.AfterFunc(time.Second*10, cancel)
+	defer cancel()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
