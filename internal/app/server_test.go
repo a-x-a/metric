@@ -1,7 +1,9 @@
 package app
 
 import (
+	"context"
 	"net"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,6 +25,7 @@ func Test_serverRun(t *testing.T) {
 	srv := server{
 		Config:  cfg,
 		Storage: stor,
+		srv:     &http.Server{},
 	}
 	tests := []struct {
 		name    string
@@ -33,26 +36,17 @@ func Test_serverRun(t *testing.T) {
 		{
 			name:    "server run normal",
 			s:       &srv,
-			a:       "localhost:8091",
+			a:       "localhost:8081",
 			wantErr: false,
 		},
-		{
-			name:    "server run error",
-			s:       &srv,
-			a:       "localhost:8091",
-			wantErr: true,
-		},
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			srv.Config.ListenAddress = tt.a
+			tt.s.srv.Addr = tt.a
 
 			go func() {
-				err := srv.Run()
-				if tt.wantErr {
-					require.Error(t, err)
-					return
-				}
+				tt.s.Run(ctx)
 			}()
 
 			conn, err := net.Dial("tcp", tt.a)
@@ -62,4 +56,5 @@ func Test_serverRun(t *testing.T) {
 			require.NotNil(t, conn)
 		})
 	}
+	cancel()
 }

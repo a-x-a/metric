@@ -1,8 +1,10 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/handler"
@@ -18,21 +20,37 @@ type (
 	server struct {
 		Config  config.ServerConfig
 		Storage storage.Storage
+		srv     *http.Server
 	}
 )
 
 func NewServer() *server {
+	cfg := config.NewServerConfig()
+	ds := storage.NewMemStorage()
+	ms := metricservice.New(ds)
+	rt := handler.Router(ms)
+	srv := &http.Server{
+		Addr:    cfg.ListenAddress,
+		Handler: rt,
+	}
+
 	return &server{
-		Config:  config.NewServerConfig(),
-		Storage: storage.NewMemStorage(),
+		Config:  cfg,
+		Storage: ds,
+		srv:     srv,
 	}
 }
 
-func (s *server) Run() error {
-	service := metricservice.New(s.Storage)
-	r := handler.Router(service)
-
-	fmt.Println("listening on", s.Config.ListenAddress)
-
-	return http.ListenAndServe(s.Config.ListenAddress, r)
+func (s *server) Run(ctx context.Context) {
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("listening on", s.Config.ListenAddress)
+		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+			panic(fmt.Sprintf("failed to start http server: %v", err))
+		}
+		return
+	}()
+	wg.Wait()
 }
