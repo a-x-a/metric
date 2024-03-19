@@ -45,9 +45,10 @@ func Test_serverRun(t *testing.T) {
 	defer conn.Close()
 	require.NotNil(t, conn)
 
-	if err := srv.srv.Shutdown(ctx); err != nil {
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
+	_ = srv.srv.Shutdown(ctx)
+	// if err := srv.srv.Shutdown(ctx); err != nil {
+	// 	// panic(err) // failure/timeout shutting down the server gracefully
+	// }
 
 	wg.Wait()
 }
