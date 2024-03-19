@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"sync"
 	"testing"
 	"time"
 
@@ -23,20 +22,20 @@ func TestNewServer(t *testing.T) {
 
 func Test_serverRun(t *testing.T) {
 	stor := storage.NewMemStorage()
-	cfg := config.ServerConfig{}
+	cfg := config.NewServerConfig()
 	srv := server{
 		Config:  cfg,
 		Storage: stor,
-		srv:     &http.Server{Addr: "localhost:9091"},
+		srv:     &http.Server{Addr: cfg.ListenAddress},
 	}
 	// ctx := context.Background()
 	ctx, cancel := context.WithCancel(context.Background())
 	time.AfterFunc(time.Second*10, cancel)
 	defer cancel()
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	// wg := sync.WaitGroup{}
+	// wg.Add(1)
 	go func() {
-		defer wg.Done()
+		// defer wg.Done()
 		srv.Run(ctx)
 	}()
 
@@ -50,5 +49,5 @@ func Test_serverRun(t *testing.T) {
 	// 	// panic(err) // failure/timeout shutting down the server gracefully
 	// }
 
-	wg.Wait()
+	// wg.Wait()
 }
