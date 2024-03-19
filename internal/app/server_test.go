@@ -31,7 +31,7 @@ func Test_serverRun(t *testing.T) {
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
 	ctx := context.Background()
-	time.AfterFunc(time.Second*5, func() {
+	time.AfterFunc(time.Second*10, func() {
 		_ = srv.httpServer.Shutdown(ctx)
 	})
 

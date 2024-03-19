@@ -52,6 +52,7 @@ func (s *server) Run(ctx context.Context) {
 			panic(fmt.Sprintf("failed to start http server: %v", err))
 		}
 	}()
-
+	fmt.Println("start")
 	wg.Wait()
+	fmt.Println("stop")
 }
