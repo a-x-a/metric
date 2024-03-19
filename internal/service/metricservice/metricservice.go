@@ -8,18 +8,10 @@ import (
 )
 
 type (
-	MetricService interface {
-		Push(name, kind, value string) error
-		Get(name, kind string) (string, error)
-		GetAll() []storage.Record
-	}
-
 	metricService struct {
 		storage storage.Storage
 	}
 )
-
-var _ MetricService = &metricService{}
 
 func New(stor storage.Storage) *metricService {
 	return &metricService{stor}
