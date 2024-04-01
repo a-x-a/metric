@@ -6,17 +6,16 @@ import (
 	"net/http"
 	"sync"
 
+	"go.uber.org/zap"
+
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/handler"
+	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
 type (
-	Server interface {
-		Run() error
-	}
-
 	server struct {
 		Config     config.ServerConfig
 		Storage    storage.Storage
@@ -42,17 +41,22 @@ func NewServer() *server {
 }
 
 func (s *server) Run(ctx context.Context) {
+	if err := logger.Initialize(s.Config.LogLevel); err != nil {
+		panic(fmt.Sprintf("failed to initialize logger: %v", err))
+	}
+
+	defer logger.Log.Sync()
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
-		fmt.Println("listening on", s.Config.ListenAddress)
+		logger.Log.Info("start http server", zap.String("address", s.Config.ListenAddress))
 		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-			panic(fmt.Sprintf("failed to start http server: %v", err))
+			logger.Log.Panic("failed to start http server", zap.String("err", err.Error()))
 		}
 	}()
-	fmt.Println("start")
+
 	wg.Wait()
-	fmt.Println("stop")
 }

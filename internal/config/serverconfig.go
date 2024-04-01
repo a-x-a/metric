@@ -11,12 +11,15 @@ type (
 	ServerConfig struct {
 		// ListenAddress - адрес сервера сбора метрик
 		ListenAddress string `env:"ADDRESS"`
+		// LogLevel - уровень логирования, по умолчанию info
+		LogLevel string
 	}
 )
 
 func NewServerConfig() ServerConfig {
 	cfg := ServerConfig{
 		ListenAddress: "localhost:8080",
+		LogLevel:      "info",
 	}
 
 	flag.Usage = func() {
