@@ -47,7 +47,7 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 
 	value, err := h.service.Get(name, kind)
 	if err != nil {
-		responseWithCode(w, http.StatusNotFound)
+		responseWithCode(w, http.StatusBadRequest)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.Push(name, kind, value)
 	if err != nil {
-		responseWithCode(w, http.StatusNotFound)
+		responseWithCode(w, http.StatusBadRequest)
 		return
 	}
 
