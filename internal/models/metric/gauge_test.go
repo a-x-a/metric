@@ -99,3 +99,77 @@ func TestGauge_IsGauge(t *testing.T) {
 		})
 	}
 }
+
+func TestToGauge(t *testing.T) {
+	tt := []struct {
+		name     string
+		value    string
+		valid    bool
+		expected Gauge
+	}{
+		{
+			name:     "positive integer",
+			value:    "13",
+			valid:    true,
+			expected: 13.0,
+		},
+		{
+			name:     "zero integer",
+			value:    "0",
+			valid:    true,
+			expected: 0.0,
+		},
+		{
+			name:     "negative integer",
+			value:    "-13",
+			valid:    true,
+			expected: -13.0,
+		},
+		{
+			name:     "positive float",
+			value:    "2345678.1234000",
+			valid:    true,
+			expected: 2345678.1234,
+		},
+		{
+			name:     "zero float",
+			value:    "0.000000",
+			valid:    true,
+			expected: 0.0,
+		},
+		{
+			name:     "negative float",
+			value:    "-2345678.1234000",
+			valid:    true,
+			expected: -2345678.1234,
+		},
+		{
+			name:     "small positive float",
+			value:    "0.654321",
+			valid:    true,
+			expected: 0.654321,
+		},
+		{
+			name:  "meaningless value",
+			value: "...",
+			valid: false,
+		},
+		{
+			name:  "malformed value",
+			value: "0.12(",
+			valid: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			metric, err := ToGauge(tc.value)
+			if tc.valid {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, metric)
+			} else {
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}

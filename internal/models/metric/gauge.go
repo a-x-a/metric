@@ -26,3 +26,12 @@ func (g Gauge) IsCounter() bool {
 func (g Gauge) IsGauge() bool {
 	return true
 }
+
+func ToGauge(value string) (Gauge, error) {
+	val, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return Gauge(val), nil
+}

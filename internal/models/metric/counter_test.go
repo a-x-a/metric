@@ -94,3 +94,57 @@ func TestCounter_IsGauge(t *testing.T) {
 		})
 	}
 }
+func TestToCounter(t *testing.T) {
+	tt := []struct {
+		name     string
+		value    string
+		valid    bool
+		expected Counter
+	}{
+		{
+			name:     "positive integer",
+			value:    "13",
+			valid:    true,
+			expected: 13,
+		},
+		{
+			name:     "zero integer",
+			value:    "0",
+			valid:    true,
+			expected: 0,
+		},
+		{
+			name:     "negative integer",
+			value:    "-13",
+			valid:    true,
+			expected: -13,
+		},
+		{
+			name:  "positive float",
+			value: "2345678.000000",
+			valid: false,
+		},
+		{
+			name:  "zero float",
+			value: "0.000000",
+			valid: false,
+		},
+		{
+			name:  "negative float",
+			value: "-2345678.000000",
+			valid: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			metric, err := ToCounter(tc.value)
+			if tc.valid {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, metric)
+			} else {
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}

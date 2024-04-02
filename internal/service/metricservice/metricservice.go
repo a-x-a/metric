@@ -1,8 +1,6 @@
 package metricservice
 
 import (
-	"strconv"
-
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
@@ -30,27 +28,54 @@ func (s *metricService) Push(name, kind, value string) error {
 
 	switch metricKind {
 	case metric.KindGauge:
-		val, err := strconv.ParseFloat(value, 64)
+		val, err := metric.ToGauge(value)
 		if err != nil {
 			return err
 		}
-		record.SetValue(metric.Gauge(val))
+		record.SetValue(val)
 	case metric.KindCounter:
-		val, err := strconv.ParseInt(value, 10, 64)
+		val, err := metric.ToCounter(value)
 		if err != nil {
 			return err
 		}
 		if v, ok := s.storage.Get(name); ok {
 			if oldVal, ok := v.GetValue().(metric.Counter); ok {
-				val += int64(oldVal)
+				val += oldVal
 			}
 		}
-		record.SetValue(metric.Counter(val))
+		record.SetValue(val)
 	default:
 		return metric.ErrorInvalidMetricKind
 	}
 
 	return s.storage.Push(name, record)
+}
+
+func (s *metricService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+	record, err := storage.NewRecord(name)
+	if err != nil {
+		return 0, err
+	}
+
+	if v, ok := s.storage.Get(name); ok {
+		if oldVal, ok := v.GetValue().(metric.Counter); ok {
+			value += oldVal
+		}
+	}
+	record.SetValue(value)
+
+	return value, s.storage.Push(name, record)
+}
+
+func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+	record, err := storage.NewRecord(name)
+	if err != nil {
+		return 0, err
+	}
+
+	record.SetValue(value)
+
+	return value, s.storage.Push(name, record)
 }
 
 func (s metricService) Get(name, kind string) (string, error) {

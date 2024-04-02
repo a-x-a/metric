@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -17,25 +18,20 @@ func Router(s metricService) http.Handler {
 	r.Get("/value/{kind}/{name}", metricHendlers.Get)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
 
+	r.Get("/value/", metricHendlers.GetJSON)
+	r.Post("/update/", metricHendlers.UpdateJSON)
+
 	return r
 }
 
-func ok(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+func responseWithError(w http.ResponseWriter, code int, err error) {
+	resp := fmt.Sprintf("%d: %s", code, err.Error())
+	logger.Log.Error(resp)
+	http.Error(w, resp, code)
 }
 
-func notFound(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusNotFound)
+func responseWithCode(w http.ResponseWriter, code int) {
+	resp := fmt.Sprintf("%d: %s", code, http.StatusText(code))
+	logger.Log.Debug(resp)
+	w.WriteHeader(code)
 }
-
-func badRequest(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusBadRequest)
-}
-
-// func internalServerError(w http.ResponseWriter) {
-// 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-// 	w.WriteHeader(http.StatusInternalServerError)
-// }

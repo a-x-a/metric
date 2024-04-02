@@ -40,6 +40,22 @@ func (s service) Push(name, kind, value string) error {
 	return nil
 }
 
+func (s service) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+	if name == "" {
+		return 0, storage.ErrInvalidName
+	}
+
+	return value, nil
+}
+
+func (s service) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+	if name == "" {
+		return 0, storage.ErrInvalidName
+	}
+
+	return value, nil
+}
+
 func (s service) Get(name, kind string) (string, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {

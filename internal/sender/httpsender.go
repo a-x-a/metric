@@ -1,12 +1,15 @@
 package sender
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/schema"
 )
 
 type httpSender struct {
@@ -22,8 +25,8 @@ func NewSender(serverAddress string, timeout time.Duration) httpSender {
 	return httpSender{baseURL: baseURL, client: client, err: nil}
 }
 
-func (hs *httpSender) doSend(req string) *httpSender {
-	resp, err := hs.client.Post(req, "Content-Type: text/plain", nil)
+func (hs *httpSender) doSend(req string, data []byte) *httpSender {
+	resp, err := hs.client.Post(req, "Content-Type: application/json", bytes.NewReader(data))
 	if err != nil {
 		hs.err = err
 		return hs
@@ -50,9 +53,16 @@ func (hs *httpSender) exportGauge(name string, value metric.Gauge) *httpSender {
 		return hs
 	}
 
-	req := fmt.Sprintf("%s/update/gauge/%s/%f", hs.baseURL, name, value)
+	requestMetric := schema.NewUpdateRequestMetricGauge(name, value)
+	data, err := json.Marshal(requestMetric)
+	if err != nil {
+		hs.err = err
+		return hs
+	}
 
-	return hs.doSend(req)
+	req := fmt.Sprintf("%s/update/", hs.baseURL)
+
+	return hs.doSend(req, data)
 }
 
 func (hs *httpSender) exportCounter(name string, value metric.Counter) *httpSender {
@@ -60,9 +70,16 @@ func (hs *httpSender) exportCounter(name string, value metric.Counter) *httpSend
 		return hs
 	}
 
-	req := fmt.Sprintf("%s/update/counter/%s/%d", hs.baseURL, name, value)
+	requestMetric := schema.NewUpdateRequestMetricCounter(name, value)
+	data, err := json.Marshal(requestMetric)
+	if err != nil {
+		hs.err = err
+		return hs
+	}
 
-	return hs.doSend(req)
+	req := fmt.Sprintf("%s/update/", hs.baseURL)
+
+	return hs.doSend(req, data)
 }
 
 func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metrics) error {
