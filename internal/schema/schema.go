@@ -21,6 +21,7 @@ func NewUpdateRequestMetricCounter(name string, value metric.Counter) RequestMet
 
 func NewUpdateRequestMetricGauge(name string, value metric.Gauge) RequestMetric {
 	val := float64(value)
+
 	return RequestMetric{
 		ID:    name,
 		MType: value.Kind(),

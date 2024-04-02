@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -36,6 +37,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		newValue := float64(val)
 		data.Value = &newValue
 
+		fmt.Println("data:=", data.ID, data.MType, *data.Value)
 	default:
 		responseWithCode(w, http.StatusBadRequest)
 		return

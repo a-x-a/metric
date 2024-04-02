@@ -32,12 +32,11 @@ var (
 )
 
 func NewMetrics() *Metrics {
-	return &Metrics{
-		RandomValue: Gauge(rand.Float64()),
-	}
+	return &Metrics{}
 }
 
 func (m *Metrics) Poll() {
 	m.PollCount += 1
+	m.RandomValue = Gauge(rand.Float64())
 	m.Memory.Poll()
 }
