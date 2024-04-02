@@ -75,7 +75,12 @@ func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge
 
 	record.SetValue(value)
 
-	return value, s.storage.Push(name, record)
+	err = s.storage.Push(name, record)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
 }
 
 func (s metricService) Get(name, kind string) (string, error) {
