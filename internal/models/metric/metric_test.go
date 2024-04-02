@@ -4,26 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestNewMetrics(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "new metrics create",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.NotEmpty(t, NewMetrics())
-		})
-	}
-}
-
 func TestMetrics_Poll(t *testing.T) {
-	metric := NewMetrics()
+	metric := &Metrics{}
 	tests := []struct {
 		name  string
 		m     *Metrics

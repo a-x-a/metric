@@ -27,7 +27,7 @@ func Test_agent_Poll(t *testing.T) {
 		ReportInterval: 10 * time.Second,
 		ServerAddress:  "localhost:8080",
 	}
-	metrics := metric.NewMetrics()
+	metrics := &metric.Metrics{}
 	type args struct {
 		ctx     context.Context
 		metrics *metric.Metrics

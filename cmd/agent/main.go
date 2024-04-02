@@ -14,8 +14,8 @@ import (
 func main() {
 	agent := app.NewAgent()
 	ctx := context.Background()
+	metric := &metric.Metrics{}
 
-	metric := metric.NewMetrics()
 	go agent.Poll(ctx, metric)
 	go agent.Report(ctx, metric)
 
