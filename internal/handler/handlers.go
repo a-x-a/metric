@@ -47,7 +47,7 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 
 	value, err := h.service.Get(name, kind)
 	if err != nil {
-		responseWithCode(w, http.StatusBadRequest)
+		responseWithCode(w, http.StatusNotFound)
 		return
 	}
 
