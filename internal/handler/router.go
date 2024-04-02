@@ -18,7 +18,7 @@ func Router(s metricService) http.Handler {
 	r.Get("/value/{kind}/{name}", metricHendlers.Get)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
 
-	r.Get("/value/", metricHendlers.GetJSON)
+	r.Post("/value/", metricHendlers.GetJSON)
 	r.Post("/update/", metricHendlers.UpdateJSON)
 
 	return r
