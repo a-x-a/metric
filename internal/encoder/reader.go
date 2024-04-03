@@ -5,9 +5,6 @@ import (
 	"io"
 )
 
-// compressReader реализует интерфейс io.ReadCloser и позволяет прозрачно для сервера.
-// декомпрессировать получаемые от клиента данные.
-
 type compressReader struct {
 	r  io.ReadCloser
 	zr *gzip.Reader
