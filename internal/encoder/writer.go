@@ -2,7 +2,6 @@ package encoder
 
 import (
 	"compress/gzip"
-	"io"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -14,7 +13,7 @@ import (
 // сжимать передаваемые данные и выставлять правильные HTTP-заголовки.
 type compressWriter struct {
 	http.ResponseWriter
-	zw io.Writer
+	zw *gzip.Writer
 }
 
 func newCompressWriter(w http.ResponseWriter) (*compressWriter, error) {
@@ -64,5 +63,5 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
 func (c *compressWriter) Close() error {
-	return c.Close()
+	return c.zw.Close()
 }
