@@ -93,3 +93,82 @@ func TestUpdateJSONMetric(t *testing.T) {
 		})
 	}
 }
+
+func TestGetJSONMetric(t *testing.T) {
+	type result struct {
+		code int
+		body adapter.RequestMetric
+	}
+
+	tt := []struct {
+		name     string
+		req      adapter.RequestMetric
+		expected result
+	}{
+		{
+			name: "get counter",
+			req:  adapter.NewGetRequestMetricCounter("PollCount"),
+			expected: result{
+				code: http.StatusOK,
+				body: adapter.NewUpdateRequestMetricCounter("PollCount", 123),
+			},
+		},
+		{
+			name: "get gauge",
+			req:  adapter.NewGetRequestMetricGauge("Alloc"),
+			expected: result{
+				code: http.StatusOK,
+				body: adapter.NewUpdateRequestMetricGauge("Alloc", 12.345),
+			},
+		},
+		{
+			name: "get unknown metric kind",
+			req:  adapter.RequestMetric{ID: "Alloc", MType: "unknown"},
+			expected: result{
+				code: http.StatusNotFound,
+			},
+		},
+		{
+			name: "get unknown counter",
+			req:  adapter.NewGetRequestMetricCounter("unknown"),
+			expected: result{
+				code: http.StatusNotFound,
+			},
+		},
+		{
+			name: "get unknown gauge",
+			req:  adapter.NewGetRequestMetricGauge("unknown"),
+			expected: result{
+				code: http.StatusNotFound,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			assert := assert.New(t)
+			require := require.New(t)
+
+			data, err := json.Marshal(tc.req)
+			require.NoError(err)
+
+			resp := sendTestRequest(t, http.MethodPost, "/value/", data)
+
+			assert.Equal(tc.expected.code, resp.StatusCode)
+
+			if tc.expected.code == http.StatusOK {
+				assert.Equal("application/json", resp.Header.Get("Content-Type"))
+
+				respBody, err := io.ReadAll(resp.Body)
+				require.NoError(err)
+				defer resp.Body.Close()
+
+				var resp adapter.RequestMetric
+				err = json.Unmarshal(respBody, &resp)
+				require.NoError(err)
+
+				assert.Equal(tc.expected.body, resp)
+			}
+		})
+	}
+}
