@@ -62,7 +62,7 @@ func CompressHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		logger.Log.Info("compression supported by client", zap.String("method", "gzip"))
+		// logger.Log.Info("compression supported by client", zap.String("method", "gzip"))
 
 		// w.Header().Set("Content-Encoding", "gzip")
 
