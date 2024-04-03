@@ -74,7 +74,7 @@ func CompressHandler(next http.Handler) http.Handler {
 
 		defer zw.Close()
 
-		w.Header().Set("Content-Encoding", "gzip")
+		// w.Header().Set("Content-Encoding", "gzip")
 
 		next.ServeHTTP(compressWriter{ResponseWriter: w, Writer: zw}, r)
 	})
