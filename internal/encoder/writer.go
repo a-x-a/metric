@@ -43,7 +43,7 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 		zw, err := gzip.NewWriterLevel(c.ResponseWriter, gzip.BestSpeed)
 		if err != nil {
 			logger.Log.Error("compressWriter", zap.Error(err))
-			return c.ResponseWriter.Write(p)
+			return 0, err //c.ResponseWriter.Write(p)
 		}
 
 		c.zw = zw
