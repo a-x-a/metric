@@ -54,12 +54,12 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zw.Write(p)
 }
 
-func (c *compressWriter) WriteHeader(statusCode int) {
-	if statusCode < http.StatusMultipleChoices {
-		c.ResponseWriter.Header().Set("Content-Encoding", "gzip")
-	}
-	c.ResponseWriter.WriteHeader(statusCode)
-}
+// func (c *compressWriter) WriteHeader(statusCode int) {
+// 	if statusCode < http.StatusMultipleChoices {
+// 		c.ResponseWriter.Header().Set("Content-Encoding", "gzip")
+// 	}
+// 	c.ResponseWriter.WriteHeader(statusCode)
+// }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
 func (c *compressWriter) Close() error {
