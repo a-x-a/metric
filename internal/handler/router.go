@@ -16,8 +16,8 @@ func Router(s metricService) http.Handler {
 
 	r.Use(logger.WithLogger)
 	r.Use(encoder.DecompressHandler)
-	r.Use(encoder.CompressHandler)
-	// r.Use(encoder.GzipHandle)
+	// r.Use(encoder.CompressHandler)
+	r.Use(encoder.GzipHandle)
 
 	r.Get("/", metricHendlers.List)
 
