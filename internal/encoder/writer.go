@@ -16,11 +16,11 @@ type compressWriter struct {
 }
 
 func (c compressWriter) Write(p []byte) (int, error) {
-	// contentType := c.Header().Get("Content-Type")
-	// if !isSupportedContentType(contentType) {
-	// 	logger.Log.Debug("сжатие не поддерживается", zap.String("ContentType", contentType))
-	// 	return c.ResponseWriter.Write(p)
-	// }
+	contentType := c.Header().Get("Content-Type")
+	if !isSupportedContentType(contentType) {
+		logger.Log.Debug("сжатие не поддерживается", zap.String("ContentType", contentType))
+		return c.ResponseWriter.Write(p)
+	}
 
 	if c.Writer == nil {
 		zw, err := gzip.NewWriterLevel(c.ResponseWriter, gzip.BestSpeed)
