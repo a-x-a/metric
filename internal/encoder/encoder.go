@@ -59,7 +59,7 @@ func DecompressHandler(next http.Handler) http.Handler {
 func CompressHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			logger.Log.Info("compression not supported by client", zap.String("method", "gzip"))
+			// logger.Log.Info("compression not supported by client", zap.String("method", "gzip"))
 			next.ServeHTTP(w, r)
 			return
 		}
