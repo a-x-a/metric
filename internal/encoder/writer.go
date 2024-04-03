@@ -50,18 +50,19 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 		c.zw = zw
 	}
 
+	c.Header().Set("Content-Encoding", "gzip")
+
 	return c.zw.Write(p)
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		c.w.Header().Set("Content-Encoding", "gzip")
-	}
+	// if statusCode < 300 {
+	// 	c.w.Header().Set("Content-Encoding", "gzip")
+	// }
 	c.w.WriteHeader(statusCode)
 }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
-
 func (c *compressWriter) Close() error {
 	return c.zw.Close()
 }
