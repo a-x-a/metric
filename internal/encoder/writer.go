@@ -32,8 +32,8 @@ func (c compressWriter) Write(p []byte) (int, error) {
 		c.Writer = zw
 	}
 
-	c.Header().Set("Content-Encoding", "gzip")
-	c.ResponseWriter.Header().Set("Content-Encoding", "gzip")
+	// c.Header().Set("Content-Encoding", "gzip")
+	// c.ResponseWriter.Header().Set("Content-Encoding", "gzip")
 
 	return c.Writer.Write(p)
 }
