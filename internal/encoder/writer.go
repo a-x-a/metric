@@ -50,7 +50,8 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 		c.zw = zw
 	}
 
-	c.Header().Set("Content-Encoding", "gzip")
+	// c.Header().Set("Content-Encoding", "gzip")
+	c.w.Header().Set("Content-Encoding", "gzip")
 
 	return c.zw.Write(p)
 }
