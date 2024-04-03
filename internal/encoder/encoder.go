@@ -66,6 +66,8 @@ func CompressHandler(next http.Handler) http.Handler {
 
 		logger.Log.Info("compression supported by client", zap.String("method", "gzip"))
 
+		// w.Header().Set("Content-Encoding", "gzip")
+
 		cw, err := newCompressWriter(w)
 		if err != nil {
 			logger.Log.Error("compress writer", zap.Error(err))
@@ -74,6 +76,8 @@ func CompressHandler(next http.Handler) http.Handler {
 		}
 
 		defer cw.Close()
+
+		cw.Header().Set("Content-Encoding", "gzip")
 
 		next.ServeHTTP(cw, r)
 	})
