@@ -16,16 +16,16 @@ type compressWriter struct {
 	zw *gzip.Writer
 }
 
-func newCompressWriter(w http.ResponseWriter) (*compressWriter, error) {
-	zw, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
-	if err != nil {
-		return nil, err
-	}
+func newCompressWriter(w http.ResponseWriter) *compressWriter {
+	// zw, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &compressWriter{
 		ResponseWriter: w,
-		zw:             zw,
-	}, nil
+		// zw:             zw,
+	}
 }
 
 // func (c *compressWriter) Header() http.Header {
@@ -62,6 +62,8 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 // }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
-func (c *compressWriter) Close() error {
-	return c.zw.Close()
+func (c *compressWriter) Close() {
+	if c.zw != nil {
+		c.zw.Close()
+	}
 }
