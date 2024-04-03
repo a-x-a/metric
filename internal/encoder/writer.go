@@ -3,7 +3,6 @@ package encoder
 import (
 	"compress/gzip"
 	"net/http"
-	"strings"
 
 	"go.uber.org/zap"
 
@@ -50,43 +49,19 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 		c.zw = zw
 	}
 
-	// c.Header().Set("Content-Encoding", "gzip")
-	c.w.Header().Set("Content-Encoding", "gzip")
+	c.Header().Set("Content-Encoding", "gzip")
 
 	return c.zw.Write(p)
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	// if statusCode < 300 {
-	// 	c.w.Header().Set("Content-Encoding", "gzip")
-	// }
+	if statusCode < 300 {
+		c.w.Header().Set("Content-Encoding", "gzip")
+	}
 	c.w.WriteHeader(statusCode)
 }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
 func (c *compressWriter) Close() error {
 	return c.zw.Close()
-}
-
-func CompressHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			logger.Log.Info("compression not supported by client", zap.String("method", "gzip"))
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		logger.Log.Info("compression supported by client", zap.String("method", "gzip"))
-
-		cw, err := newCompressWriter(w)
-		if err != nil {
-			logger.Log.Error("compress writer", zap.Error(err))
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		defer cw.Close()
-
-		next.ServeHTTP(cw, r)
-	})
 }
