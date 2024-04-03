@@ -6,20 +6,25 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
 )
 
 func Router(s metricService) http.Handler {
 	metricHendlers := newMetricHandlers(s)
 	r := chi.NewRouter()
+
 	r.Use(logger.WithLogger)
+	r.Use(encoder.DecompressHandle)
+	r.Use(encoder.CompressHandler)
 
 	r.Get("/", metricHendlers.List)
-	r.Get("/value/{kind}/{name}", metricHendlers.Get)
-	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
 
 	r.Post("/value/", metricHendlers.GetJSON)
+	r.Get("/value/{kind}/{name}", metricHendlers.Get)
+
 	r.Post("/update/", metricHendlers.UpdateJSON)
+	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
 
 	return r
 }
