@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
-	"github.com/a-x-a/go-metric/internal/schema"
 )
 
 func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
-	data := &schema.RequestMetric{}
+	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err)
 		return
@@ -54,7 +54,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
-	data := &schema.RequestMetric{}
+	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err)
 		return
