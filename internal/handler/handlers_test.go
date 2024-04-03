@@ -14,9 +14,9 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
-type service struct{}
+type mockService struct{}
 
-func (s service) Push(name, kind, value string) error {
+func (s mockService) Push(name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (s service) Push(name, kind, value string) error {
 	return nil
 }
 
-func (s service) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+func (s mockService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -48,7 +48,7 @@ func (s service) PushCounter(name string, value metric.Counter) (metric.Counter,
 	return value, nil
 }
 
-func (s service) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -56,7 +56,7 @@ func (s service) PushGauge(name string, value metric.Gauge) (metric.Gauge, error
 	return value, nil
 }
 
-func (s service) Get(name, kind string) (string, error) {
+func (s mockService) Get(name, kind string) (string, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {
 		return "", err
@@ -75,7 +75,7 @@ func (s service) Get(name, kind string) (string, error) {
 	return value, nil
 }
 
-func (s service) GetAll() []storage.Record {
+func (s mockService) GetAll() []storage.Record {
 	records := []storage.Record{}
 	record, _ := storage.NewRecord("Alloc")
 	record.SetValue(metric.Gauge(12.3456))
@@ -93,7 +93,7 @@ func (s service) GetAll() []storage.Record {
 }
 
 func TestUpdateHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(service{}))
+	srv := httptest.NewServer(Router(mockService{}))
 	defer srv.Close()
 
 	type result struct {
@@ -182,7 +182,12 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(service{}))
+	srv := httptest.NewServer(Router(mockService{}))
+	// ctrl := gomock.NewController(t)
+	// defer ctrl.Finish()
+	// s := NewMockmetricService(ctrl)
+	// srv := httptest.NewServer(Router(s))
+	// srv := httptest.NewServer(Router(service{}))
 	defer srv.Close()
 
 	type result struct {
@@ -255,7 +260,7 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestListHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(service{}))
+	srv := httptest.NewServer(Router(mockService{}))
 	defer srv.Close()
 
 	type result struct {
