@@ -29,7 +29,7 @@ func newMetricHandlers(s metricService) metricHandlers {
 }
 
 func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	records := h.service.GetAll()
 	for _, v := range records {
@@ -40,7 +40,7 @@ func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	kind := chi.URLParam(r, "kind")
 	name := chi.URLParam(r, "name")
@@ -57,7 +57,7 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	kind := chi.URLParam(r, "kind")
 	name := chi.URLParam(r, "name")
