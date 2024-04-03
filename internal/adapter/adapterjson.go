@@ -1,4 +1,4 @@
-package schema
+package adapter
 
 import "github.com/a-x-a/go-metric/internal/models/metric"
 

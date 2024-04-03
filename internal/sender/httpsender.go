@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
-	"github.com/a-x-a/go-metric/internal/schema"
 )
 
 type httpSender struct {
@@ -53,7 +53,7 @@ func (hs *httpSender) exportGauge(name string, value metric.Gauge) *httpSender {
 		return hs
 	}
 
-	requestMetric := schema.NewUpdateRequestMetricGauge(name, value)
+	requestMetric := adapter.NewUpdateRequestMetricGauge(name, value)
 	data, err := json.Marshal(requestMetric)
 	if err != nil {
 		hs.err = err
@@ -70,7 +70,7 @@ func (hs *httpSender) exportCounter(name string, value metric.Counter) *httpSend
 		return hs
 	}
 
-	requestMetric := schema.NewUpdateRequestMetricCounter(name, value)
+	requestMetric := adapter.NewUpdateRequestMetricCounter(name, value)
 	data, err := json.Marshal(requestMetric)
 	if err != nil {
 		hs.err = err
