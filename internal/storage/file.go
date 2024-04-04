@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/logger"
+	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 type withFileStorage struct {
@@ -84,11 +85,66 @@ func (m *withFileStorage) Load() error {
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(m.memStorage); err != nil {
+	if err := decoder.Decode(&m.data); err != nil {
 		return err
 	}
 
 	logger.Log.Info("storage loded from file", zap.String("file", m.path))
+
+	return nil
+}
+
+type JSONMetric struct {
+	Name  string  `json:"name"`            // имя метрики
+	Kind  string  `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+func recordToJSONMetric(r Record) JSONMetric {
+	j := JSONMetric{
+		Name: r.name,
+		Kind: r.value.Kind(),
+	}
+
+	switch {
+	case r.value.IsCounter():
+		if v, ok := r.GetValue().(metric.Counter); ok {
+			j.Delta = int64(v)
+		}
+	case r.value.IsGauge():
+		if v, ok := r.GetValue().(metric.Gauge); ok {
+			j.Value = float64(v)
+		}
+	}
+
+	return j
+}
+
+func jsonMetricToRecord(j JSONMetric, r *Record) {
+	r.name = j.Name
+	switch j.Kind {
+	case "gauge":
+		val := metric.Gauge(j.Value)
+		r.SetValue(val)
+	case "counter":
+		val := metric.Counter(j.Delta)
+		r.SetValue(val)
+	}
+}
+
+func (r Record) MarshalJSON() ([]byte, error) {
+	j := recordToJSONMetric(r)
+	return json.Marshal(j)
+}
+
+func (r *Record) UnmarshalJSON(data []byte) error {
+	j := JSONMetric{}
+	if err := json.Unmarshal(data, &j); err != nil {
+		return err
+	}
+
+	jsonMetricToRecord(j, r)
 
 	return nil
 }

@@ -18,7 +18,7 @@ func TestNewRecord(t *testing.T) {
 		{
 			name:       "gauge1 record",
 			recordName: "gauge1",
-			want:       Record{Name: "gauge1"},
+			want:       Record{name: "gauge1"},
 			wantErr:    false,
 		},
 		{
@@ -46,8 +46,8 @@ func TestNewRecord(t *testing.T) {
 
 func TestRecordMetods(t *testing.T) {
 	record := Record{
-		Name:  "counter",
-		Value: metric.Counter(123),
+		name:  "counter",
+		value: metric.Counter(123),
 	}
 
 	tests := []struct {
@@ -58,7 +58,7 @@ func TestRecordMetods(t *testing.T) {
 	}{
 		{
 			name:   "set record value",
-			record: &Record{Name: "counter"},
+			record: &Record{name: "counter"},
 			value:  metric.Counter(123),
 			want:   &record,
 		},
@@ -70,11 +70,11 @@ func TestRecordMetods(t *testing.T) {
 
 			v := tt.record.GetValue()
 			require.NotEmpty(t, v)
-			require.Equal(t, tt.want.Value, v)
+			require.Equal(t, tt.want.value, v)
 
 			n := tt.record.GetName()
 			require.NotEmpty(t, n)
-			require.Equal(t, tt.want.Name, n)
+			require.Equal(t, tt.want.name, n)
 		})
 	}
 }
