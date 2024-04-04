@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -48,18 +47,19 @@ func (s *server) Run(ctx context.Context) {
 
 	defer logger.Log.Sync()
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+	if s.Config.Restore {
+		s.restoreStorage()
+	}
 
-	go func() {
-		defer wg.Done()
-		logger.Log.Info("start http server", zap.String("address", s.Config.ListenAddress))
-		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-			logger.Log.Panic("failed to start http server", zap.String("err", err.Error()))
-		}
-	}()
+	if len(s.Config.FileStoregePath) > 0 && s.Config.StoreInterval > 0 {
+		go s.saveStorage(ctx)
+	}
 
-	wg.Wait()
+	logger.Log.Info("start http server", zap.String("address", s.Config.ListenAddress))
+
+	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		logger.Log.Fatal("failed to start http server", zap.String("err", err.Error()))
+	}
 }
 
 type withFileStorage interface {
@@ -89,4 +89,8 @@ func (s *server) saveStorage(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (s *server) restoreStorage() {
+	// TODO
 }
