@@ -57,7 +57,5 @@ func (m *memStorage) GetSnapShot() *memStorage {
 		snap[k] = v
 	}
 
-	// logger.Log.Info("get snapshot", zap.Any("SNAPSHOT", snap), zap.Any("DATA", m.data))
-
 	return &memStorage{data: snap}
 }

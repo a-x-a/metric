@@ -60,7 +60,7 @@ func (m *withFileStorage) Save() error {
 		return err
 	}
 
-	logger.Log.Info("saved storage to file", zap.String("file", m.path), zap.Any("JSON", snapshot.data))
+	logger.Log.Info("saved storage to file", zap.String("file", m.path))
 
 	return nil
 }

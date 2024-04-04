@@ -135,3 +135,23 @@ func Test_GetAll(t *testing.T) {
 	require.ElementsMatch(t, records, got)
 	require.Equal(t, len(records), len(got))
 }
+
+func Test_GetSnapShot(t *testing.T) {
+	m := NewMemStorage()
+	records := [...]Record{
+		{Name: "Alloc", Value: metric.Gauge(12.345)},
+		{Name: "PollCount", Value: metric.Counter(123)},
+		{Name: "Random", Value: metric.Gauge(1313.131)},
+	}
+	for _, v := range records {
+		m.Push(v.Name, v)
+	}
+
+	snap := m.GetSnapShot()
+
+	r := m.GetAll()
+	rs := snap.GetAll()
+
+	require.ElementsMatch(t, r, rs)
+	require.Equal(t, len(r), len(rs))
+}
