@@ -2,12 +2,31 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/a-x-a/go-metric/internal/app"
 )
 
 func main() {
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint,
+		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+
 	srv := app.NewServer()
-	ctx := context.Background()
-	srv.Run(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go srv.Run(ctx)
+
+	signal := <-sigint
+
+	cancel()
+
+	srv.Shutdown(signal)
 }

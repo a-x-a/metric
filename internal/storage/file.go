@@ -61,3 +61,31 @@ func (m *withFileStorage) Save() error {
 
 	return nil
 }
+
+func (m *withFileStorage) Load() error {
+	m.Lock()
+	defer m.Unlock()
+
+	logger.Log.Info("loading storage from file", zap.String("file", m.path))
+
+	file, err := os.Open(m.path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			logger.Log.Error("storage file not found", zap.String("file", m.path))
+			return nil
+		}
+
+		return err
+	}
+
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(m.memStorage); err != nil {
+		return err
+	}
+
+	logger.Log.Info("storage loded from file", zap.String("file", m.path))
+
+	return nil
+}

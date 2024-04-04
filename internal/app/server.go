@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -20,6 +21,11 @@ type (
 		Config     config.ServerConfig
 		Storage    storage.Storage
 		httpServer *http.Server
+	}
+
+	withFileStorage interface {
+		Save() error
+		Load() error
 	}
 )
 
@@ -48,7 +54,7 @@ func (s *server) Run(ctx context.Context) {
 	defer logger.Log.Sync()
 
 	if s.Config.Restore {
-		s.restoreStorage()
+		s.loadStorage()
 	}
 
 	if len(s.Config.FileStoregePath) > 0 && s.Config.StoreInterval > 0 {
@@ -58,17 +64,29 @@ func (s *server) Run(ctx context.Context) {
 	logger.Log.Info("start http server", zap.String("address", s.Config.ListenAddress))
 
 	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		logger.Log.Fatal("failed to start http server", zap.String("err", err.Error()))
+		logger.Log.Fatal("failed to start http server", zap.Error(err))
 	}
 }
 
-type withFileStorage interface {
-	Save() error
+func (s *server) Shutdown(signal os.Signal) {
+	logger.Log.Info("start server shutdown", zap.String("signal", signal.String()))
+
+	if err := s.httpServer.Shutdown(context.Background()); err != nil {
+		logger.Log.Error("server shutdowning error", zap.Error(err))
+	}
+
+	if ds, ok := s.Storage.(withFileStorage); ok {
+		if err := ds.Save(); err != nil {
+			logger.Log.Error("storage saving error", zap.Error(err))
+		}
+	}
+
+	logger.Log.Info("successfully server shutdowning")
 }
 
 func (s *server) saveStorage(ctx context.Context) {
 	if _, ok := s.Storage.(withFileStorage); !ok {
-		logger.Log.Debug("storage doesn't support saving to disk")
+		logger.Log.Debug("storage doesn't support saving to file")
 		return
 	}
 
@@ -91,6 +109,14 @@ func (s *server) saveStorage(ctx context.Context) {
 	}
 }
 
-func (s *server) restoreStorage() {
-	// TODO
+func (s *server) loadStorage() {
+	ds, ok := s.Storage.(withFileStorage)
+	if !ok {
+		logger.Log.Debug("storage doesn't support loading from file")
+		return
+	}
+
+	if err := ds.Load(); err != nil {
+		logger.Log.Fatal("failed to load storage", zap.Error(err))
+	}
 }
