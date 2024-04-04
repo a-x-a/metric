@@ -13,17 +13,17 @@ import (
 type withFileStorage struct {
 	*memStorage
 	sync.Mutex
-	fileStoragePath string
-	syncMode        bool
+	path     string
+	syncMode bool
 }
 
 var _ Storage = &withFileStorage{}
 
-func NewWithFileStorage(fileStoragePath string, syncMode bool) *withFileStorage {
+func NewWithFileStorage(path string, syncMode bool) *withFileStorage {
 	return &withFileStorage{
-		memStorage:      NewMemStorage(),
-		fileStoragePath: fileStoragePath,
-		syncMode:        syncMode,
+		memStorage: NewMemStorage(),
+		path:       path,
+		syncMode:   syncMode,
 	}
 }
 
@@ -43,16 +43,16 @@ func (m *withFileStorage) Save() error {
 	m.Lock()
 	defer m.Unlock()
 
-	logger.Log.Info("save storage to file", zap.String("file", m.fileStoragePath))
+	logger.Log.Info("save storage to file", zap.String("file", m.path))
 
-	file, err := os.OpenFile(m.fileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	f, err := os.OpenFile(m.path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 
-	defer file.Close()
+	defer f.Close()
 
-	encoder := json.NewEncoder(file)
+	encoder := json.NewEncoder(f)
 	snapshot := m.memStorage.GetSnapShot()
 
 	if err := encoder.Encode(snapshot); err != nil {
