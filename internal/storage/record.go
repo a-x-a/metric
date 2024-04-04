@@ -8,8 +8,8 @@ import (
 
 type (
 	Record struct {
-		name  string
-		value metric.Metric
+		Name  string
+		Value metric.Metric
 	}
 )
 
@@ -22,17 +22,17 @@ func NewRecord(name string) (Record, error) {
 	if name == "" {
 		return Record{}, ErrInvalidName
 	}
-	return Record{name: name}, nil
+	return Record{Name: name}, nil
 }
 
 func (r *Record) SetValue(value metric.Metric) {
-	r.value = value
+	r.Value = value
 }
 
 func (r *Record) GetValue() metric.Metric {
-	return r.value
+	return r.Value
 }
 
 func (r *Record) GetName() string {
-	return r.name
+	return r.Name
 }

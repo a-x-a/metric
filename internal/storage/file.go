@@ -43,7 +43,7 @@ func (m *withFileStorage) Save() error {
 	m.Lock()
 	defer m.Unlock()
 
-	logger.Log.Info("save storage to file", zap.String("file", m.path))
+	logger.Log.Info("start save storage to file", zap.String("file", m.path))
 
 	f, err := os.OpenFile(m.path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -55,9 +55,12 @@ func (m *withFileStorage) Save() error {
 	encoder := json.NewEncoder(f)
 	snapshot := m.memStorage.GetSnapShot()
 
-	if err := encoder.Encode(snapshot); err != nil {
+	if err := encoder.Encode(snapshot.data); err != nil {
+		logger.Log.Info("error of save storage to file", zap.Error(err))
 		return err
 	}
+
+	logger.Log.Info("saved storage to file", zap.String("file", m.path), zap.Any("JSON", snapshot.data))
 
 	return nil
 }

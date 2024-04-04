@@ -11,9 +11,9 @@ import (
 func Test_Push(t *testing.T) {
 	m := NewMemStorage()
 	records := [...]Record{
-		{name: "Alloc", value: metric.Gauge(12.3456)},
-		{name: "PollCount", value: metric.Counter(123)},
-		{name: "Random", value: metric.Gauge(1313.1313)},
+		{Name: "Alloc", Value: metric.Gauge(12.3456)},
+		{Name: "PollCount", Value: metric.Counter(123)},
+		{Name: "Random", Value: metric.Gauge(1313.1313)},
 	}
 
 	type args struct {
@@ -27,20 +27,20 @@ func Test_Push(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "record " + records[0].name,
-			args:    args{name: records[0].name, record: records[0]},
+			name:    "record " + records[0].Name,
+			args:    args{name: records[0].Name, record: records[0]},
 			want:    records[0],
 			wantErr: false,
 		},
 		{
-			name:    "record " + records[1].name,
-			args:    args{name: records[1].name, record: records[1]},
+			name:    "record " + records[1].Name,
+			args:    args{name: records[1].Name, record: records[1]},
 			want:    records[1],
 			wantErr: false,
 		},
 		{
-			name:    "record " + records[2].name,
-			args:    args{name: records[2].name, record: records[2]},
+			name:    "record " + records[2].Name,
+			args:    args{name: records[2].Name, record: records[2]},
 			want:    records[2],
 			wantErr: false,
 		},
@@ -62,13 +62,13 @@ func Test_Push(t *testing.T) {
 func Test_Get(t *testing.T) {
 	m := NewMemStorage()
 	records := [...]Record{
-		{name: "Alloc", value: metric.Gauge(12.3456)},
-		{name: "PollCount", value: metric.Counter(123)},
-		{name: "Random", value: metric.Gauge(1313.1313)},
+		{Name: "Alloc", Value: metric.Gauge(12.3456)},
+		{Name: "PollCount", Value: metric.Counter(123)},
+		{Name: "Random", Value: metric.Gauge(1313.1313)},
 	}
 
 	for _, v := range records {
-		m.Push(v.name, v)
+		m.Push(v.Name, v)
 	}
 
 	type args struct {
@@ -82,26 +82,26 @@ func Test_Get(t *testing.T) {
 		ok   bool
 	}{
 		{
-			name: "record " + records[0].name,
-			args: args{name: records[0].name, record: records[0]},
+			name: "record " + records[0].Name,
+			args: args{name: records[0].Name, record: records[0]},
 			want: records[0],
 			ok:   true,
 		},
 		{
-			name: "record " + records[1].name,
-			args: args{name: records[1].name, record: records[1]},
+			name: "record " + records[1].Name,
+			args: args{name: records[1].Name, record: records[1]},
 			want: records[1],
 			ok:   true,
 		},
 		{
-			name: "record " + records[2].name,
-			args: args{name: records[2].name, record: records[2]},
+			name: "record " + records[2].Name,
+			args: args{name: records[2].Name, record: records[2]},
 			want: records[2],
 			ok:   true,
 		},
 		{
 			name: "record unknown",
-			args: args{name: ")unknown(", record: Record{name: ")unknown(", value: metric.Metric(nil)}},
+			args: args{name: ")unknown(", record: Record{Name: ")unknown(", Value: metric.Metric(nil)}},
 			want: Record{},
 			ok:   false,
 		},
@@ -123,12 +123,12 @@ func Test_Get(t *testing.T) {
 func Test_GetAll(t *testing.T) {
 	m := NewMemStorage()
 	records := [...]Record{
-		{name: "Alloc", value: metric.Gauge(12.345)},
-		{name: "PollCount", value: metric.Counter(123)},
-		{name: "Random", value: metric.Gauge(1313.131)},
+		{Name: "Alloc", Value: metric.Gauge(12.345)},
+		{Name: "PollCount", Value: metric.Counter(123)},
+		{Name: "Random", Value: metric.Gauge(1313.131)},
 	}
 	for _, v := range records {
-		m.Push(v.name, v)
+		m.Push(v.Name, v)
 	}
 
 	got := m.GetAll()
