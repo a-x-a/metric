@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -25,7 +26,7 @@ type (
 
 func NewServer() *server {
 	cfg := config.NewServerConfig()
-	ds := storage.NewMemStorage()
+	ds := storage.NewDataStorage(cfg.FileStoregePath, cfg.StoreInterval)
 	ms := metricservice.New(ds)
 	rt := handler.Router(ms)
 	srv := &http.Server{
@@ -59,4 +60,33 @@ func (s *server) Run(ctx context.Context) {
 	}()
 
 	wg.Wait()
+}
+
+type withFileStorage interface {
+	Save() error
+}
+
+func (s *server) saveStorage(ctx context.Context) {
+	if _, ok := s.Storage.(withFileStorage); !ok {
+		logger.Log.Debug("storage doesn't support saving to disk")
+		return
+	}
+
+	ticker := time.NewTicker(s.Config.StoreInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			func() {
+				if err := s.Storage.(withFileStorage).Save(); err != nil {
+					logger.Log.Error("storage saving error", zap.Error(err))
+				}
+			}()
+
+		case <-ctx.Done():
+			logger.Log.Info("shutdown storage saving")
+			return
+		}
+	}
 }
