@@ -132,19 +132,3 @@ func jsonMetricToRecord(j JSONMetric, r *Record) {
 		r.SetValue(val)
 	}
 }
-
-func (r Record) MarshalJSON() ([]byte, error) {
-	j := recordToJSONMetric(r)
-	return json.Marshal(j)
-}
-
-func (r *Record) UnmarshalJSON(data []byte) error {
-	j := JSONMetric{}
-	if err := json.Unmarshal(data, &j); err != nil {
-		return err
-	}
-
-	jsonMetricToRecord(j, r)
-
-	return nil
-}

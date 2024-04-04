@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -35,4 +36,20 @@ func (r *Record) GetValue() metric.Metric {
 
 func (r *Record) GetName() string {
 	return r.name
+}
+
+func (r Record) MarshalJSON() ([]byte, error) {
+	j := recordToJSONMetric(r)
+	return json.Marshal(j)
+}
+
+func (r *Record) UnmarshalJSON(data []byte) error {
+	j := JSONMetric{}
+	if err := json.Unmarshal(data, &j); err != nil {
+		return err
+	}
+
+	jsonMetricToRecord(j, r)
+
+	return nil
 }
