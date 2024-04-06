@@ -200,7 +200,7 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 }
 
 func Test_server_loadWitFileStorage(t *testing.T) {
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_1234567890.json"
+	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, true)
 	cfg := config.NewServerConfig()
 	srv := server{
@@ -210,4 +210,34 @@ func Test_server_loadWitFileStorage(t *testing.T) {
 	}
 
 	srv.loadStorage()
+}
+
+func Test_server_loadFileError(t *testing.T) {
+	var err error
+	require := require.New(t)
+
+	fileName := os.TempDir() + string(os.PathSeparator) + "test_1234567890.json"
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	require.NoError(err)
+
+	err = f.Close()
+	require.NoError(err)
+
+	stor := storage.NewWithFileStorage(fileName, true)
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
+	defer func() {
+		r := recover()
+		require.NotNil(r)
+	}()
+
+	srv.loadStorage()
+
+	err = os.Remove(fileName)
+	require.NoError(err)
 }

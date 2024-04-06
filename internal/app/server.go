@@ -119,6 +119,6 @@ func (s *server) loadStorage() {
 	}
 
 	if err := ds.Load(); err != nil {
-		logger.Log.Fatal("failed to load storage", zap.Error(err))
+		logger.Log.Panic("failed to load storage", zap.Error(err))
 	}
 }
