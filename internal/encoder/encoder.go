@@ -23,7 +23,7 @@ func isSupportedContentType(contentType string) bool {
 	return false
 }
 
-func DecompressHandler(next http.Handler) http.Handler {
+func DecompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		encoding := r.Header.Get("Content-Encoding")
 		if len(encoding) == 0 {
@@ -55,7 +55,7 @@ func DecompressHandler(next http.Handler) http.Handler {
 	})
 }
 
-func CompressHandler(next http.Handler) http.Handler {
+func CompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			logger.Log.Info("compression not supported by client", zap.String("method", "gzip"))
