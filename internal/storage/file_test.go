@@ -46,12 +46,25 @@ func Test_FileStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	dirName := os.TempDir() + string(os.PathSeparator)
-	m3 := NewWithFileStorage(dirName, false)
-	err = m3.Save()
+	m2 = NewWithFileStorage(dirName, false)
+	err = m2.Save()
 	fmt.Println("err", err)
 	require.Error(t, err)
 
-	err = m3.Load()
+	err = m2.Load()
 	fmt.Println("err", err)
 	require.Error(t, err)
+
+	m2 = NewWithFileStorage(fileName, true)
+	for _, v := range records {
+		m2.Push(v.name, v)
+	}
+
+	err = m2.Save()
+	require.NoError(t, err)
+	require.FileExists(t, fileName)
+	r = m.GetAll()
+	err = os.Remove(fileName)
+	require.NoError(t, err)
+
 }
