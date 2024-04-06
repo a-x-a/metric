@@ -65,7 +65,7 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, false)
 	cfg := config.NewServerConfig()
-	// cfg.StoreInterval = time.Second * 2
+
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
