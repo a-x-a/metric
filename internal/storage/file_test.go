@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -48,11 +47,9 @@ func Test_FileStorage(t *testing.T) {
 	dirName := os.TempDir() + string(os.PathSeparator)
 	m2 = NewWithFileStorage(dirName, false)
 	err = m2.Save()
-	fmt.Println("err", err)
 	require.Error(t, err)
 
 	err = m2.Load()
-	fmt.Println("err", err)
 	require.Error(t, err)
 
 	m2 = NewWithFileStorage(fileName, true)
@@ -63,8 +60,11 @@ func Test_FileStorage(t *testing.T) {
 	err = m2.Save()
 	require.NoError(t, err)
 	require.FileExists(t, fileName)
-	r = m.GetAll()
+
+	r2 = m.GetAll()
+	require.ElementsMatch(t, r, r2)
+	require.Equal(t, len(r), len(r2))
+
 	err = os.Remove(fileName)
 	require.NoError(t, err)
-
 }
