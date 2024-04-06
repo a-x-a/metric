@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -46,6 +47,11 @@ func Test_FileStorage(t *testing.T) {
 
 	dirName := os.TempDir() + string(os.PathSeparator)
 	m3 := NewWithFileStorage(dirName, false)
+	err = m3.Save()
+	fmt.Println("err", err)
+	require.Error(t, err)
+
 	err = m3.Load()
+	fmt.Println("err", err)
 	require.Error(t, err)
 }
