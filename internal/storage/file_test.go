@@ -43,4 +43,9 @@ func Test_FileStorage(t *testing.T) {
 
 	err = m2.Load()
 	require.NoError(t, err)
+
+	dirName := os.TempDir() + string(os.PathSeparator)
+	m3 := NewWithFileStorage(dirName, false)
+	err = m3.Load()
+	require.Error(t, err)
 }
