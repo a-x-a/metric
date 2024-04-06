@@ -32,13 +32,13 @@ func NewUpdateRequestMetricGauge(name string, value metric.Gauge) RequestMetric 
 func NewGetRequestMetricCounter(name string) RequestMetric {
 	return RequestMetric{
 		ID:    name,
-		MType: "counter",
+		MType: string(metric.KindCounter),
 	}
 }
 
 func NewGetRequestMetricGauge(name string) RequestMetric {
 	return RequestMetric{
 		ID:    name,
-		MType: "gauge",
+		MType: string(metric.KindGauge),
 	}
 }

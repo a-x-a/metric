@@ -63,6 +63,20 @@ func TestUpdateJSONMetric(t *testing.T) {
 				code: http.StatusBadRequest,
 			},
 		},
+		{
+			name: "push blank name counter",
+			req:  adapter.NewUpdateRequestMetricCounter("", 10),
+			expected: result{
+				code: http.StatusInternalServerError,
+			},
+		},
+		{
+			name: "push blank name gauge",
+			req:  adapter.NewUpdateRequestMetricGauge("", 13.123),
+			expected: result{
+				code: http.StatusInternalServerError,
+			},
+		},
 	}
 
 	for _, tc := range tt {
@@ -92,6 +106,15 @@ func TestUpdateJSONMetric(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("error decode data", func(t *testing.T) {
+		require := require.New(t)
+
+		data := []byte(`invalid`)
+		resp := sendTestRequest(t, http.MethodPost, "/update/", data)
+
+		require.Equal(http.StatusBadRequest, resp.StatusCode)
+	})
 }
 
 func TestGetJSONMetric(t *testing.T) {
@@ -125,7 +148,7 @@ func TestGetJSONMetric(t *testing.T) {
 			name: "get unknown metric kind",
 			req:  adapter.RequestMetric{ID: "Alloc", MType: "unknown"},
 			expected: result{
-				code: http.StatusNotFound,
+				code: http.StatusBadRequest,
 			},
 		},
 		{
@@ -171,4 +194,13 @@ func TestGetJSONMetric(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("erro decode data", func(t *testing.T) {
+		require := require.New(t)
+
+		data := []byte(`invalid`)
+		resp := sendTestRequest(t, http.MethodPost, "/value/", data)
+
+		require.Equal(http.StatusBadRequest, resp.StatusCode)
+	})
 }

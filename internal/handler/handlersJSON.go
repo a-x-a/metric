@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/a-x-a/go-metric/internal/adapter"
@@ -16,8 +15,14 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch data.MType {
-	case "counter":
+	kind, err := metric.GetKind(data.MType)
+	if err != nil {
+		responseWithCode(w, http.StatusBadRequest)
+		return
+	}
+
+	switch kind {
+	case metric.KindCounter:
 		val, err := h.service.PushCounter(data.ID, metric.Counter(*data.Delta))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err)
@@ -27,7 +32,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		newDelta := int64(val)
 		data.Delta = &newDelta
 
-	case "gauge":
+	case metric.KindGauge:
 		val, err := h.service.PushGauge(data.ID, metric.Gauge(*data.Value))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err)
@@ -36,11 +41,6 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 
 		newValue := float64(val)
 		data.Value = &newValue
-
-		fmt.Println("data:=", data.ID, data.MType, *data.Value)
-	default:
-		responseWithCode(w, http.StatusBadRequest)
-		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -60,14 +60,20 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	kind, err := metric.GetKind(data.MType)
+	if err != nil {
+		responseWithCode(w, http.StatusBadRequest)
+		return
+	}
+
 	value, err := h.service.Get(data.ID, data.MType)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound)
 		return
 	}
 
-	switch data.MType {
-	case "counter":
+	switch kind {
+	case metric.KindCounter:
 		val, err := metric.ToCounter(value)
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err)
@@ -77,7 +83,7 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		newDelta := int64(val)
 		data.Delta = &newDelta
 
-	case "gauge":
+	case metric.KindGauge:
 		val, err := metric.ToGauge(value)
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err)
@@ -86,10 +92,6 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 
 		newValue := float64(val)
 		data.Value = &newValue
-
-	default:
-		responseWithCode(w, http.StatusBadRequest)
-		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
