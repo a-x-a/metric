@@ -199,7 +199,7 @@ func TestGetJSONMetric(t *testing.T) {
 		})
 	}
 
-	t.Run("erro decode data", func(t *testing.T) {
+	t.Run("error decode data", func(t *testing.T) {
 		require := require.New(t)
 
 		data := []byte(`invalid`)

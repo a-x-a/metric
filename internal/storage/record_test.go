@@ -78,3 +78,43 @@ func TestRecordMetods(t *testing.T) {
 		})
 	}
 }
+
+func TestRecord_UnmarshalJSON(t *testing.T) {
+	t.Run("normal unmarshal JSON", func(t *testing.T) {
+		require := require.New(t)
+
+		r := &Record{name: "counter"}
+		data := []byte(`{"name":"counter"}`)
+		err := r.UnmarshalJSON(data)
+
+		require.NoError(err)
+	})
+
+	t.Run("error unmarshal JSON", func(t *testing.T) {
+		require := require.New(t)
+
+		r := &Record{name: "counter"}
+		data := []byte(`invalid`)
+		err := r.UnmarshalJSON(data)
+
+		require.Error(err)
+
+	})
+
+}
+
+func TestRecord_MarshalJSON(t *testing.T) {
+	t.Run("normal marshal JSON", func(t *testing.T) {
+		require := require.New(t)
+
+		r, err := NewRecord("counter")
+
+		require.NoError(err)
+
+		r.SetValue(metric.Counter(10))
+
+		_, err = r.MarshalJSON()
+
+		require.NoError(err)
+	})
+}
