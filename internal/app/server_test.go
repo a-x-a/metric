@@ -30,6 +30,7 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
+	cfg.FileStoregePath = ""
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
@@ -46,14 +47,14 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 		srv.Run(ctx)
 	}()
 
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 
 	conn, err := net.Dial("tcp", srv.httpServer.Addr)
 	require.NoError(err)
 	defer conn.Close()
 	require.NotNil(conn)
 
-	srv.Shutdown(syscall.SIGTERM)
+	srv.Shutdown(ctx, syscall.SIGTERM)
 
 	wg.Wait()
 }
@@ -64,6 +65,7 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, false)
 	cfg := config.NewServerConfig()
+	// cfg.StoreInterval = time.Second * 2
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
@@ -80,14 +82,14 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 		srv.Run(ctx)
 	}()
 
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 
 	conn, err := net.Dial("tcp", srv.httpServer.Addr)
 	require.NoError(err)
 	defer conn.Close()
 	require.NotNil(conn)
 
-	srv.Shutdown(syscall.SIGTERM)
+	srv.Shutdown(ctx, syscall.SIGTERM)
 
 	wg.Wait()
 }
@@ -108,7 +110,9 @@ func Test_serverPanic(t *testing.T) {
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
-	ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
 
 	// wg := sync.WaitGroup{}
 	// wg.Add(1)

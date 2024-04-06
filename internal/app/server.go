@@ -68,10 +68,12 @@ func (s *server) Run(ctx context.Context) {
 	}
 }
 
-func (s *server) Shutdown(signal os.Signal) {
+func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
 	logger.Log.Info("start server shutdown", zap.String("signal", signal.String()))
 
-	if err := s.httpServer.Shutdown(context.Background()); err != nil {
+	ctxShutdown, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	if err := s.httpServer.Shutdown(ctxShutdown); err != nil {
 		logger.Log.Error("server shutdowning error", zap.Error(err))
 	}
 

@@ -21,12 +21,11 @@ func main() {
 
 	srv := app.NewServer()
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	go srv.Run(ctx)
 
 	signal := <-sigint
 
-	cancel()
-
-	srv.Shutdown(signal)
+	srv.Shutdown(ctx, signal)
 }
