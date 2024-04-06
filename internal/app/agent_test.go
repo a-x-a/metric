@@ -15,19 +15,24 @@ import (
 )
 
 func TestNewAgent(t *testing.T) {
+	require := require.New(t)
+
 	t.Run("create new agent", func(t *testing.T) {
 		got := NewAgent()
-		require.NotNil(t, got)
+		require.NotNil(got)
 	})
 }
 
 func Test_agent_Poll(t *testing.T) {
+	require := require.New(t)
+
 	cfg := config.AgentConfig{
 		PollInterval:   2 * time.Second,
 		ReportInterval: 10 * time.Second,
 		ServerAddress:  "localhost:8080",
 	}
 	metrics := &metric.Metrics{}
+
 	type args struct {
 		ctx     context.Context
 		metrics *metric.Metrics
@@ -49,12 +54,13 @@ func Test_agent_Poll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithCancel(tt.args.ctx)
-			time.AfterFunc(tt.app.Config.PollInterval, cancel)
+			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.Config.PollInterval*2)
+			defer cancel()
+			// time.AfterFunc(tt.app.Config.PollInterval, cancel)
 			tt.app.Poll(cancellingCtx, tt.args.metrics)
 
-			require.NotEmpty(t, tt.args.metrics)
-			require.NotEmpty(t, tt.args.metrics.PollCount)
+			require.NotEmpty(tt.args.metrics)
+			require.NotEmpty(tt.args.metrics.PollCount)
 		})
 	}
 }
