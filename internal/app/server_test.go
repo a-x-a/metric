@@ -97,34 +97,80 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	require.NoError(err)
 }
 
-// func Test_serverErrorListenAndServe(t *testing.T) {
-// 	require := require.New(t)
+func Test_serverShutdown(t *testing.T) {
+	require := require.New(t)
 
-// 	stor := storage.NewMemStorage()
-// 	cfg := config.NewServerConfig()
-// 	cfg.FileStoregePath = ""
-// 	srv := server{
-// 		Config:     cfg,
-// 		Storage:    stor,
-// 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-// 	}
+	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	require.NoError(err)
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-// 	defer cancel()
+	err = f.Close()
+	require.NoError(err)
 
-// 	wg := sync.WaitGroup{}
-// 	wg.Add(1)
-// 	go func() {
-// 		defer wg.Done()
-// 		srv.Run(ctx)
-// 	}()
+	stor := storage.NewWithFileStorage(fileName, false)
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
 
-// 	srv.Shutdown(ctx, syscall.SIGTERM)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
-// 	wg.Wait()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		srv.Run(ctx)
+	}()
 
-// 	require.ErrorIs(ctx.Err(), context.DeadlineExceeded)
-// }
+	srv.Shutdown(ctx, syscall.SIGTERM)
+
+	wg.Wait()
+
+	err = os.Remove(fileName)
+	require.NoError(err)
+}
+
+func Test_serverErrorListenAndServe(t *testing.T) {
+	require := require.New(t)
+
+	defer func() {
+		r := recover()
+		require.NotNil(r)
+	}()
+
+	stor := storage.NewMemStorage()
+	cfg := config.NewServerConfig()
+	cfg.FileStoregePath = ""
+
+	srv2 := &http.Server{Addr: cfg.ListenAddress}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		_ = srv2.ListenAndServe()
+	}()
+
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+
+	time.Sleep(time.Second * 2)
+
+	srv.Run(ctx)
+
+	srv2.Shutdown(ctx)
+
+	wg.Wait()
+}
 
 func Test_serverPanic(t *testing.T) {
 	require := require.New(t)

@@ -64,7 +64,7 @@ func (s *server) Run(ctx context.Context) {
 	logger.Log.Info("start http server", zap.String("address", s.Config.ListenAddress))
 
 	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		logger.Log.Fatal("failed to start http server", zap.Error(err))
+		logger.Log.Panic("failed to start http server", zap.Error(err))
 	}
 }
 
