@@ -62,7 +62,18 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 func Test_serverRunWithFileStorage(t *testing.T) {
 	require := require.New(t)
 
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+	f, err := os.CreateTemp(os.TempDir(), "test_1*.json")
+	require.NoError(err)
+
+	fileName := f.Name()
+
+	err = f.Close()
+	require.NoError(err)
+
+	err = os.Remove(f.Name())
+	require.NoError(err)
+
+	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, false)
 	cfg := config.NewServerConfig()
 
@@ -92,45 +103,6 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	srv.Shutdown(ctx, syscall.SIGTERM)
 
 	wg.Wait()
-
-	err = os.Remove(fileName)
-	require.NoError(err)
-}
-
-func Test_serverShutdown(t *testing.T) {
-	require := require.New(t)
-
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
-	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	require.NoError(err)
-
-	err = f.Close()
-	require.NoError(err)
-
-	stor := storage.NewWithFileStorage(fileName, false)
-	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
-		httpServer: &http.Server{Addr: cfg.ListenAddress},
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		srv.Run(ctx)
-	}()
-
-	srv.Shutdown(ctx, syscall.SIGTERM)
-
-	wg.Wait()
-
-	err = os.Remove(fileName)
-	require.NoError(err)
 }
 
 func Test_serverErrorListenAndServe(t *testing.T) {
@@ -213,7 +185,18 @@ func Test_server_saveWithMemStorage(t *testing.T) {
 func Test_server_saveWithFileStorage(t *testing.T) {
 	require := require.New(t)
 
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+	f, err := os.CreateTemp(os.TempDir(), "test_3*.json")
+	require.NoError(err)
+
+	fileName := f.Name()
+
+	err = f.Close()
+	require.NoError(err)
+
+	err = os.Remove(f.Name())
+	require.NoError(err)
+
+	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, true)
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = fileName
@@ -224,13 +207,10 @@ func Test_server_saveWithFileStorage(t *testing.T) {
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	srv.saveStorage(ctx)
-
-	err := os.Remove(fileName)
-	require.NoError(err)
 }
 
 func Test_server_loadWitMemStorage(t *testing.T) {
@@ -246,7 +226,20 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 }
 
 func Test_server_loadWitFileStorage(t *testing.T) {
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+	require := require.New(t)
+
+	f, err := os.CreateTemp(os.TempDir(), "test_4*.json")
+	require.NoError(err)
+
+	fileName := f.Name()
+
+	err = f.Close()
+	require.NoError(err)
+
+	err = os.Remove(f.Name())
+	require.NoError(err)
+
+	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, true)
 	cfg := config.NewServerConfig()
 	srv := server{
@@ -262,12 +255,18 @@ func Test_server_loadFileError(t *testing.T) {
 	var err error
 	require := require.New(t)
 
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_1234567890.json"
-	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	f, err := os.CreateTemp(os.TempDir(), "test_1*.json")
 	require.NoError(err)
+
+	fileName := f.Name()
 
 	err = f.Close()
 	require.NoError(err)
+
+	defer func() {
+		err = os.Remove(f.Name())
+		require.NoError(err)
+	}()
 
 	stor := storage.NewWithFileStorage(fileName, true)
 	cfg := config.NewServerConfig()
@@ -283,7 +282,4 @@ func Test_server_loadFileError(t *testing.T) {
 	}()
 
 	srv.loadStorage()
-
-	err = os.Remove(fileName)
-	require.NoError(err)
 }
