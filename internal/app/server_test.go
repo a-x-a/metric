@@ -92,7 +92,39 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	srv.Shutdown(ctx, syscall.SIGTERM)
 
 	wg.Wait()
+
+	err = os.Remove(fileName)
+	require.NoError(err)
 }
+
+// func Test_serverErrorListenAndServe(t *testing.T) {
+// 	require := require.New(t)
+
+// 	stor := storage.NewMemStorage()
+// 	cfg := config.NewServerConfig()
+// 	cfg.FileStoregePath = ""
+// 	srv := server{
+// 		Config:     cfg,
+// 		Storage:    stor,
+// 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+// 	defer cancel()
+
+// 	wg := sync.WaitGroup{}
+// 	wg.Add(1)
+// 	go func() {
+// 		defer wg.Done()
+// 		srv.Run(ctx)
+// 	}()
+
+// 	srv.Shutdown(ctx, syscall.SIGTERM)
+
+// 	wg.Wait()
+
+// 	require.ErrorIs(ctx.Err(), context.DeadlineExceeded)
+// }
 
 func Test_serverPanic(t *testing.T) {
 	require := require.New(t)
@@ -111,13 +143,71 @@ func Test_serverPanic(t *testing.T) {
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	srv.Run(ctx)
+}
+
+func Test_server_saveWithMemStorage(t *testing.T) {
+	stor := storage.NewMemStorage()
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 
-	// wg := sync.WaitGroup{}
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	srv.Run(ctx)
-	// }()
+	srv.saveStorage(ctx)
+}
+
+func Test_server_saveWithFileStorage(t *testing.T) {
+	require := require.New(t)
+
+	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+	stor := storage.NewWithFileStorage(fileName, true)
+	cfg := config.NewServerConfig()
+	cfg.FileStoregePath = fileName
+	cfg.StoreInterval = time.Second * 2
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	srv.saveStorage(ctx)
+
+	err := os.Remove(fileName)
+	require.NoError(err)
+}
+
+func Test_server_loadWitMemStorage(t *testing.T) {
+	stor := storage.NewWithFileStorage("", true)
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
+	srv.loadStorage()
+}
+
+func Test_server_loadWitFileStorage(t *testing.T) {
+	fileName := os.TempDir() + string(os.PathSeparator) + "test_1234567890.json"
+	stor := storage.NewWithFileStorage(fileName, true)
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+	}
+
+	srv.loadStorage()
 }
