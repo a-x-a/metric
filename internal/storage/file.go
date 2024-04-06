@@ -123,11 +123,13 @@ func recordToJSONMetric(r Record) JSONMetric {
 
 func jsonMetricToRecord(j JSONMetric, r *Record) {
 	r.name = j.Name
-	switch j.Kind {
-	case "gauge":
+	kind, _ := metric.GetKind(j.Kind)
+
+	switch kind {
+	case metric.KindGauge:
 		val := metric.Gauge(j.Value)
 		r.SetValue(val)
-	case "counter":
+	case metric.KindCounter:
 		val := metric.Counter(j.Delta)
 		r.SetValue(val)
 	}
