@@ -40,4 +40,7 @@ func Test_FileStorage(t *testing.T) {
 
 	err = os.Remove(fileName)
 	require.NoError(t, err)
+
+	err = m2.Load()
+	require.NoError(t, err)
 }
