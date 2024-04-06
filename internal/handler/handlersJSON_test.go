@@ -113,6 +113,10 @@ func TestUpdateJSONMetric(t *testing.T) {
 		data := []byte(`invalid`)
 		resp := sendTestRequest(t, http.MethodPost, "/update/", data)
 
+		_, err := io.ReadAll(resp.Body)
+		require.NoError(err)
+		defer resp.Body.Close()
+
 		require.Equal(http.StatusBadRequest, resp.StatusCode)
 	})
 }
@@ -200,6 +204,10 @@ func TestGetJSONMetric(t *testing.T) {
 
 		data := []byte(`invalid`)
 		resp := sendTestRequest(t, http.MethodPost, "/value/", data)
+
+		_, err := io.ReadAll(resp.Body)
+		require.NoError(err)
+		defer resp.Body.Close()
 
 		require.Equal(http.StatusBadRequest, resp.StatusCode)
 	})
