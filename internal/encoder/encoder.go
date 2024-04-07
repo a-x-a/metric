@@ -10,19 +10,6 @@ import (
 	"github.com/a-x-a/go-metric/internal/logger"
 )
 
-func isSupportedContentType(contentType string) bool {
-	supportedContentType :=
-		[...]string{"application/json", "text/html; charset=utf-8"}
-
-	for _, v := range supportedContentType {
-		if strings.Contains(v, contentType) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func DecompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		encoding := r.Header.Get("Content-Encoding")
