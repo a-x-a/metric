@@ -1,4 +1,4 @@
-package middlewarewithlogger
+package encoder
 
 import (
 	"compress/gzip"

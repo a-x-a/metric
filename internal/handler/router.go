@@ -7,18 +7,22 @@ import (
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 
-	"github.com/a-x-a/go-metric/internal/middlewarewithlogger"
+	"github.com/a-x-a/go-metric/internal/encoder"
+	"github.com/a-x-a/go-metric/internal/logger"
 )
 
 func NewRouter(s metricService, log *zap.Logger) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
-	mw := middlewarewithlogger.New(log)
+	// mw := middlewarewithlogger.New(log)
 
 	r := chi.NewRouter()
 
-	r.Use(mw.Logger)
-	r.Use(mw.Decompress)
-	r.Use(mw.Compress)
+	r.Use(logger.LoggerMiddleware(log))
+	r.Use(encoder.DecompressMiddleware(log))
+	r.Use(encoder.CompressMiddleware(log))
+	// r.Use(mw.Logger)
+	// r.Use(mw.Decompress)
+	// r.Use(mw.Compress)
 
 	r.Get("/", metricHendlers.List)
 

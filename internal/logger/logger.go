@@ -1,4 +1,4 @@
-package middlewarewithlogger
+package logger
 
 import (
 	"net/http"
@@ -7,40 +7,32 @@ import (
 	"go.uber.org/zap"
 )
 
-type middlewareWithLogger struct {
-	logger *zap.Logger
-}
+func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			responseData := &responseData{
+				status: 0,
+				size:   0,
+			}
+			lw := loggingResponseWriter{
+				ResponseWriter: w,
+				responseData:   responseData,
+			}
+			start := time.Now()
 
-func New(logger *zap.Logger) middlewareWithLogger {
-	return middlewareWithLogger{
-		logger: logger,
+			next.ServeHTTP(&lw, r)
+
+			duration := time.Since(start)
+
+			logger.Info("",
+				zap.String("uri", r.RequestURI),
+				zap.String("method", r.Method),
+				zap.Duration("duration", duration),
+				zap.Int("status", responseData.status),
+				zap.Int("size", responseData.size),
+			)
+		})
 	}
-}
-
-func (m middlewareWithLogger) Logger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		responseData := &responseData{
-			status: 0,
-			size:   0,
-		}
-		lw := loggingResponseWriter{
-			ResponseWriter: w,
-			responseData:   responseData,
-		}
-		start := time.Now()
-
-		next.ServeHTTP(&lw, r)
-
-		duration := time.Since(start)
-
-		m.logger.Info("",
-			zap.String("uri", r.RequestURI),
-			zap.String("method", r.Method),
-			zap.Duration("duration", duration),
-			zap.Int("status", responseData.status),
-			zap.Int("size", responseData.size),
-		)
-	})
 }
 
 type (
