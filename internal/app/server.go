@@ -78,9 +78,7 @@ func (s *server) Run(ctx context.Context) {
 func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
 	s.logger.Info("start server shutdown", zap.String("signal", signal.String()))
 
-	ctxShutdown, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
-	if err := s.httpServer.Shutdown(ctxShutdown); err != nil {
+	if err := s.httpServer.Shutdown(ctx); err != nil {
 		s.logger.Error("server shutdowning error", zap.Error(err))
 	}
 

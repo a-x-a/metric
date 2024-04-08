@@ -24,10 +24,10 @@ func TestNewServer(t *testing.T) {
 
 	t.Run("create new server", func(t *testing.T) {
 		cfg := config.NewServerConfig()
-		loger, err := zap.NewDevelopment()
-		require.NoError(err)
-		got := NewServer(cfg, loger)
-		require.NotNil(got)
+		loger := zap.NewNop()
+		defer loger.Sync()
+		srv := NewServer(cfg, loger)
+		require.NotNil(srv)
 	})
 }
 
@@ -80,7 +80,6 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	err = os.Remove(f.Name())
 	require.NoError(err)
 
-	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	stor := storage.NewWithFileStorage(fileName, false, log)
 	cfg := config.NewServerConfig()
 
@@ -116,16 +115,12 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 func Test_serverErrorListenAndServe(t *testing.T) {
 	require := require.New(t)
 
-	defer func() {
-		r := recover()
-		require.NotNil(r)
-	}()
-
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = ""
 
 	srv2 := &http.Server{Addr: cfg.ListenAddress}
+	defer srv2.Close()
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -141,10 +136,15 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		logger:     zap.NewNop(),
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	time.Sleep(time.Second * 2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	time.Sleep(time.Second * 2)
+	defer func() {
+		r := recover()
+		require.NotNil(r)
+	}()
 
 	srv.Run(ctx)
 
@@ -192,7 +192,7 @@ func Test_server_saveWithMemStorage(t *testing.T) {
 	srv.saveStorage(ctx)
 }
 
-func Test_server_saveWithFileStorage(t *testing.T) {
+func Test_server_saveAndLoadWithFileStorage(t *testing.T) {
 	require := require.New(t)
 
 	f, err := os.CreateTemp(os.TempDir(), "test_3*.json")
@@ -221,6 +221,9 @@ func Test_server_saveWithFileStorage(t *testing.T) {
 	defer cancel()
 
 	srv.saveStorage(ctx)
+
+	err = srv.loadStorage()
+	require.NoError(err)
 }
 
 func Test_server_loadWitMemStorage(t *testing.T) {
@@ -240,63 +243,7 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 	require.ErrorIs(err, ErrStorageNotSupportLoadFromFile)
 }
 
-func Test_server_loadWitFileStorage(t *testing.T) {
-	require := require.New(t)
-
-	f, err := os.CreateTemp(os.TempDir(), "test_4*.json")
-	require.NoError(err)
-
-	fileName := f.Name()
-
-	err = f.Close()
-	require.NoError(err)
-
-	err = os.Remove(f.Name())
-	require.NoError(err)
-
-	stor := storage.NewWithFileStorage(fileName, true, log)
-	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
-		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		logger:     zap.NewNop(),
-	}
-
-	srv.loadStorage()
-}
-
-func Test_server_loadFileError(t *testing.T) {
-	var err error
-	require := require.New(t)
-
-	f, err := os.CreateTemp(os.TempDir(), "test_1*.json")
-	require.NoError(err)
-
-	fileName := f.Name()
-
-	err = f.Close()
-	require.NoError(err)
-
-	defer func() {
-		err = os.Remove(f.Name())
-		require.NoError(err)
-	}()
-
-	stor := storage.NewWithFileStorage(fileName, true, log)
-	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
-		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		logger:     zap.NewNop(),
-	}
-
-	err = srv.loadStorage()
-	require.Error(err)
-}
-
-func Test_server_load(t *testing.T) {
+func Test_server_loadWithError(t *testing.T) {
 	var err error
 	require := require.New(t)
 
@@ -310,5 +257,50 @@ func Test_server_load(t *testing.T) {
 	}
 
 	err = srv.loadStorage()
+	require.Error(err)
+}
+
+func Test_serverShutdownWithSaveError(t *testing.T) {
+	require := require.New(t)
+
+	f, err := os.CreateTemp(os.TempDir(), "test_3*.json")
 	require.NoError(err)
+
+	fileName := f.Name()
+
+	err = f.Close()
+	require.NoError(err)
+
+	err = os.Remove(f.Name())
+	require.NoError(err)
+	loger := zap.NewNop()
+	stor := storage.NewWithFileStorage(fileName, false, loger)
+	cfg := config.NewServerConfig()
+
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     loger,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		srv.Run(ctx)
+	}()
+
+	time.Sleep(time.Second * 1)
+	srv.Storage = storage.NewWithFileStorage("", false, log)
+
+	ctxShutdown, cancelShutdown := context.WithTimeout(ctx, time.Second*2)
+	defer cancelShutdown()
+
+	srv.Shutdown(ctxShutdown, syscall.SIGTERM)
+
+	wg.Wait()
 }

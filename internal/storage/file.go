@@ -58,7 +58,6 @@ func (m *withFileStorage) Save() error {
 	snapshot := m.memStorage.GetSnapShot()
 
 	if err := encoder.Encode(snapshot.data); err != nil {
-		m.logger.Info("error of save storage to file", zap.Error(err))
 		return err
 	}
 
@@ -75,11 +74,6 @@ func (m *withFileStorage) Load() error {
 
 	file, err := os.Open(m.path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			m.logger.Error("storage file not found", zap.String("file", m.path))
-			return nil
-		}
-
 		return err
 	}
 

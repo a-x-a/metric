@@ -29,7 +29,7 @@ func Test_agent_Poll(t *testing.T) {
 	cfg := config.AgentConfig{
 		PollInterval:   2 * time.Second,
 		ReportInterval: 10 * time.Second,
-		ServerAddress:  "localhost:8080",
+		ServerAddress:  "",
 	}
 	metrics := &metric.Metrics{}
 
@@ -56,7 +56,7 @@ func Test_agent_Poll(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.Config.PollInterval*2)
 			defer cancel()
-			// time.AfterFunc(tt.app.Config.PollInterval, cancel)
+
 			tt.app.Poll(cancellingCtx, tt.args.metrics)
 
 			require.NotEmpty(tt.args.metrics)
@@ -66,9 +66,7 @@ func Test_agent_Poll(t *testing.T) {
 }
 
 func Test_agent_Report(t *testing.T) {
-	// Start a local HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		// Test request parameters
 		if strings.HasPrefix(req.URL.Path, "/update/counter/PollCount/12") {
 			rw.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			rw.WriteHeader(http.StatusOK)
@@ -77,13 +75,13 @@ func Test_agent_Report(t *testing.T) {
 		rw.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		rw.WriteHeader(http.StatusNotFound)
 	}))
-	// Close the server when test finishes
+
 	defer server.Close()
 
 	cfg := config.AgentConfig{
 		PollInterval:   2 * time.Second,
-		ReportInterval: 10 * time.Second,
-		ServerAddress:  "localhost:8090",
+		ReportInterval: 2 * time.Second,
+		ServerAddress:  strings.TrimPrefix(server.URL, "http://"),
 	}
 
 	metrics := metric.Metrics{
@@ -97,7 +95,7 @@ func Test_agent_Report(t *testing.T) {
 		metrics *metric.Metrics
 	}{
 		{
-			name:    "poll",
+			name:    "report",
 			app:     &agent{Config: cfg},
 			ctx:     context.Background(),
 			metrics: &metrics,
@@ -106,8 +104,8 @@ func Test_agent_Report(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithCancel(tt.ctx)
-			time.AfterFunc(tt.app.Config.ReportInterval, cancel)
+			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.Config.ReportInterval)
+			defer cancel()
 			tt.app.Report(cancellingCtx, tt.metrics)
 		})
 	}

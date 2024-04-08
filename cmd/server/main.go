@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -41,7 +42,10 @@ func main() {
 
 	signal := <-sigint
 
-	srv.Shutdown(ctx, signal)
+	ctxShutdown, cancelShutdown := context.WithTimeout(ctx, time.Second*5)
+	defer cancelShutdown()
+
+	srv.Shutdown(ctxShutdown, signal)
 }
 
 func initLogger(level string) *zap.Logger {

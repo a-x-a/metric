@@ -44,14 +44,11 @@ func Test_FileStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	err = m2.Load()
-	require.NoError(t, err)
-
-	dirName := os.TempDir() + string(os.PathSeparator)
-	m2 = NewWithFileStorage(dirName, false, log)
-	err = m2.Save()
 	require.Error(t, err)
 
-	err = m2.Load()
+	// dirName := os.TempDir() + string(os.PathSeparator)
+	m2 = NewWithFileStorage("", false, log)
+	err = m2.Save()
 	require.Error(t, err)
 
 	m2 = NewWithFileStorage(fileName, true, log)
