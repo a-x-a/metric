@@ -79,12 +79,12 @@ func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
 	s.logger.Info("start server shutdown", zap.String("signal", signal.String()))
 
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		s.logger.Error("server shutdowning error", zap.Error(err))
+		s.logger.Warn("server shutdowning error", zap.Error(err))
 	}
 
 	if ds, ok := s.Storage.(withFileStorage); ok {
 		if err := ds.Save(); err != nil {
-			s.logger.Error("storage saving error", zap.Error(err))
+			s.logger.Warn("storage saving error", zap.Error(err))
 		}
 	}
 
