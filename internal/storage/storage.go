@@ -1,6 +1,10 @@
 package storage
 
-import "time"
+import (
+	"time"
+
+	"go.uber.org/zap"
+)
 
 type (
 	Storage interface {
@@ -10,10 +14,10 @@ type (
 	}
 )
 
-func NewDataStorage(path string, storeInterval time.Duration) Storage {
+func NewDataStorage(path string, storeInterval time.Duration, log *zap.Logger) Storage {
 	if len(path) == 0 {
 		return NewMemStorage()
 	}
 
-	return NewWithFileStorage(path, storeInterval == 0)
+	return NewWithFileStorage(path, storeInterval == 0, log)
 }

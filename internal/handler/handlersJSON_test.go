@@ -10,12 +10,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/adapter"
 )
 
 func sendTestRequest(t *testing.T, method, path string, data []byte) *http.Response {
-	srv := httptest.NewServer(Router(mockService{}))
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
 	body := bytes.NewReader(data)

@@ -11,16 +11,22 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
+var log *zap.Logger = zap.NewNop()
+
 func TestNewServer(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new server", func(t *testing.T) {
-		got := NewServer()
+		cfg := config.NewServerConfig()
+		loger, err := zap.NewDevelopment()
+		require.NoError(err)
+		got := NewServer(cfg, loger)
 		require.NotNil(got)
 	})
 }
@@ -35,6 +41,7 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -74,13 +81,14 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	require.NoError(err)
 
 	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
-	stor := storage.NewWithFileStorage(fileName, false)
+	stor := storage.NewWithFileStorage(fileName, false, log)
 	cfg := config.NewServerConfig()
 
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -130,6 +138,7 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
@@ -144,28 +153,28 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 	wg.Wait()
 }
 
-func Test_serverPanic(t *testing.T) {
-	require := require.New(t)
+// func Test_serverPanic(t *testing.T) {
+// 	require := require.New(t)
 
-	defer func() {
-		r := recover()
-		require.NotNil(r)
-	}()
+// 	defer func() {
+// 		r := recover()
+// 		require.NotNil(r)
+// 	}()
 
-	stor := storage.NewMemStorage()
-	cfg := config.NewServerConfig()
-	cfg.LogLevel = "unknown"
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
-		httpServer: &http.Server{Addr: cfg.ListenAddress},
-	}
+// 	stor := storage.NewMemStorage()
+// 	cfg := config.NewServerConfig()
+// 	cfg.LogLevel = "unknown"
+// 	srv := server{
+// 		Config:     cfg,
+// 		Storage:    stor,
+// 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+// 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+// 	defer cancel()
 
-	srv.Run(ctx)
-}
+// 	srv.Run(ctx)
+// }
 
 func Test_server_saveWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
@@ -174,6 +183,7 @@ func Test_server_saveWithMemStorage(t *testing.T) {
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
@@ -196,8 +206,7 @@ func Test_server_saveWithFileStorage(t *testing.T) {
 	err = os.Remove(f.Name())
 	require.NoError(err)
 
-	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
-	stor := storage.NewWithFileStorage(fileName, true)
+	stor := storage.NewWithFileStorage(fileName, true, log)
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = fileName
 	cfg.StoreInterval = time.Second * 2
@@ -205,6 +214,7 @@ func Test_server_saveWithFileStorage(t *testing.T) {
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -214,15 +224,20 @@ func Test_server_saveWithFileStorage(t *testing.T) {
 }
 
 func Test_server_loadWitMemStorage(t *testing.T) {
-	stor := storage.NewWithFileStorage("", true)
+	require := require.New(t)
+
+	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
-	srv.loadStorage()
+	err := srv.loadStorage()
+	require.Error(err)
+	require.ErrorIs(err, ErrStorageNotSupportLoadFromFile)
 }
 
 func Test_server_loadWitFileStorage(t *testing.T) {
@@ -239,13 +254,13 @@ func Test_server_loadWitFileStorage(t *testing.T) {
 	err = os.Remove(f.Name())
 	require.NoError(err)
 
-	// fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
-	stor := storage.NewWithFileStorage(fileName, true)
+	stor := storage.NewWithFileStorage(fileName, true, log)
 	cfg := config.NewServerConfig()
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
 	srv.loadStorage()
@@ -268,18 +283,32 @@ func Test_server_loadFileError(t *testing.T) {
 		require.NoError(err)
 	}()
 
-	stor := storage.NewWithFileStorage(fileName, true)
+	stor := storage.NewWithFileStorage(fileName, true, log)
 	cfg := config.NewServerConfig()
 	srv := server{
 		Config:     cfg,
 		Storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
 	}
 
-	defer func() {
-		r := recover()
-		require.NotNil(r)
-	}()
+	err = srv.loadStorage()
+	require.Error(err)
+}
 
-	srv.loadStorage()
+func Test_server_load(t *testing.T) {
+	var err error
+	require := require.New(t)
+
+	stor := storage.NewWithFileStorage("", true, log)
+	cfg := config.NewServerConfig()
+	srv := server{
+		Config:     cfg,
+		Storage:    stor,
+		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		logger:     zap.NewNop(),
+	}
+
+	err = srv.loadStorage()
+	require.NoError(err)
 }

@@ -7,7 +7,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
@@ -16,15 +15,17 @@ type withFileStorage struct {
 	sync.Mutex
 	path     string
 	syncMode bool
+	logger   *zap.Logger
 }
 
 var _ Storage = &withFileStorage{}
 
-func NewWithFileStorage(path string, syncMode bool) *withFileStorage {
+func NewWithFileStorage(path string, syncMode bool, log *zap.Logger) *withFileStorage {
 	return &withFileStorage{
 		memStorage: NewMemStorage(),
 		path:       path,
 		syncMode:   syncMode,
+		logger:     log,
 	}
 }
 
@@ -44,7 +45,7 @@ func (m *withFileStorage) Save() error {
 	m.Lock()
 	defer m.Unlock()
 
-	logger.Log.Info("start save storage to file", zap.String("file", m.path))
+	m.logger.Info("start save storage to file", zap.String("file", m.path))
 
 	f, err := os.OpenFile(m.path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -57,11 +58,11 @@ func (m *withFileStorage) Save() error {
 	snapshot := m.memStorage.GetSnapShot()
 
 	if err := encoder.Encode(snapshot.data); err != nil {
-		logger.Log.Info("error of save storage to file", zap.Error(err))
+		m.logger.Info("error of save storage to file", zap.Error(err))
 		return err
 	}
 
-	logger.Log.Info("saved storage to file", zap.String("file", m.path))
+	m.logger.Info("saved storage to file", zap.String("file", m.path))
 
 	return nil
 }
@@ -70,12 +71,12 @@ func (m *withFileStorage) Load() error {
 	m.Lock()
 	defer m.Unlock()
 
-	logger.Log.Info("loading storage from file", zap.String("file", m.path))
+	m.logger.Info("loading storage from file", zap.String("file", m.path))
 
 	file, err := os.Open(m.path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			logger.Log.Error("storage file not found", zap.String("file", m.path))
+			m.logger.Error("storage file not found", zap.String("file", m.path))
 			return nil
 		}
 
@@ -89,7 +90,7 @@ func (m *withFileStorage) Load() error {
 		return err
 	}
 
-	logger.Log.Info("storage loded from file", zap.String("file", m.path))
+	m.logger.Info("storage loded from file", zap.String("file", m.path))
 
 	return nil
 }

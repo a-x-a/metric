@@ -2,11 +2,20 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"go.uber.org/zap"
+
 	"github.com/a-x-a/go-metric/internal/app"
+	"github.com/a-x-a/go-metric/internal/config"
+)
+
+const (
+	// logLevel - уровень логирования, по умолчанию info.
+	logLevel = "info"
 )
 
 func main() {
@@ -19,7 +28,12 @@ func main() {
 		syscall.SIGQUIT,
 	)
 
-	srv := app.NewServer()
+	logger := initLogger(logLevel)
+	defer logger.Sync()
+
+	cfg := config.NewServerConfig()
+	srv := app.NewServer(cfg, logger)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -28,4 +42,21 @@ func main() {
 	signal := <-sigint
 
 	srv.Shutdown(ctx, signal)
+}
+
+func initLogger(level string) *zap.Logger {
+	lvl, err := zap.ParseAtomicLevel(level)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := zap.NewProductionConfig()
+	cfg.Level = lvl
+
+	zl, err := cfg.Build()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return zl
 }

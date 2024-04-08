@@ -1,6 +1,8 @@
 package metricservice
 
 import (
+	"go.uber.org/zap"
+
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
@@ -8,11 +10,15 @@ import (
 type (
 	metricService struct {
 		storage storage.Storage
+		logger  *zap.Logger
 	}
 )
 
-func New(stor storage.Storage) *metricService {
-	return &metricService{stor}
+func New(stor storage.Storage, logger *zap.Logger) *metricService {
+	return &metricService{
+		storage: stor,
+		logger:  logger,
+	}
 }
 
 func (s *metricService) Push(name, kind, value string) error {

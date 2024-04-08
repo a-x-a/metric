@@ -1,4 +1,4 @@
-package logger
+package middlewarewithlogger
 
 import (
 	"net/http"
@@ -7,32 +7,17 @@ import (
 	"go.uber.org/zap"
 )
 
-// Log будет доступен всему коду как синглтон.
-// По умолчанию установлен no-op-логер, который не выводит никаких сообщений.
-var Log *zap.Logger = zap.NewNop()
-
-// Initialize инициализирует синглтон логера с необходимым уровнем логирования.
-func Initialize(level string) error {
-	// преобразуем текстовый уровень логирования в zap.AtomicLevel.
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		return err
-	}
-	// создаём новую конфигурацию логера.
-	cfg := zap.NewProductionConfig()
-	// устанавливаем уровень.
-	cfg.Level = lvl
-	// создаём логер на основе конфигурации.
-	zl, err := cfg.Build()
-	if err != nil {
-		return err
-	}
-	// устанавливаем синглтон.
-	Log = zl
-	return nil
+type middlewareWithLogger struct {
+	logger *zap.Logger
 }
 
-func WithLogger(next http.Handler) http.Handler {
+func New(logger *zap.Logger) middlewareWithLogger {
+	return middlewareWithLogger{
+		logger: logger,
+	}
+}
+
+func (m middlewareWithLogger) Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseData := &responseData{
 			status: 0,
@@ -48,7 +33,7 @@ func WithLogger(next http.Handler) http.Handler {
 
 		duration := time.Since(start)
 
-		Log.Info("",
+		m.logger.Info("",
 			zap.String("uri", r.RequestURI),
 			zap.String("method", r.Method),
 			zap.Duration("duration", duration),

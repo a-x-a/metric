@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
@@ -93,7 +94,8 @@ func (s mockService) GetAll() []storage.Record {
 }
 
 func TestUpdateHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(mockService{}))
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
 	type result struct {
@@ -182,12 +184,8 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(mockService{}))
-	// ctrl := gomock.NewController(t)
-	// defer ctrl.Finish()
-	// s := NewMockmetricService(ctrl)
-	// srv := httptest.NewServer(Router(s))
-	// srv := httptest.NewServer(Router(service{}))
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
 	type result struct {
@@ -260,7 +258,8 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestListHandler(t *testing.T) {
-	srv := httptest.NewServer(Router(mockService{}))
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
 	type result struct {

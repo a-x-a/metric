@@ -5,18 +5,20 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 
-	"github.com/a-x-a/go-metric/internal/encoder"
-	"github.com/a-x-a/go-metric/internal/logger"
+	"github.com/a-x-a/go-metric/internal/middlewarewithlogger"
 )
 
-func Router(s metricService) http.Handler {
-	metricHendlers := newMetricHandlers(s)
+func NewRouter(s metricService, log *zap.Logger) http.Handler {
+	metricHendlers := newMetricHandlers(s, log)
+	mw := middlewarewithlogger.New(log)
+
 	r := chi.NewRouter()
 
-	r.Use(logger.WithLogger)
-	r.Use(encoder.DecompressMiddleware)
-	r.Use(encoder.CompressMiddleware)
+	r.Use(mw.Logger)
+	r.Use(mw.Decompress)
+	r.Use(mw.Compress)
 
 	r.Get("/", metricHendlers.List)
 
@@ -29,14 +31,14 @@ func Router(s metricService) http.Handler {
 	return r
 }
 
-func responseWithError(w http.ResponseWriter, code int, err error) {
+func responseWithError(w http.ResponseWriter, code int, err error, logger *zap.Logger) {
 	resp := fmt.Sprintf("%d: %s", code, err.Error())
-	logger.Log.Error(resp)
+	logger.Error(resp)
 	http.Error(w, resp, code)
 }
 
-func responseWithCode(w http.ResponseWriter, code int) {
+func responseWithCode(w http.ResponseWriter, code int, logger *zap.Logger) {
 	resp := fmt.Sprintf("%d: %s", code, http.StatusText(code))
-	logger.Log.Debug(resp)
+	logger.Debug(resp)
 	w.WriteHeader(code)
 }

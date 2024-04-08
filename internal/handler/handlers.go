@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
@@ -21,11 +22,15 @@ type (
 	}
 	metricHandlers struct {
 		service metricService
+		logger  *zap.Logger
 	}
 )
 
-func newMetricHandlers(s metricService) metricHandlers {
-	return metricHandlers{s}
+func newMetricHandlers(s metricService, logger *zap.Logger) metricHandlers {
+	return metricHandlers{
+		service: s,
+		logger:  logger,
+	}
 }
 
 func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +41,7 @@ func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, fmt.Sprintf("%s\t%s\n", v.GetName(), v.GetValue().String()))
 	}
 
-	responseWithCode(w, http.StatusOK)
+	responseWithCode(w, http.StatusOK, h.logger)
 }
 
 func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +52,13 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 
 	value, err := h.service.Get(name, kind)
 	if err != nil {
-		responseWithCode(w, http.StatusNotFound)
+		responseWithCode(w, http.StatusNotFound, h.logger)
 		return
 	}
 
 	w.Write([]byte(value))
 
-	responseWithCode(w, http.StatusOK)
+	responseWithCode(w, http.StatusOK, h.logger)
 }
 
 func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
@@ -65,9 +70,9 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.Push(name, kind, value)
 	if err != nil {
-		responseWithCode(w, http.StatusBadRequest)
+		responseWithCode(w, http.StatusBadRequest, h.logger)
 		return
 	}
 
-	responseWithCode(w, http.StatusOK)
+	responseWithCode(w, http.StatusOK, h.logger)
 }
