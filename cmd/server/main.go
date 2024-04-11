@@ -10,6 +10,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/a-x-a/go-metric/internal/app"
 	"github.com/a-x-a/go-metric/internal/config"
 )
@@ -33,7 +35,13 @@ func main() {
 	defer logger.Sync()
 
 	cfg := config.NewServerConfig()
-	srv := app.NewServer(cfg, logger)
+
+	var dbPool *pgxpool.Pool
+	if len(cfg.DatabaseDSN) > 0 {
+		dbPool = initDBPool(cfg.DatabaseDSN)
+	}
+
+	srv := app.NewServer(dbPool, cfg, logger)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -63,4 +71,18 @@ func initLogger(level string) *zap.Logger {
 	}
 
 	return zl
+}
+
+func initDBPool(dsn string) *pgxpool.Pool {
+	poolConfig, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		log.Fatal("Unable to parse DATABASE_URL:", err)
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	if err != nil {
+		log.Fatalln("Unable to create connection pool:", err)
+	}
+
+	return pool
 }

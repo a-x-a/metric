@@ -26,7 +26,7 @@ func TestNewServer(t *testing.T) {
 		cfg := config.NewServerConfig()
 		loger := zap.NewNop()
 		defer loger.Sync()
-		srv := NewServer(cfg, loger)
+		srv := NewServer(nil, cfg, loger)
 		require.NotNil(srv)
 	})
 }

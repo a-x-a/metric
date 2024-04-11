@@ -14,13 +14,18 @@ func TestNewDataStorage(t *testing.T) {
 	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 
 	t.Run("storage without file", func(t *testing.T) {
-		ds := NewDataStorage("", 0, log)
+		ds := NewDataStorage(nil, "", 0, log)
 		require.NotNil(ds)
 	})
 
 	t.Run("storage with file", func(t *testing.T) {
-		ds := NewDataStorage(fileName, 0, log)
+		ds := NewDataStorage(nil, fileName, 0, log)
 		require.NotNil(ds)
 	})
+
+	// t.Run("database storage", func(t *testing.T) {
+	// 	ds := NewDataStorage(nil, fileName, 0, log)
+	// 	require.NotNil(ds)
+	// })
 
 }

@@ -89,6 +89,10 @@ func (m *withFileStorage) Load() error {
 	return nil
 }
 
+func (m *withFileStorage) Close() error {
+	return m.Save()
+}
+
 type JSONMetric struct {
 	Name  string  `json:"name"`            // имя метрики
 	Kind  string  `json:"type"`            // параметр, принимающий значение gauge или counter

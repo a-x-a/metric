@@ -9,6 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
@@ -27,6 +29,11 @@ type (
 		Save() error
 		Load() error
 	}
+
+	dbStorage interface {
+		Ping(ctx context.Context) error
+		Close()
+	}
 )
 
 var (
@@ -34,8 +41,8 @@ var (
 	ErrStorageNotSupportLoadFromFile = errors.New("storage doesn't support loading from file")
 )
 
-func NewServer(cfg config.ServerConfig, logger *zap.Logger) *server {
-	ds := storage.NewDataStorage(cfg.FileStoregePath, cfg.StoreInterval, logger)
+func NewServer(dbPool *pgxpool.Pool, cfg config.ServerConfig, logger *zap.Logger) *server {
+	ds := storage.NewDataStorage(dbPool, cfg.FileStoregePath, cfg.StoreInterval, logger)
 	ms := metricservice.New(ds, logger)
 	rt := handler.NewRouter(ms, logger)
 	srv := &http.Server{
@@ -82,10 +89,8 @@ func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
 		s.logger.Warn("server shutdowning error", zap.Error(err))
 	}
 
-	if ds, ok := s.Storage.(withFileStorage); ok {
-		if err := ds.Save(); err != nil {
-			s.logger.Warn("storage saving error", zap.Error(err))
-		}
+	if err := s.Storage.Close(); err != nil {
+		s.logger.Error("storage close ", zap.Error(err))
 	}
 
 	s.logger.Info("successfully server shutdowning")
