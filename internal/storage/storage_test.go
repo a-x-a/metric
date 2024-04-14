@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -23,9 +24,9 @@ func TestNewDataStorage(t *testing.T) {
 		require.NotNil(ds)
 	})
 
-	// t.Run("database storage", func(t *testing.T) {
-	// 	ds := NewDataStorage(nil, fileName, 0, log)
-	// 	require.NotNil(ds)
-	// })
-
+	t.Run("database storage", func(t *testing.T) {
+		dbConn := &pgxpool.Pool{}
+		ds := NewDataStorage(dbConn, fileName, 0, log)
+		require.NotNil(ds)
+	})
 }

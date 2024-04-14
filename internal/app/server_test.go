@@ -28,6 +28,49 @@ func TestNewServer(t *testing.T) {
 	})
 }
 
+func TestNewServerWithDBOk(t *testing.T) {
+	require := require.New(t)
+
+	original, present := os.LookupEnv("DATABASE_DSN")
+	os.Setenv("DATABASE_DSN", "host=localhost")
+	if present {
+		defer os.Setenv("DATABASE_DSN", original)
+	} else {
+		defer os.Unsetenv("DATABASE_DSN")
+	}
+
+	// 	defer func() {
+	// 		r := recover()
+	// 		require.NotNil(r)
+	// 	}()
+
+	t.Run("normal create new server with db", func(t *testing.T) {
+		srv := NewServer()
+		require.NotNil(srv)
+	})
+}
+
+func TestNewServerWithDBError(t *testing.T) {
+	require := require.New(t)
+
+	original, present := os.LookupEnv("DATABASE_DSN")
+	os.Setenv("DATABASE_DSN", "host=localhost port=port")
+	if present {
+		defer os.Setenv("DATABASE_DSN", original)
+	} else {
+		defer os.Unsetenv("DATABASE_DSN")
+	}
+
+	t.Run("panic create new server with db", func(t *testing.T) {
+		defer func() {
+			r := recover()
+			require.NotNil(r)
+		}()
+		srv := NewServer()
+		require.NotNil(srv)
+	})
+}
+
 func Test_serverRunWithMemStorage(t *testing.T) {
 	require := require.New(t)
 

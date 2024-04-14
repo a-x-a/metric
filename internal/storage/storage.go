@@ -16,10 +16,10 @@ type (
 	}
 )
 
-func NewDataStorage(dbPool *pgxpool.Pool, path string, storeInterval time.Duration, log *zap.Logger) Storage {
-	if dbPool != nil {
+func NewDataStorage(dbConn *pgxpool.Pool, path string, storeInterval time.Duration, log *zap.Logger) Storage {
+	if dbConn != nil {
 		log.Info("attached database storage")
-		return NewDBStorage(dbPool)
+		return NewDBStorage(dbConn)
 	}
 
 	if len(path) == 0 {

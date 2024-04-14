@@ -15,9 +15,9 @@ type (
 
 var _ Storage = &dbStortage{}
 
-func NewDBStorage(dbPool *pgxpool.Pool) *dbStortage {
+func NewDBStorage(dbConn *pgxpool.Pool) *dbStortage {
 	return &dbStortage{
-		dbConn: dbPool,
+		dbConn: dbConn,
 	}
 }
 
