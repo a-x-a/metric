@@ -13,6 +13,7 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/handler"
+	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
@@ -31,13 +32,36 @@ type (
 	}
 )
 
+const (
+	// logLevel - уровень логирования, по умолчанию info.
+	logLevel = "info"
+)
+
 var (
 	// ErrNotSupportLoadFromFile - хранилище не поддерживает загрузку из файла.
 	ErrStorageNotSupportLoadFromFile = errors.New("storage doesn't support loading from file")
 )
 
-func NewServer(dbPool *pgxpool.Pool, cfg config.ServerConfig, logger *zap.Logger) *server {
-	ds := storage.NewDataStorage(dbPool, cfg.FileStoregePath, cfg.StoreInterval, logger)
+func NewServer() *server {
+	logger := logger.InitLogger(logLevel)
+	defer logger.Sync()
+
+	cfg := config.NewServerConfig()
+
+	var dbConn *pgxpool.Pool
+	if len(cfg.DatabaseDSN) > 0 {
+		poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseDSN)
+		if err != nil {
+			logger.Panic("unable to parse DATABASE_URL", zap.Error(err))
+		}
+
+		dbConn, err = pgxpool.NewWithConfig(context.Background(), poolConfig)
+		if err != nil {
+			logger.Panic("unable to create connection pool", zap.Error(err))
+		}
+	}
+
+	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, logger)
 	ms := metricservice.New(ds, logger)
 	rt := handler.NewRouter(ms, logger)
 	srv := &http.Server{
@@ -54,20 +78,23 @@ func NewServer(dbPool *pgxpool.Pool, cfg config.ServerConfig, logger *zap.Logger
 }
 
 func (s *server) Run(ctx context.Context) {
-	if s.Config.Restore {
-		err := s.loadStorage()
-		if err != nil {
-			switch {
-			case errors.Is(err, ErrStorageNotSupportLoadFromFile):
-				s.logger.Warn("restoring storage", zap.Error(err))
-			default:
-				s.logger.Error("restoring storage", zap.Error(err))
+	if len(s.Config.DatabaseDSN) == 0 && len(s.Config.FileStoregePath) > 0 {
+		if s.Config.Restore {
+			err := s.loadStorage()
+			if err != nil {
+				switch {
+				case errors.Is(err, ErrStorageNotSupportLoadFromFile):
+					s.logger.Warn("restoring storage", zap.Error(err))
+				default:
+					s.logger.Error("restoring storage", zap.Error(err))
+				}
 			}
 		}
-	}
 
-	if len(s.Config.FileStoregePath) > 0 && s.Config.StoreInterval > 0 {
-		go s.saveStorage(ctx)
+		if s.Config.StoreInterval > 0 {
+			go s.saveStorage(ctx)
+		}
+
 	}
 
 	s.logger.Info("start http server", zap.String("address", s.Config.ListenAddress))

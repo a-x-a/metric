@@ -23,10 +23,7 @@ func TestNewServer(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new server", func(t *testing.T) {
-		cfg := config.NewServerConfig()
-		loger := zap.NewNop()
-		defer loger.Sync()
-		srv := NewServer(nil, cfg, loger)
+		srv := NewServer()
 		require.NotNil(srv)
 	})
 }
