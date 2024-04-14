@@ -94,7 +94,6 @@ func (s *server) Run(ctx context.Context) {
 		if s.Config.StoreInterval > 0 {
 			go s.saveStorage(ctx)
 		}
-
 	}
 
 	s.logger.Info("start http server", zap.String("address", s.Config.ListenAddress))

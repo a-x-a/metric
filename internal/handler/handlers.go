@@ -80,8 +80,7 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h metricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
-	err := h.service.Ping()
-	if err != nil {
+	if err := h.service.Ping(); err != nil {
 		responseWithCode(w, http.StatusInternalServerError, h.logger)
 		return
 	}
