@@ -155,3 +155,12 @@ func Test_GetSnapShot(t *testing.T) {
 	require.ElementsMatch(t, r, rs)
 	require.Equal(t, len(r), len(rs))
 }
+
+func Test_Close(t *testing.T) {
+	require := require.New(t)
+
+	m := NewMemStorage()
+
+	err := m.Close()
+	require.NoError(err)
+}
