@@ -82,12 +82,7 @@ func (s *server) Run(ctx context.Context) {
 		if s.Config.Restore {
 			err := s.loadStorage()
 			if err != nil {
-				switch {
-				case errors.Is(err, ErrStorageNotSupportLoadFromFile):
-					s.logger.Warn("restoring storage", zap.Error(err))
-				default:
-					s.logger.Error("restoring storage", zap.Error(err))
-				}
+				s.logger.Warn("restoring storage", zap.Error(err))
 			}
 		}
 
