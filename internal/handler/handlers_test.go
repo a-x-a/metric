@@ -93,6 +93,10 @@ func (s mockService) GetAll() []storage.Record {
 	return records
 }
 
+func (s mockService) Ping() error {
+	return nil
+}
+
 func TestUpdateHandler(t *testing.T) {
 	rt := NewRouter(mockService{}, zap.NewNop())
 	srv := httptest.NewServer(rt)

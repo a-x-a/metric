@@ -29,11 +29,6 @@ type (
 		Save() error
 		Load() error
 	}
-
-	dbStorage interface {
-		Ping(ctx context.Context) error
-		Close()
-	}
 )
 
 var (

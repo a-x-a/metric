@@ -9,7 +9,7 @@ import (
 
 type (
 	dbStortage struct {
-		dbPool *pgxpool.Pool
+		dbConn *pgxpool.Pool
 	}
 )
 
@@ -17,7 +17,7 @@ var _ Storage = &dbStortage{}
 
 func NewDBStorage(dbPool *pgxpool.Pool) *dbStortage {
 	return &dbStortage{
-		dbPool: dbPool,
+		dbConn: dbPool,
 	}
 }
 
@@ -34,10 +34,10 @@ func (d *dbStortage) GetAll() []Record {
 }
 
 func (d *dbStortage) Ping(ctx context.Context) error {
-	return d.dbPool.Ping(ctx)
+	return d.dbConn.Ping(ctx)
 }
 
 func (d *dbStortage) Close() error {
-	d.dbPool.Close()
+	d.dbConn.Close()
 	return nil
 }

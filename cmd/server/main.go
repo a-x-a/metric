@@ -36,12 +36,12 @@ func main() {
 
 	cfg := config.NewServerConfig()
 
-	var dbPool *pgxpool.Pool
+	var dbConn *pgxpool.Pool
 	if len(cfg.DatabaseDSN) > 0 {
-		dbPool = initDBPool(cfg.DatabaseDSN)
+		dbConn = initDBConn(cfg.DatabaseDSN)
 	}
 
-	srv := app.NewServer(dbPool, cfg, logger)
+	srv := app.NewServer(dbConn, cfg, logger)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -73,15 +73,15 @@ func initLogger(level string) *zap.Logger {
 	return zl
 }
 
-func initDBPool(dsn string) *pgxpool.Pool {
+func initDBConn(dsn string) *pgxpool.Pool {
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatal("Unable to parse DATABASE_URL:", err)
+		log.Fatal("unable to parse DATABASE_URL", err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		log.Fatalln("Unable to create connection pool:", err)
+		log.Fatalln("unable to create connection pool", err)
 	}
 
 	return pool
