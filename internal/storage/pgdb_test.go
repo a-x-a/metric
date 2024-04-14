@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
@@ -15,7 +16,7 @@ func TestNewDBStorage(t *testing.T) {
 	require := require.New(t)
 
 	dbConn := &pgxpool.Pool{}
-	ds := NewDBStorage(dbConn)
+	ds := NewDBStorage(dbConn, zap.L())
 	require.NotNil(ds)
 }
 

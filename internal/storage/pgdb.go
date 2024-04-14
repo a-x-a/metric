@@ -5,19 +5,22 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type (
 	dbStortage struct {
 		dbConn *pgxpool.Pool
+		logger *zap.Logger
 	}
 )
 
 var _ Storage = &dbStortage{}
 
-func NewDBStorage(dbConn *pgxpool.Pool) *dbStortage {
+func NewDBStorage(dbConn *pgxpool.Pool, log *zap.Logger) *dbStortage {
 	return &dbStortage{
 		dbConn: dbConn,
+		logger: log,
 	}
 }
 

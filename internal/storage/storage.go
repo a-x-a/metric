@@ -19,7 +19,7 @@ type (
 func NewDataStorage(dbConn *pgxpool.Pool, path string, storeInterval time.Duration, log *zap.Logger) Storage {
 	if dbConn != nil {
 		log.Info("attached database storage")
-		return NewDBStorage(dbConn)
+		return NewDBStorage(dbConn, log)
 	}
 
 	if len(path) == 0 {
