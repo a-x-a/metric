@@ -22,12 +22,15 @@ func NewRouter(s metricService, log *zap.Logger) http.Handler {
 
 	r.Get("/", metricHendlers.List)
 
+	r.Post("/value", metricHendlers.GetJSON)
 	r.Post("/value/", metricHendlers.GetJSON)
 	r.Get("/value/{kind}/{name}", metricHendlers.Get)
 
+	r.Post("/update", metricHendlers.UpdateJSON)
 	r.Post("/update/", metricHendlers.UpdateJSON)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
 
+	r.Get("/ping", metricHendlers.Ping)
 	r.Get("/ping/", metricHendlers.Ping)
 
 	return r
