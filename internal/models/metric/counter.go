@@ -23,3 +23,12 @@ func (c Counter) IsCounter() bool {
 func (c Counter) IsGauge() bool {
 	return false
 }
+
+func ToCounter(value string) (Counter, error) {
+	val, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return Counter(val), nil
+}

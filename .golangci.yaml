@@ -135,7 +135,7 @@ linters:
     - exhaustruct
     #   - exportloopref
     #   - forbidigo
-    #   - forcetypeassert
+    - forcetypeassert
     #   - funlen
     - gci
     #   - ginkgolinter
@@ -187,7 +187,7 @@ linters:
     #   - noctx
     #   - nolintlint
     #   - nonamedreturns
-    #   - nosnakecase
+    - nosnakecase
     #   - nosprintfhostport
     #   - paralleltest
     #   - perfsprint
@@ -291,6 +291,7 @@ linters-settings:
       - "7"
       - "8"
       - "9"
+      - "0600"
     ignored-functions:
       - strings.SplitN
   varnamelen:

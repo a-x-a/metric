@@ -46,3 +46,16 @@ func (m *memStorage) GetAll() []Record {
 
 	return records
 }
+
+func (m *memStorage) GetSnapShot() *memStorage {
+	m.Lock()
+	defer m.Unlock()
+
+	snap := make(map[string]Record, len(m.data))
+
+	for k, v := range m.data {
+		snap[k] = v
+	}
+
+	return &memStorage{data: snap}
+}
