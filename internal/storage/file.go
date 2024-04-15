@@ -31,9 +31,10 @@ func NewWithFileStorage(path string, syncMode bool, log *zap.Logger) *withFileSt
 }
 
 func (m *withFileStorage) Push(ctx context.Context, name string, record Record) error {
-	if err := m.memStorage.Push(ctx, name, record); err != nil {
-		return err
-	}
+	_ = m.memStorage.Push(ctx, name, record)
+	// if err := m.memStorage.Push(ctx, name, record); err != nil {
+	// 	return err
+	// }
 
 	if m.syncMode {
 		return m.Save()

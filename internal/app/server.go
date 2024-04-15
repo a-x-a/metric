@@ -50,10 +50,6 @@ func NewServer() *server {
 
 	var dbConn *pgxpool.Pool
 	if len(cfg.DatabaseDSN) > 0 {
-		// if err := migrationRun(cfg.DatabaseDSN, logger); err != nil {
-		// 	logger.Panic("unable to migration DB", zap.Error(err), zap.String("DSN", cfg.DatabaseDSN))
-		// }
-
 		poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseDSN)
 		if err != nil {
 			logger.Panic("unable to parse DATABASE_URL", zap.Error(err))
@@ -64,10 +60,7 @@ func NewServer() *server {
 			logger.Panic("unable to create connection pool", zap.Error(err))
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel()
-
-		if err := initDB(ctx, dbConn); err != nil {
+		if err := initDB(context.Background(), dbConn); err != nil {
 			logger.Panic("unable to init DB", zap.Error(err))
 		}
 	}
@@ -159,43 +152,4 @@ func (s *server) loadStorage() error {
 	}
 
 	return nil
-}
-
-func initDB(ctx context.Context, dbPool *pgxpool.Pool) error {
-	conn, err := dbPool.Acquire(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer conn.Release()
-
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback(ctx)
-
-	queryText := `
---create types
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metrickind') THEN
-        CREATE TYPE metrickind AS ENUM ('counter', 'gauge');
-    END IF;
-END$$;
-
---create tables
-CREATE TABLE IF NOT EXISTS metric(
-    id    varchar(255) primary key,
-    name  varchar(255) not null,
-    kind  metrickind not null,
-    value double precision
-);
-`
-	if _, err = tx.Exec(ctx, queryText); err != nil {
-		return err
-	}
-
-	return tx.Commit(ctx)
 }
