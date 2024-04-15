@@ -61,6 +61,39 @@ SET value = $4;
 	return tx.Commit(ctx)
 }
 
+func (d *dbStortage) PushBatch(ctx context.Context, records []Record) error {
+
+	conn, err := d.dbPool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Release()
+
+	queryText := `
+INSERT INTO metric(id, name, kind, value)
+values ($1, $1, $2, $3)
+ON CONFLICT (id) DO UPDATE
+SET value = $3;
+`
+
+	batch := &pgx.Batch{}
+	for _, v := range records {
+		batch.Queue(queryText,
+			v.GetName(),
+			v.GetValue().Kind(),
+			v.GetValue(),
+		)
+	}
+
+	err = conn.SendBatch(ctx, batch).Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {

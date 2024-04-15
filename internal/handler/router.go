@@ -29,6 +29,8 @@ func NewRouter(s metricService, log *zap.Logger) http.Handler {
 	r.Post("/update", metricHendlers.UpdateJSON)
 	r.Post("/update/", metricHendlers.UpdateJSON)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
+	r.Post("/updates", metricHendlers.UpdateBatch)
+	r.Post("/updates/", metricHendlers.UpdateBatch)
 
 	r.Get("/ping", metricHendlers.Ping)
 	r.Get("/ping/", metricHendlers.Ping)

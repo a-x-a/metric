@@ -26,6 +26,18 @@ func (m *memStorage) Push(ctx context.Context, name string, record Record) error
 	return nil
 }
 
+func (m *memStorage) PushBatch(ctx context.Context, records []Record) error {
+	m.Lock()
+	defer m.Unlock()
+
+	for _, v := range records {
+		key := v.GetName()
+		m.data[key] = v
+	}
+
+	return nil
+}
+
 func (m *memStorage) Get(ctx context.Context, name string) (*Record, error) {
 	m.Lock()
 	defer m.Unlock()

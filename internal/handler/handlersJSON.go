@@ -66,16 +66,18 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, err := h.service.Get(data.ID, data.MType)
+	record, err := h.service.Get(data.ID, data.MType)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound, h.logger)
 		return
 	}
 
+	value := record.GetValue()
+
 	switch kind {
 	case metric.KindCounter:
-		val, err := metric.ToCounter(value)
-		if err != nil {
+		val, ok := value.(metric.Counter)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}
@@ -84,8 +86,8 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := metric.ToGauge(value)
-		if err != nil {
+		val, ok := value.(metric.Gauge)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}

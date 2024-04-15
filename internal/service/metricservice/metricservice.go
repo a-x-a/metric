@@ -63,8 +63,6 @@ func (s *metricService) Push(name, kind, value string) error {
 			}
 		}
 		record.SetValue(val)
-	default:
-		return metric.ErrorInvalidMetricKind
 	}
 
 	return s.storage.Push(ctx, name, record)
@@ -108,9 +106,60 @@ func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge
 	return value, nil
 }
 
-func (s metricService) Get(name, kind string) (string, error) {
+func (s metricService) PushBatch(ctx context.Context, records []storage.Record) error {
+	data := make([]storage.Record, 0, len(records))
+	cache := make(map[string]int)
+	counters := make(map[string]metric.Counter)
+
+	for _, v := range records {
+		id := v.GetName()
+		value := v.GetValue()
+
+		if i, ok := cache[id]; ok {
+			if value.IsGauge() {
+				data[i].SetValue(value)
+				continue
+			}
+
+			if value.IsCounter() {
+				if oldValue, ok := counters[id]; ok {
+					value = oldValue + value.(metric.Counter)
+				}
+				counters[id] = value.(metric.Counter)
+				data[i].SetValue(value)
+				continue
+			}
+		}
+
+		record, err := storage.NewRecord(id)
+		if err != nil {
+			return err
+		}
+
+		if value.IsCounter() {
+			storRecord, err := s.Get(id, value.Kind())
+			if err != nil && !errors.Is(err, metric.ErrorMetricNotFound) {
+				return err
+			}
+
+			if storRecord != nil {
+				oldValue := storRecord.GetValue()
+				value = oldValue.(metric.Counter) + value.(metric.Counter)
+			}
+			counters[id] = value.(metric.Counter)
+		}
+
+		record.SetValue(value)
+		cache[id] = len(data)
+		data = append(data, record)
+	}
+
+	return s.storage.PushBatch(ctx, data)
+}
+
+func (s metricService) Get(name, kind string) (*storage.Record, error) {
 	if _, err := metric.GetKind(kind); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -118,12 +167,10 @@ func (s metricService) Get(name, kind string) (string, error) {
 
 	record, err := s.storage.Get(ctx, name)
 	if err != nil {
-		return "", metric.ErrorMetricNotFound
+		return nil, metric.ErrorMetricNotFound
 	}
 
-	value := record.GetValue().String()
-
-	return value, nil
+	return record, nil
 }
 
 func (s metricService) GetAll() []storage.Record {

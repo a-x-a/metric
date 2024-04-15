@@ -11,6 +11,7 @@ import (
 type (
 	Storage interface {
 		Push(ctx context.Context, name string, record Record) error
+		PushBatch(ctx context.Context, records []Record) error
 		Get(ctx context.Context, name string) (*Record, error)
 		GetAll(ctx context.Context) ([]Record, error)
 		Close() error

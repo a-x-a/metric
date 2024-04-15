@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -57,23 +58,29 @@ func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, e
 	return value, nil
 }
 
-func (s mockService) Get(name, kind string) (string, error) {
+func (s mockService) Get(name, kind string) (*storage.Record, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	records := map[string]string{
-		"Alloc":     fmt.Sprintf("%.3f", 12.345),
-		"PollCount": fmt.Sprintf("%d", 123),
-		"Random":    fmt.Sprintf("%.3f", 1313.131),
-	}
+	records := make(map[string]storage.Record)
+	r, _ := storage.NewRecord("Alloc")
+	r.SetValue(metric.Gauge(12.3456))
+	records["Alloc"] = r
+	r, _ = storage.NewRecord("PollCount")
+	r.SetValue(metric.Counter(123))
+	records["PollCount"] = r
+	r, _ = storage.NewRecord("Random")
+	r.SetValue(metric.Gauge(1313.1313))
+	records["Random"] = r
+
 	value, ok := records[name]
 	if !ok {
-		return "", metric.ErrorMetricNotFound
+		return nil, metric.ErrorMetricNotFound
 	}
 
-	return value, nil
+	return &value, nil
 }
 
 func (s mockService) GetAll() []storage.Record {
@@ -99,6 +106,10 @@ func (s mockService) Ping() error {
 
 type mockServiceWithErrorPing struct {
 	mockService
+}
+
+func (s mockService) PushBatch(ctx context.Context, records []storage.Record) error {
+	return nil
 }
 
 func (s mockServiceWithErrorPing) Ping() error {
