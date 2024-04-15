@@ -62,7 +62,6 @@ SET value = $4;
 }
 
 func (d *dbStortage) PushBatch(ctx context.Context, records []Record) error {
-
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return err
