@@ -66,7 +66,7 @@ func (s mockService) Get(name, kind string) (*storage.Record, error) {
 
 	records := make(map[string]storage.Record)
 	r, _ := storage.NewRecord("Alloc")
-	r.SetValue(metric.Gauge(12.3456))
+	r.SetValue(metric.Gauge(12.345))
 	records["Alloc"] = r
 	r, _ = storage.NewRecord("PollCount")
 	r.SetValue(metric.Counter(123))
@@ -86,7 +86,7 @@ func (s mockService) Get(name, kind string) (*storage.Record, error) {
 func (s mockService) GetAll() []storage.Record {
 	records := []storage.Record{}
 	record, _ := storage.NewRecord("Alloc")
-	record.SetValue(metric.Gauge(12.3456))
+	record.SetValue(metric.Gauge(12.345))
 	records = append(records, record)
 
 	record, _ = storage.NewRecord("PollCount")

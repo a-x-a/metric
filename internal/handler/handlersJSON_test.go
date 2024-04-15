@@ -182,7 +182,6 @@ func TestGetJSONMetric(t *testing.T) {
 			require.NoError(err)
 
 			resp := sendTestRequest(t, http.MethodPost, "/value/", data)
-
 			assert.Equal(tc.expected.code, resp.StatusCode)
 
 			if tc.expected.code == http.StatusOK {
@@ -195,7 +194,6 @@ func TestGetJSONMetric(t *testing.T) {
 				var resp adapter.RequestMetric
 				err = json.Unmarshal(respBody, &resp)
 				require.NoError(err)
-
 				assert.Equal(tc.expected.body, resp)
 			}
 		})
