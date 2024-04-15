@@ -43,7 +43,7 @@ func (d *dbStortage) Push(ctx context.Context, key string, record Record) error 
 	defer tx.Rollback(ctx)
 
 	queryText := `
-INSERT INTO metrics(id, name, kind, value)
+INSERT INTO metric(id, name, kind, value)
 values ($1, $2, $3, $4)
 ON CONFLICT (id) DO UPDATE
 SET value = $4;
@@ -76,7 +76,7 @@ func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
 	)
 
 	queryText := `
-SELECT name, kind, value FROM metrics WHERE id=$1
+SELECT name, kind, value FROM metric WHERE id=$1
 	`
 	err = conn.QueryRow(ctx, queryText, key).Scan(&name, &kindRaw, &valueRaw)
 	if err != nil {
@@ -118,7 +118,7 @@ func (d *dbStortage) GetAll(ctx context.Context) ([]Record, error) {
 	defer conn.Release()
 
 	queryText := `
-SELECT name, kind, value FROM metrics WHERE
+SELECT name, kind, value FROM metric WHERE
 	`
 	rows, err := conn.Query(ctx, queryText)
 	if err != nil {
@@ -171,43 +171,4 @@ func (d *dbStortage) Ping(ctx context.Context) error {
 func (d *dbStortage) Close() error {
 	d.dbPool.Close()
 	return nil
-}
-
-func (d *dbStortage) Bootstrap(ctx context.Context) error {
-	conn, err := d.dbPool.Acquire(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer conn.Release()
-
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback(ctx)
-
-	queryText := `
---create types
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metrickind') THEN
-        CREATE TYPE metrickind AS ENUM ('counter', 'gauge');
-    END IF;
-END$$;
-
---create tables
-CREATE TABLE IF NOT EXISTS metric(
-    id    varchar(255) primary key,
-    name  varchar(255) not null,
-    kind  metrickind not null,
-    value double precision
-);
-`
-	if _, err = tx.Exec(ctx, queryText); err != nil {
-		return err
-	}
-
-	return tx.Commit(ctx)
 }
