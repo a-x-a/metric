@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -29,10 +30,11 @@ func NewWithFileStorage(path string, syncMode bool, log *zap.Logger) *withFileSt
 	}
 }
 
-func (m *withFileStorage) Push(name string, record Record) error {
-	if err := m.memStorage.Push(name, record); err != nil {
-		return err
-	}
+func (m *withFileStorage) Push(ctx context.Context, name string, record Record) error {
+	_ = m.memStorage.Push(ctx, name, record)
+	// if err := m.memStorage.Push(ctx, name, record); err != nil {
+	// 	return err
+	// }
 
 	if m.syncMode {
 		return m.Save()
@@ -87,6 +89,10 @@ func (m *withFileStorage) Load() error {
 	m.logger.Info("storage loded from file", zap.String("file", m.path))
 
 	return nil
+}
+
+func (m *withFileStorage) Close() error {
+	return m.Save()
 }
 
 type JSONMetric struct {

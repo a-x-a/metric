@@ -93,6 +93,18 @@ func (s mockService) GetAll() []storage.Record {
 	return records
 }
 
+func (s mockService) Ping() error {
+	return nil
+}
+
+type mockServiceWithErrorPing struct {
+	mockService
+}
+
+func (s mockServiceWithErrorPing) Ping() error {
+	return fmt.Errorf("no ping")
+}
+
 func TestUpdateHandler(t *testing.T) {
 	rt := NewRouter(mockService{}, zap.NewNop())
 	srv := httptest.NewServer(rt)
@@ -277,6 +289,89 @@ func TestListHandler(t *testing.T) {
 			method: http.MethodGet,
 			expected: result{
 				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			client := http.Client{}
+			path := srv.URL + tc.path
+			req, err := http.NewRequest(tc.method, path, nil)
+			require.NoError(t, err)
+
+			req.Header.Set("Content-Type", "text/plain")
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func TestPingHandlerOk(t *testing.T) {
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
+	defer srv.Close()
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		expected result
+	}{
+		{
+			name:   "ping",
+			path:   "/ping/",
+			method: http.MethodGet,
+			expected: result{
+				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			client := http.Client{}
+			path := srv.URL + tc.path
+			req, err := http.NewRequest(tc.method, path, nil)
+			require.NoError(t, err)
+
+			req.Header.Set("Content-Type", "text/plain")
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+func TestPingHandlerError(t *testing.T) {
+	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
+	defer srv.Close()
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		expected result
+	}{
+		{
+			name:   "ping",
+			path:   "/ping/",
+			method: http.MethodGet,
+			expected: result{
+				code: http.StatusInternalServerError,
 			},
 		},
 	}
