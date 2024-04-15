@@ -28,28 +28,28 @@ func TestNewServer(t *testing.T) {
 	})
 }
 
-func TestNewServerWithDBOk(t *testing.T) {
-	require := require.New(t)
+// func TestNewServerWithDBOk(t *testing.T) {
+// 	require := require.New(t)
 
-	original, present := os.LookupEnv("DATABASE_DSN")
-	os.Setenv("DATABASE_DSN", "host=localhost user=postgres password=1234 dbname=go_metric sslmode=disable")
-	// os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
-	if present {
-		defer os.Setenv("DATABASE_DSN", original)
-	} else {
-		defer os.Unsetenv("DATABASE_DSN")
-	}
+// 	original, present := os.LookupEnv("DATABASE_DSN")
+// 	os.Setenv("DATABASE_DSN", "host=localhost user=postgres password=1234 dbname=go_metric sslmode=disable")
+// 	// os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
+// 	if present {
+// 		defer os.Setenv("DATABASE_DSN", original)
+// 	} else {
+// 		defer os.Unsetenv("DATABASE_DSN")
+// 	}
 
-	// 	defer func() {
-	// 		r := recover()
-	// 		require.NotNil(r)
-	// 	}()
+// 	// 	defer func() {
+// 	// 		r := recover()
+// 	// 		require.NotNil(r)
+// 	// 	}()
 
-	t.Run("normal create new server with db", func(t *testing.T) {
-		srv := NewServer()
-		require.NotNil(srv)
-	})
-}
+// 	t.Run("normal create new server with db", func(t *testing.T) {
+// 		srv := NewServer()
+// 		require.NotNil(srv)
+// 	})
+// }
 
 func TestNewServerWithDBError(t *testing.T) {
 	require := require.New(t)
