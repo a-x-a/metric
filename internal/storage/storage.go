@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -9,10 +10,16 @@ import (
 
 type (
 	Storage interface {
-		Push(name string, record Record) error
-		Get(name string) (Record, bool)
-		GetAll() []Record
+		Push(ctx context.Context, name string, record Record) error
+		Get(ctx context.Context, name string) (*Record, error)
+		GetAll(ctx context.Context) ([]Record, error)
 		Close() error
+	}
+
+	DBConnPool interface {
+		Acquire(ctx context.Context) (*pgxpool.Conn, error)
+		Ping(ctx context.Context) error
+		Close()
 	}
 )
 

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -29,8 +30,8 @@ func NewWithFileStorage(path string, syncMode bool, log *zap.Logger) *withFileSt
 	}
 }
 
-func (m *withFileStorage) Push(name string, record Record) error {
-	if err := m.memStorage.Push(name, record); err != nil {
+func (m *withFileStorage) Push(ctx context.Context, name string, record Record) error {
+	if err := m.memStorage.Push(ctx, name, record); err != nil {
 		return err
 	}
 

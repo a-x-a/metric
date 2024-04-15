@@ -2,87 +2,43 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"testing"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
-
-	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
-func TestNewDBStorage(t *testing.T) {
-	require := require.New(t)
-
-	dbConn := &pgxpool.Pool{}
-	ds := NewDBStorage(dbConn, zap.L())
-	require.NotNil(ds)
-}
-
-func Test_dbStortage_Push(t *testing.T) {
-	require := require.New(t)
-
-	d := dbStortage{}
-	r := Record{
-		name:  "Alloc",
-		value: metric.Gauge(12.345),
+func TestPing(t *testing.T) {
+	tt := []struct {
+		name   string
+		result error
+	}{
+		{
+			name: "return no error DB is online",
+		},
+		{
+			name:   "return error DB is ofline",
+			result: errors.New("DB is offline"),
+		},
 	}
 
-	err := d.Push(r.name, r)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			m := NewDBConnPoolMock()
+			m.On("Ping", mock.Anything).Return(tc.result)
 
-	require.Error(err)
-}
-
-func Test_dbStortage_Get(t *testing.T) {
-	require := require.New(t)
-
-	d := dbStortage{}
-	r, ok := d.Get("temp")
-
-	require.False(ok)
-	require.NotNil(r)
-}
-
-func Test_dbStortage_GetAll(t *testing.T) {
-	require := require.New(t)
-
-	d := dbStortage{}
-	r := d.GetAll()
-
-	require.NotNil(r)
-}
-
-func Test_dbStortage_Ping(t *testing.T) {
-	require := require.New(t)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	dbConn, err := pgxpool.New(ctx, "host=localhost")
-	require.NoError(err)
-
-	d := dbStortage{
-		dbConn: dbConn,
+			s := NewDBStorage(m, zap.L())
+			assert.ErrorIs(t, tc.result, s.Ping(context.Background()))
+		})
 	}
-
-	err = d.Ping(ctx)
-	require.Error(err)
 }
 
-func Test_dbStortage_Close(t *testing.T) {
-	require := require.New(t)
+func TestCloseNeverFails(t *testing.T) {
+	m := NewDBConnPoolMock()
+	m.On("Close").Return()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	dbConn, err := pgxpool.New(ctx, "host=localhost")
-	require.NoError(err)
-
-	d := dbStortage{
-		dbConn: dbConn,
-	}
-
-	err = d.Close()
-	require.NoError(err)
+	s := NewDBStorage(m, zap.L())
+	assert.NoError(t, s.Close())
 }

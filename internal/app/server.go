@@ -62,6 +62,17 @@ func NewServer() *server {
 	}
 
 	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, logger)
+	// if dbConn != nil {
+
+	// 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	// 	defer cancel()
+	// 	if _, ok := ds.(storage.DBConnPool); !ok {
+
+	// 	}
+	// 	if err := ds.Bootstrap(ctx); err != nil {
+	// 		logger.Panic("init database", zap.Error(err))
+	// 	}
+	// }
 	ms := metricservice.New(ds, logger)
 	rt := handler.NewRouter(ms, logger)
 	srv := &http.Server{

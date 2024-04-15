@@ -42,6 +42,9 @@ func (s *metricService) Push(name, kind, value string) error {
 		return err
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	switch metricKind {
 	case metric.KindGauge:
 		val, err := metric.ToGauge(value)
@@ -54,7 +57,7 @@ func (s *metricService) Push(name, kind, value string) error {
 		if err != nil {
 			return err
 		}
-		if v, ok := s.storage.Get(name); ok {
+		if v, err := s.storage.Get(ctx, name); err == nil {
 			if oldVal, ok := v.GetValue().(metric.Counter); ok {
 				val += oldVal
 			}
@@ -64,7 +67,7 @@ func (s *metricService) Push(name, kind, value string) error {
 		return metric.ErrorInvalidMetricKind
 	}
 
-	return s.storage.Push(name, record)
+	return s.storage.Push(ctx, name, record)
 }
 
 func (s *metricService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
@@ -73,14 +76,17 @@ func (s *metricService) PushCounter(name string, value metric.Counter) (metric.C
 		return 0, err
 	}
 
-	if v, ok := s.storage.Get(name); ok {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if v, err := s.storage.Get(ctx, name); err == nil {
 		if oldVal, ok := v.GetValue().(metric.Counter); ok {
 			value += oldVal
 		}
 	}
 	record.SetValue(value)
 
-	return value, s.storage.Push(name, record)
+	return value, s.storage.Push(ctx, name, record)
 }
 
 func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
@@ -91,7 +97,10 @@ func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge
 
 	record.SetValue(value)
 
-	err = s.storage.Push(name, record)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err = s.storage.Push(ctx, name, record)
 	if err != nil {
 		return 0, err
 	}
@@ -104,8 +113,11 @@ func (s metricService) Get(name, kind string) (string, error) {
 		return "", err
 	}
 
-	record, ok := s.storage.Get(name)
-	if !ok {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	record, err := s.storage.Get(ctx, name)
+	if err != nil {
 		return "", metric.ErrorMetricNotFound
 	}
 
@@ -115,7 +127,13 @@ func (s metricService) Get(name, kind string) (string, error) {
 }
 
 func (s metricService) GetAll() []storage.Record {
-	records := s.storage.GetAll()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	records, err := s.storage.GetAll(ctx)
+	if err != nil {
+		return nil
+	}
 
 	return records
 }
