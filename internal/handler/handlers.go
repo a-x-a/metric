@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,9 +18,12 @@ type (
 		Push(name, kind, value string) error
 		PushCounter(name string, value metric.Counter) (metric.Counter, error)
 		PushGauge(name string, value metric.Gauge) (metric.Gauge, error)
-		Get(name, kind string) (string, error)
+		PushBatch(ctx context.Context, records []storage.Record) error
+		Get(name, kind string) (*storage.Record, error)
 		GetAll() []storage.Record
+		Ping() error
 	}
+
 	metricHandlers struct {
 		service metricService
 		logger  *zap.Logger
@@ -50,12 +54,13 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	kind := chi.URLParam(r, "kind")
 	name := chi.URLParam(r, "name")
 
-	value, err := h.service.Get(name, kind)
+	record, err := h.service.Get(name, kind)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound, h.logger)
 		return
 	}
 
+	value := record.GetValue().String()
 	w.Write([]byte(value))
 
 	responseWithCode(w, http.StatusOK, h.logger)
@@ -71,6 +76,15 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Push(name, kind, value)
 	if err != nil {
 		responseWithCode(w, http.StatusBadRequest, h.logger)
+		return
+	}
+
+	responseWithCode(w, http.StatusOK, h.logger)
+}
+
+func (h metricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
+	if err := h.service.Ping(); err != nil {
+		responseWithCode(w, http.StatusInternalServerError, h.logger)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -57,29 +58,35 @@ func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, e
 	return value, nil
 }
 
-func (s mockService) Get(name, kind string) (string, error) {
+func (s mockService) Get(name, kind string) (*storage.Record, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	records := map[string]string{
-		"Alloc":     fmt.Sprintf("%.3f", 12.345),
-		"PollCount": fmt.Sprintf("%d", 123),
-		"Random":    fmt.Sprintf("%.3f", 1313.131),
-	}
+	records := make(map[string]storage.Record)
+	r, _ := storage.NewRecord("Alloc")
+	r.SetValue(metric.Gauge(12.345))
+	records["Alloc"] = r
+	r, _ = storage.NewRecord("PollCount")
+	r.SetValue(metric.Counter(123))
+	records["PollCount"] = r
+	r, _ = storage.NewRecord("Random")
+	r.SetValue(metric.Gauge(1313.1313))
+	records["Random"] = r
+
 	value, ok := records[name]
 	if !ok {
-		return "", metric.ErrorMetricNotFound
+		return nil, metric.ErrorMetricNotFound
 	}
 
-	return value, nil
+	return &value, nil
 }
 
 func (s mockService) GetAll() []storage.Record {
 	records := []storage.Record{}
 	record, _ := storage.NewRecord("Alloc")
-	record.SetValue(metric.Gauge(12.3456))
+	record.SetValue(metric.Gauge(12.345))
 	records = append(records, record)
 
 	record, _ = storage.NewRecord("PollCount")
@@ -91,6 +98,22 @@ func (s mockService) GetAll() []storage.Record {
 	records = append(records, record)
 
 	return records
+}
+
+func (s mockService) Ping() error {
+	return nil
+}
+
+type mockServiceWithErrorPing struct {
+	mockService
+}
+
+func (s mockService) PushBatch(ctx context.Context, records []storage.Record) error {
+	return nil
+}
+
+func (s mockServiceWithErrorPing) Ping() error {
+	return fmt.Errorf("no ping")
 }
 
 func TestUpdateHandler(t *testing.T) {
@@ -277,6 +300,89 @@ func TestListHandler(t *testing.T) {
 			method: http.MethodGet,
 			expected: result{
 				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			client := http.Client{}
+			path := srv.URL + tc.path
+			req, err := http.NewRequest(tc.method, path, nil)
+			require.NoError(t, err)
+
+			req.Header.Set("Content-Type", "text/plain")
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func TestPingHandlerOk(t *testing.T) {
+	rt := NewRouter(mockService{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
+	defer srv.Close()
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		expected result
+	}{
+		{
+			name:   "ping",
+			path:   "/ping/",
+			method: http.MethodGet,
+			expected: result{
+				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			client := http.Client{}
+			path := srv.URL + tc.path
+			req, err := http.NewRequest(tc.method, path, nil)
+			require.NoError(t, err)
+
+			req.Header.Set("Content-Type", "text/plain")
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+func TestPingHandlerError(t *testing.T) {
+	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop())
+	srv := httptest.NewServer(rt)
+	defer srv.Close()
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		expected result
+	}{
+		{
+			name:   "ping",
+			path:   "/ping/",
+			method: http.MethodGet,
+			expected: result{
+				code: http.StatusInternalServerError,
 			},
 		},
 	}

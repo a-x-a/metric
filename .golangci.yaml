@@ -292,6 +292,9 @@ linters-settings:
       - "8"
       - "9"
       - "0600"
+      - "10"
+      - "15"
+      - "30"
     ignored-functions:
       - strings.SplitN
   varnamelen:

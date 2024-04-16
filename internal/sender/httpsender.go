@@ -2,6 +2,7 @@ package sender
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 type httpSender struct {
 	baseURL string
 	client  *http.Client
+	batch   []adapter.RequestMetric
 	err     error
 }
 
@@ -22,64 +24,84 @@ func NewSender(serverAddress string, timeout time.Duration) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
 
-	return httpSender{baseURL: baseURL, client: client, err: nil}
+	return httpSender{
+		baseURL: baseURL,
+		client:  client,
+		batch:   make([]adapter.RequestMetric, 0),
+		err:     nil,
+	}
 }
 
-func (hs *httpSender) doSend(req string, data []byte) *httpSender {
-	resp, err := hs.client.Post(req, "Content-Type: application/json", bytes.NewReader(data))
+func (hs *httpSender) doSend() error {
+	data, err := json.Marshal(hs.batch)
 	if err != nil {
-		hs.err = err
-		return hs
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
+	if err != nil {
+		return err
+	}
+
+	if _, err := zw.Write(data); err != nil {
+		return err
+	}
+
+	if err := zw.Close(); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, hs.baseURL+"/updates", &buf)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
+
+	resp, err := hs.client.Do(req)
+	if err != nil {
+		return err
 	}
 
 	defer resp.Body.Close()
 
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		hs.err = err
-		return hs
+	if _, err = io.ReadAll(resp.Body); err != nil {
+		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		hs.err = fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
+		return fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (hs *httpSender) Send() *httpSender {
+	if hs.err != nil {
 		return hs
 	}
+
+	if len(hs.batch) == 0 {
+		hs.err = fmt.Errorf("metrics send: batch is empty")
+		return hs
+	}
+
+	hs.err = hs.doSend()
 
 	return hs
 }
 
-func (hs *httpSender) exportGauge(name string, value metric.Gauge) *httpSender {
+func (hs *httpSender) Add(rm adapter.RequestMetric) *httpSender {
 	if hs.err != nil {
 		return hs
 	}
 
-	requestMetric := adapter.NewUpdateRequestMetricGauge(name, value)
-	data, err := json.Marshal(requestMetric)
-	if err != nil {
-		hs.err = err
-		return hs
-	}
+	hs.batch = append(hs.batch, rm)
 
-	req := fmt.Sprintf("%s/update/", hs.baseURL)
-
-	return hs.doSend(req, data)
-}
-
-func (hs *httpSender) exportCounter(name string, value metric.Counter) *httpSender {
-	if hs.err != nil {
-		return hs
-	}
-
-	requestMetric := adapter.NewUpdateRequestMetricCounter(name, value)
-	data, err := json.Marshal(requestMetric)
-	if err != nil {
-		hs.err = err
-		return hs
-	}
-
-	req := fmt.Sprintf("%s/update/", hs.baseURL)
-
-	return hs.doSend(req, data)
+	return hs
 }
 
 func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metrics) error {
@@ -87,38 +109,40 @@ func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metri
 
 	// отправляем метрики пакета runtime
 	sender.
-		exportGauge("Alloc", stats.Memory.Alloc).
-		exportGauge("BuckHashSys", stats.Memory.BuckHashSys).
-		exportGauge("Frees", stats.Memory.Frees).
-		exportGauge("GCCPUFraction", stats.Memory.GCCPUFraction).
-		exportGauge("GCSys", stats.Memory.GCSys).
-		exportGauge("HeapAlloc", stats.Memory.HeapAlloc).
-		exportGauge("HeapIdle", stats.Memory.HeapIdle).
-		exportGauge("HeapInuse", stats.Memory.HeapInuse).
-		exportGauge("HeapObjects", stats.Memory.HeapObjects).
-		exportGauge("HeapReleased", stats.Memory.HeapReleased).
-		exportGauge("HeapSys", stats.Memory.HeapSys).
-		exportGauge("LastGC", stats.Memory.LastGC).
-		exportGauge("Lookups", stats.Memory.Lookups).
-		exportGauge("MCacheInuse", stats.Memory.MCacheInuse).
-		exportGauge("MCacheSys", stats.Memory.MCacheSys).
-		exportGauge("MSpanInuse", stats.Memory.MSpanInuse).
-		exportGauge("MSpanSys", stats.Memory.MSpanSys).
-		exportGauge("Mallocs", stats.Memory.Mallocs).
-		exportGauge("NextGC", stats.Memory.NextGC).
-		exportGauge("NumForcedGC", stats.Memory.NumForcedGC).
-		exportGauge("NumGC", stats.Memory.NumGC).
-		exportGauge("OtherSys", stats.Memory.OtherSys).
-		exportGauge("PauseTotalNs", stats.Memory.PauseTotalNs).
-		exportGauge("StackInuse", stats.Memory.StackInuse).
-		exportGauge("StackSys", stats.Memory.StackSys).
-		exportGauge("Sys", stats.Memory.Sys).
-		exportGauge("TotalAlloc", stats.Memory.TotalAlloc)
+		Add(adapter.NewUpdateRequestMetricGauge("Alloc", stats.Memory.Alloc)).
+		Add(adapter.NewUpdateRequestMetricGauge("BuckHashSys", stats.Memory.BuckHashSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Frees", stats.Memory.Frees)).
+		Add(adapter.NewUpdateRequestMetricGauge("GCCPUFraction", stats.Memory.GCCPUFraction)).
+		Add(adapter.NewUpdateRequestMetricGauge("GCSys", stats.Memory.GCSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapAlloc", stats.Memory.HeapAlloc)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapIdle", stats.Memory.HeapIdle)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapInuse", stats.Memory.HeapInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapObjects", stats.Memory.HeapObjects)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapReleased", stats.Memory.HeapReleased)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapSys", stats.Memory.HeapSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("LastGC", stats.Memory.LastGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("Lookups", stats.Memory.Lookups)).
+		Add(adapter.NewUpdateRequestMetricGauge("MCacheInuse", stats.Memory.MCacheInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("MCacheSys", stats.Memory.MCacheSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("MSpanInuse", stats.Memory.MSpanInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("MSpanSys", stats.Memory.MSpanSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Mallocs", stats.Memory.Mallocs)).
+		Add(adapter.NewUpdateRequestMetricGauge("NextGC", stats.Memory.NextGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("NumForcedGC", stats.Memory.NumForcedGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("NumGC", stats.Memory.NumGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("OtherSys", stats.Memory.OtherSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("PauseTotalNs", stats.Memory.PauseTotalNs)).
+		Add(adapter.NewUpdateRequestMetricGauge("StackInuse", stats.Memory.StackInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("StackSys", stats.Memory.StackSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Sys", stats.Memory.Sys)).
+		Add(adapter.NewUpdateRequestMetricGauge("TotalAlloc", stats.Memory.TotalAlloc))
 
 	// отправляем обновляемое произвольное значение
-	sender.exportGauge("RandomValue", stats.RandomValue)
+	sender.
+		Add(adapter.NewUpdateRequestMetricGauge("RandomValue", stats.RandomValue))
 	// отправляем счётчик обновления метрик пакета runtime
-	sender.exportCounter("PollCount", stats.PollCount)
+	sender.
+		Add(adapter.NewUpdateRequestMetricCounter("PollCount", stats.PollCount))
 
-	return sender.err
+	return sender.Send().err
 }
