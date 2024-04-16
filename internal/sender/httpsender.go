@@ -144,5 +144,5 @@ func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metri
 	sender.
 		Add(adapter.NewUpdateRequestMetricCounter("PollCount", stats.PollCount))
 
-	return sender.err
+	return sender.Send().err
 }

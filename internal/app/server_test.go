@@ -17,7 +17,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
-var log *zap.Logger = zap.NewNop()
+var log *zap.Logger = zap.L()
 
 func TestNewServer(t *testing.T) {
 	require := require.New(t)
