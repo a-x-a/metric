@@ -32,8 +32,8 @@ func TestNewServerWithDBErrorInitDB(t *testing.T) {
 	require := require.New(t)
 
 	original, present := os.LookupEnv("DATABASE_DSN")
-	os.Setenv("DATABASE_DSN", "host=localhost user=postgres password=12345 dbname=go_metric sslmode=disable")
-	// os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
+	// os.Setenv("DATABASE_DSN", "host=localhost user=postgres password=12345 dbname=go_metric sslmode=disable")
+	os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
 	if present {
 		defer os.Setenv("DATABASE_DSN", original)
 	} else {

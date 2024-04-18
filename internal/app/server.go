@@ -60,7 +60,7 @@ func NewServer() *server {
 			logger.Panic("unable to create connection pool", zap.Error(err))
 		}
 
-		if err := initDB(context.Background(), dbConn); err != nil {
+		if err := migrationRun(cfg.DatabaseDSN, logger); err != nil {
 			logger.Panic("unable to init DB", zap.Error(err))
 		}
 	}

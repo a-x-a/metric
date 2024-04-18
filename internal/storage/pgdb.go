@@ -107,9 +107,7 @@ func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
 		valueRaw float64
 	)
 
-	queryText := `
-SELECT name, kind, value FROM metric WHERE id=$1
-	`
+	queryText := `SELECT name, kind, value FROM metric WHERE id=$1`
 	err = conn.QueryRow(ctx, queryText, key).Scan(&name, &kindRaw, &valueRaw)
 	if err != nil {
 		return nil, err
@@ -149,9 +147,7 @@ func (d *dbStortage) GetAll(ctx context.Context) ([]Record, error) {
 
 	defer conn.Release()
 
-	queryText := `
-SELECT name, kind, value FROM metric WHERE
-	`
+	queryText := `SELECT name, kind, value FROM metric`
 	rows, err := conn.Query(ctx, queryText)
 	if err != nil {
 		return nil, err
