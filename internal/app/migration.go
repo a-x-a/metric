@@ -12,9 +12,16 @@ import (
 
 func migrationRun(dsn string, log *zap.Logger) error {
 	db, err := sql.Open("postgres", dsn)
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "go_metric", driver)
+	if err != nil {
+		return err
+	}
 
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance("file://migrations", "go_metric", driver)
 	if err != nil {
 		return err
 	}
