@@ -1,11 +1,29 @@
 package logger
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"go.uber.org/zap"
 )
+
+func InitLogger(level string) *zap.Logger {
+	lvl, err := zap.ParseAtomicLevel(level)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := zap.NewProductionConfig()
+	cfg.Level = lvl
+
+	zl, err := cfg.Build()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return zl
+}
 
 func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

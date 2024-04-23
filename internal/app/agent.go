@@ -41,7 +41,7 @@ func (app *agent) Report(ctx context.Context, metrics *metric.Metrics) {
 	for {
 		select {
 		case <-ticker.C:
-			err := sender.SendMetrics(app.Config.ServerAddress, app.Config.PollInterval, *metrics)
+			err := sender.SendMetrics(ctx, app.Config.ServerAddress, app.Config.PollInterval, *metrics)
 			if err != nil {
 				fmt.Println(err)
 			}

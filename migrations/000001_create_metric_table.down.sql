@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS metric;
+DROP TYPE IF EXISTS metrickind;

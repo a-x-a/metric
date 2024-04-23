@@ -1,26 +1,60 @@
 package storage
 
 import (
-	"os"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
-func TestNewDataStorage(t *testing.T) {
-	require := require.New(t)
-	log := zap.NewNop()
-	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
+func TestNewDataStore(t *testing.T) {
+	assert := assert.New(t)
+	tt := []struct {
+		name     string
+		db       *pgxpool.Pool
+		path     string
+		interval time.Duration
+		expected Storage
+	}{
+		{
+			name:     "create database storage",
+			path:     "some/path",
+			db:       &pgxpool.Pool{},
+			interval: 10 * time.Second,
+			expected: &dbStorage{},
+		},
+		{
+			name:     "create storage with file (path set, with interval)",
+			path:     "some/path",
+			interval: 10 * time.Second,
+			expected: &withFileStorage{},
+		},
+		{
+			name:     "create storage with file (path set, without interval)",
+			path:     "some/path",
+			interval: 0,
+			expected: &withFileStorage{},
+		},
+		{
+			name:     "create memory storage (with interval)",
+			path:     "",
+			interval: 10,
+			expected: &memStorage{},
+		},
+		{
+			name:     "create memory storage  (without interval)",
+			path:     "",
+			interval: 0,
+			expected: &memStorage{},
+		},
+	}
 
-	t.Run("storage without file", func(t *testing.T) {
-		ds := NewDataStorage("", 0, log)
-		require.NotNil(ds)
-	})
-
-	t.Run("storage with file", func(t *testing.T) {
-		ds := NewDataStorage(fileName, 0, log)
-		require.NotNil(ds)
-	})
-
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			store := NewDataStorage(tc.db, tc.path, tc.interval, zap.L())
+			assert.IsType(tc.expected, store)
+		})
+	}
 }
