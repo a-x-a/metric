@@ -3,7 +3,6 @@ package metricservice
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -150,9 +149,6 @@ func (s metricService) Get(ctx context.Context, name, kind string) (*storage.Rec
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	record, err := s.storage.Get(ctx, name)
 	if err != nil {
 		return nil, metric.ErrorMetricNotFound
@@ -162,9 +158,6 @@ func (s metricService) Get(ctx context.Context, name, kind string) (*storage.Rec
 }
 
 func (s metricService) GetAll(ctx context.Context) []storage.Record {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	records, err := s.storage.GetAll(ctx)
 	if err != nil {
 		return nil
