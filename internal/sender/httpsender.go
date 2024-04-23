@@ -3,6 +3,7 @@ package sender
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,7 +33,7 @@ func NewSender(serverAddress string, timeout time.Duration) httpSender {
 	}
 }
 
-func (hs *httpSender) doSend() error {
+func (hs *httpSender) doSend(ctx context.Context) error {
 	data, err := json.Marshal(hs.batch)
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func (hs *httpSender) doSend() error {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, hs.baseURL+"/updates", &buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func (hs *httpSender) doSend() error {
 	return nil
 }
 
-func (hs *httpSender) Send() *httpSender {
+func (hs *httpSender) Send(ctx context.Context) *httpSender {
 	if hs.err != nil {
 		return hs
 	}
@@ -89,7 +90,7 @@ func (hs *httpSender) Send() *httpSender {
 		return hs
 	}
 
-	hs.err = hs.doSend()
+	hs.err = hs.doSend(ctx)
 
 	return hs
 }
@@ -104,7 +105,7 @@ func (hs *httpSender) Add(rm adapter.RequestMetric) *httpSender {
 	return hs
 }
 
-func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metrics) error {
+func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, stats metric.Metrics) error {
 	sender := NewSender(serverAddress, timeout)
 
 	// отправляем метрики пакета runtime
@@ -144,5 +145,5 @@ func SendMetrics(serverAddress string, timeout time.Duration, stats metric.Metri
 	sender.
 		Add(adapter.NewUpdateRequestMetricCounter("PollCount", stats.PollCount))
 
-	return sender.Send().err
+	return sender.Send(ctx).err
 }

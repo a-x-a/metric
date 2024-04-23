@@ -26,7 +26,7 @@ type (
 		logger     *zap.Logger
 	}
 
-	withFileStorage interface {
+	WithFileStorage interface {
 		Save() error
 		Load() error
 	}
@@ -117,7 +117,7 @@ func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
 }
 
 func (s *server) saveStorage(ctx context.Context) {
-	if _, ok := s.Storage.(withFileStorage); !ok {
+	if _, ok := s.Storage.(WithFileStorage); !ok {
 		s.logger.Debug("storage doesn't support saving to file")
 		return
 	}
@@ -129,7 +129,7 @@ func (s *server) saveStorage(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			func() {
-				if err := s.Storage.(withFileStorage).Save(); err != nil {
+				if err := s.Storage.(WithFileStorage).Save(); err != nil {
 					s.logger.Error("storage saving error", zap.Error(err))
 				}
 			}()
@@ -142,7 +142,7 @@ func (s *server) saveStorage(ctx context.Context) {
 }
 
 func (s *server) loadStorage() error {
-	ds, ok := s.Storage.(withFileStorage)
+	ds, ok := s.Storage.(WithFileStorage)
 	if !ok {
 		return ErrStorageNotSupportLoadFromFile
 	}

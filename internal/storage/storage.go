@@ -8,21 +8,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type (
-	Storage interface {
-		Push(ctx context.Context, name string, record Record) error
-		PushBatch(ctx context.Context, records []Record) error
-		Get(ctx context.Context, name string) (*Record, error)
-		GetAll(ctx context.Context) ([]Record, error)
-		Close() error
-	}
-
-	DBConnPool interface {
-		Acquire(ctx context.Context) (*pgxpool.Conn, error)
-		Ping(ctx context.Context) error
-		Close()
-	}
-)
+type Storage interface {
+	Push(ctx context.Context, name string, record Record) error
+	PushBatch(ctx context.Context, records []Record) error
+	Get(ctx context.Context, name string) (*Record, error)
+	GetAll(ctx context.Context) ([]Record, error)
+	Close() error
+}
 
 func NewDataStorage(dbConn *pgxpool.Pool, path string, storeInterval time.Duration, log *zap.Logger) Storage {
 	if dbConn != nil {

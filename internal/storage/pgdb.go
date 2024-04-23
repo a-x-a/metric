@@ -4,30 +4,35 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 type (
-	dbStortage struct {
+	dbStorage struct {
 		dbPool DBConnPool
 		logger *zap.Logger
 	}
+
+	DBConnPool interface {
+		Acquire(ctx context.Context) (*pgxpool.Conn, error)
+		Ping(ctx context.Context) error
+		Close()
+	}
 )
 
-var _ Storage = &dbStortage{}
+var _ Storage = &dbStorage{}
 
-func NewDBStorage(dbConn DBConnPool, log *zap.Logger) *dbStortage {
-	d := dbStortage{
+func NewDBStorage(dbConn DBConnPool, log *zap.Logger) *dbStorage {
+	return &dbStorage{
 		dbPool: dbConn,
 		logger: log,
 	}
-
-	return &d
 }
 
-func (d *dbStortage) Push(ctx context.Context, key string, record Record) error {
+func (d *dbStorage) Push(ctx context.Context, key string, record Record) error {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return err
@@ -42,8 +47,7 @@ func (d *dbStortage) Push(ctx context.Context, key string, record Record) error 
 
 	defer tx.Rollback(ctx)
 
-	queryText := `
-INSERT INTO metric(id, name, kind, value)
+	queryText := `INSERT INTO metric(id, name, kind, value)
 values ($1, $2, $3, $4)
 ON CONFLICT (id) DO UPDATE
 SET value = $4;
@@ -61,7 +65,7 @@ SET value = $4;
 	return tx.Commit(ctx)
 }
 
-func (d *dbStortage) PushBatch(ctx context.Context, records []Record) error {
+func (d *dbStorage) PushBatch(ctx context.Context, records []Record) error {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return err
@@ -69,8 +73,7 @@ func (d *dbStortage) PushBatch(ctx context.Context, records []Record) error {
 
 	defer conn.Release()
 
-	queryText := `
-INSERT INTO metric(id, name, kind, value)
+	queryText := `INSERT INTO metric(id, name, kind, value)
 values ($1, $1, $2, $3)
 ON CONFLICT (id) DO UPDATE
 SET value = $3;
@@ -93,7 +96,7 @@ SET value = $3;
 	return nil
 }
 
-func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
+func (d *dbStorage) Get(ctx context.Context, key string) (*Record, error) {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -107,7 +110,7 @@ func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
 		valueRaw float64
 	)
 
-	queryText := `SELECT name, kind, value FROM metric WHERE id=$1`
+	queryText := `SELECT name, kind, value FROM metric WHERE id=$1;`
 	err = conn.QueryRow(ctx, queryText, key).Scan(&name, &kindRaw, &valueRaw)
 	if err != nil {
 		return nil, err
@@ -139,7 +142,7 @@ func (d *dbStortage) Get(ctx context.Context, key string) (*Record, error) {
 	}
 }
 
-func (d *dbStortage) GetAll(ctx context.Context) ([]Record, error) {
+func (d *dbStorage) GetAll(ctx context.Context) ([]Record, error) {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -147,7 +150,7 @@ func (d *dbStortage) GetAll(ctx context.Context) ([]Record, error) {
 
 	defer conn.Release()
 
-	queryText := `SELECT name, kind, value FROM metric`
+	queryText := `SELECT name, kind, value FROM metric;`
 	rows, err := conn.Query(ctx, queryText)
 	if err != nil {
 		return nil, err
@@ -192,11 +195,11 @@ func (d *dbStortage) GetAll(ctx context.Context) ([]Record, error) {
 	return records, err
 }
 
-func (d *dbStortage) Ping(ctx context.Context) error {
+func (d *dbStorage) Ping(ctx context.Context) error {
 	return d.dbPool.Ping(ctx)
 }
 
-func (d *dbStortage) Close() error {
+func (d *dbStorage) Close() error {
 	d.dbPool.Close()
 	return nil
 }

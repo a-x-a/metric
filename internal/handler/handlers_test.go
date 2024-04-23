@@ -18,7 +18,7 @@ import (
 
 type mockService struct{}
 
-func (s mockService) Push(name, kind, value string) error {
+func (s mockService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (s mockService) Push(name, kind, value string) error {
 	return nil
 }
 
-func (s mockService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+func (s mockService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -50,7 +50,7 @@ func (s mockService) PushCounter(name string, value metric.Counter) (metric.Coun
 	return value, nil
 }
 
-func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+func (s mockService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -58,7 +58,7 @@ func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, e
 	return value, nil
 }
 
-func (s mockService) Get(name, kind string) (*storage.Record, error) {
+func (s mockService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (s mockService) Get(name, kind string) (*storage.Record, error) {
 	return &value, nil
 }
 
-func (s mockService) GetAll() []storage.Record {
+func (s mockService) GetAll(ctx context.Context) []storage.Record {
 	records := []storage.Record{}
 	record, _ := storage.NewRecord("Alloc")
 	record.SetValue(metric.Gauge(12.345))
@@ -100,7 +100,7 @@ func (s mockService) GetAll() []storage.Record {
 	return records
 }
 
-func (s mockService) Ping() error {
+func (s mockService) Ping(ctx context.Context) error {
 	return nil
 }
 
@@ -112,7 +112,7 @@ func (s mockService) PushBatch(ctx context.Context, records []storage.Record) er
 	return nil
 }
 
-func (s mockServiceWithErrorPing) Ping() error {
+func (s mockServiceWithErrorPing) Ping(ctx context.Context) error {
 	return fmt.Errorf("no ping")
 }
 

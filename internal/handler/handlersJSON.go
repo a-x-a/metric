@@ -23,7 +23,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 
 	switch kind {
 	case metric.KindCounter:
-		val, err := h.service.PushCounter(data.ID, metric.Counter(*data.Delta))
+		val, err := h.service.PushCounter(r.Context(), data.ID, metric.Counter(*data.Delta))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -33,7 +33,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := h.service.PushGauge(data.ID, metric.Gauge(*data.Value))
+		val, err := h.service.PushGauge(r.Context(), data.ID, metric.Gauge(*data.Value))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -66,7 +66,7 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := h.service.Get(data.ID, data.MType)
+	record, err := h.service.Get(r.Context(), data.ID, data.MType)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound, h.logger)
 		return

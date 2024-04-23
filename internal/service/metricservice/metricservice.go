@@ -17,7 +17,7 @@ type (
 		logger  *zap.Logger
 	}
 
-	dbStorage interface {
+	DBStorage interface {
 		Ping(ctx context.Context) error
 	}
 )
@@ -31,7 +31,7 @@ func New(stor storage.Storage, logger *zap.Logger) *metricService {
 	}
 }
 
-func (s *metricService) Push(name, kind, value string) error {
+func (s *metricService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -41,9 +41,6 @@ func (s *metricService) Push(name, kind, value string) error {
 	if err != nil {
 		return err
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	switch metricKind {
 	case metric.KindGauge:
@@ -68,14 +65,11 @@ func (s *metricService) Push(name, kind, value string) error {
 	return s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+func (s *metricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	if v, err := s.storage.Get(ctx, name); err == nil {
 		if oldVal, ok := v.GetValue().(metric.Counter); ok {
@@ -87,16 +81,13 @@ func (s *metricService) PushCounter(name string, value metric.Counter) (metric.C
 	return value, s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+func (s *metricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
 	}
 
 	record.SetValue(value)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	err = s.storage.Push(ctx, name, record)
 	if err != nil {
@@ -116,19 +107,16 @@ func (s metricService) PushBatch(ctx context.Context, records []storage.Record) 
 		value := v.GetValue()
 
 		if i, ok := cache[id]; ok {
-			if value.IsGauge() {
-				data[i].SetValue(value)
-				continue
-			}
-
 			if value.IsCounter() {
 				if oldValue, ok := counters[id]; ok {
 					value = oldValue + value.(metric.Counter)
 				}
 				counters[id] = value.(metric.Counter)
-				data[i].SetValue(value)
-				continue
 			}
+
+			data[i].SetValue(value)
+
+			continue
 		}
 
 		record, err := storage.NewRecord(id)
@@ -137,7 +125,7 @@ func (s metricService) PushBatch(ctx context.Context, records []storage.Record) 
 		}
 
 		if value.IsCounter() {
-			storRecord, err := s.Get(id, value.Kind())
+			storRecord, err := s.Get(ctx, id, value.Kind())
 			if err != nil && !errors.Is(err, metric.ErrorMetricNotFound) {
 				return err
 			}
@@ -157,7 +145,7 @@ func (s metricService) PushBatch(ctx context.Context, records []storage.Record) 
 	return s.storage.PushBatch(ctx, data)
 }
 
-func (s metricService) Get(name, kind string) (*storage.Record, error) {
+func (s metricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	if _, err := metric.GetKind(kind); err != nil {
 		return nil, err
 	}
@@ -173,7 +161,7 @@ func (s metricService) Get(name, kind string) (*storage.Record, error) {
 	return record, nil
 }
 
-func (s metricService) GetAll() []storage.Record {
+func (s metricService) GetAll(ctx context.Context) []storage.Record {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -185,11 +173,8 @@ func (s metricService) GetAll() []storage.Record {
 	return records
 }
 
-func (s metricService) Ping() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	dbStorage, ok := s.storage.(dbStorage)
+func (s metricService) Ping(ctx context.Context) error {
+	dbStorage, ok := s.storage.(DBStorage)
 
 	if !ok {
 		return ErrNotSupportedMethod
