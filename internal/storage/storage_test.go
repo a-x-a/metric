@@ -23,7 +23,7 @@ func TestNewDataStore(t *testing.T) {
 			path:     "some/path",
 			db:       &pgxpool.Pool{},
 			interval: 10 * time.Second,
-			expected: &dbStorage{},
+			expected: &DBStorage{},
 		},
 		{
 			name:     "create storage with file (path set, with interval)",

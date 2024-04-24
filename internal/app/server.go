@@ -19,9 +19,9 @@ import (
 )
 
 type (
-	server struct {
-		Config     config.ServerConfig
-		Storage    storage.Storage
+	Server struct {
+		config     config.ServerConfig
+		storage    storage.Storage
 		httpServer *http.Server
 		logger     *zap.Logger
 	}
@@ -42,7 +42,7 @@ var (
 	ErrStorageNotSupportLoadFromFile = errors.New("storage doesn't support loading from file")
 )
 
-func NewServer() *server {
+func NewServer() *Server {
 	logger := logger.InitLogger(logLevel)
 	defer logger.Sync()
 
@@ -73,63 +73,63 @@ func NewServer() *server {
 		Handler: rt,
 	}
 
-	return &server{
-		Config:     cfg,
-		Storage:    ds,
+	return &Server{
+		config:     cfg,
+		storage:    ds,
 		httpServer: srv,
 		logger:     logger,
 	}
 }
 
-func (s *server) Run(ctx context.Context) {
-	if len(s.Config.DatabaseDSN) == 0 && len(s.Config.FileStoregePath) > 0 {
-		if s.Config.Restore {
+func (s *Server) Run(ctx context.Context) {
+	if len(s.config.DatabaseDSN) == 0 && len(s.config.FileStoregePath) > 0 {
+		if s.config.Restore {
 			err := s.loadStorage()
 			if err != nil {
 				s.logger.Warn("restoring storage", zap.Error(err))
 			}
 		}
 
-		if s.Config.StoreInterval > 0 {
+		if s.config.StoreInterval > 0 {
 			go s.saveStorage(ctx)
 		}
 	}
 
-	s.logger.Info("start http server", zap.String("address", s.Config.ListenAddress))
+	s.logger.Info("start http server", zap.String("address", s.config.ListenAddress))
 
 	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		s.logger.Panic("failed to start http server", zap.Error(err))
 	}
 }
 
-func (s *server) Shutdown(ctx context.Context, signal os.Signal) {
+func (s *Server) Shutdown(ctx context.Context, signal os.Signal) {
 	s.logger.Info("start server shutdown", zap.String("signal", signal.String()))
 
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		s.logger.Warn("server shutdowning error", zap.Error(err))
 	}
 
-	if err := s.Storage.Close(); err != nil {
+	if err := s.storage.Close(); err != nil {
 		s.logger.Error("storage close ", zap.Error(err))
 	}
 
 	s.logger.Info("successfully server shutdowning")
 }
 
-func (s *server) saveStorage(ctx context.Context) {
-	if _, ok := s.Storage.(WithFileStorage); !ok {
+func (s *Server) saveStorage(ctx context.Context) {
+	if _, ok := s.storage.(WithFileStorage); !ok {
 		s.logger.Debug("storage doesn't support saving to file")
 		return
 	}
 
-	ticker := time.NewTicker(s.Config.StoreInterval)
+	ticker := time.NewTicker(s.config.StoreInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
 			func() {
-				if err := s.Storage.(WithFileStorage).Save(); err != nil {
+				if err := s.storage.(WithFileStorage).Save(); err != nil {
 					s.logger.Error("storage saving error", zap.Error(err))
 				}
 			}()
@@ -141,8 +141,8 @@ func (s *server) saveStorage(ctx context.Context) {
 	}
 }
 
-func (s *server) loadStorage() error {
-	ds, ok := s.Storage.(WithFileStorage)
+func (s *Server) loadStorage() error {
+	ds, ok := s.storage.(WithFileStorage)
 	if !ok {
 		return ErrStorageNotSupportLoadFromFile
 	}

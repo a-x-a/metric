@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	dbStorage struct {
+	DBStorage struct {
 		dbPool DBConnPool
 		logger *zap.Logger
 	}
@@ -23,16 +23,16 @@ type (
 	}
 )
 
-var _ Storage = &dbStorage{}
+var _ Storage = &DBStorage{}
 
-func NewDBStorage(dbConn DBConnPool, log *zap.Logger) *dbStorage {
-	return &dbStorage{
+func NewDBStorage(dbConn DBConnPool, log *zap.Logger) *DBStorage {
+	return &DBStorage{
 		dbPool: dbConn,
 		logger: log,
 	}
 }
 
-func (d *dbStorage) Push(ctx context.Context, key string, record Record) error {
+func (d *DBStorage) Push(ctx context.Context, key string, record Record) error {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ SET value = $4;
 	return tx.Commit(ctx)
 }
 
-func (d *dbStorage) PushBatch(ctx context.Context, records []Record) error {
+func (d *DBStorage) PushBatch(ctx context.Context, records []Record) error {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ SET value = $3;
 	return nil
 }
 
-func (d *dbStorage) Get(ctx context.Context, key string) (*Record, error) {
+func (d *DBStorage) Get(ctx context.Context, key string) (*Record, error) {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (d *dbStorage) Get(ctx context.Context, key string) (*Record, error) {
 	}
 }
 
-func (d *dbStorage) GetAll(ctx context.Context) ([]Record, error) {
+func (d *DBStorage) GetAll(ctx context.Context) ([]Record, error) {
 	conn, err := d.dbPool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -195,11 +195,11 @@ func (d *dbStorage) GetAll(ctx context.Context) ([]Record, error) {
 	return records, err
 }
 
-func (d *dbStorage) Ping(ctx context.Context) error {
+func (d *DBStorage) Ping(ctx context.Context) error {
 	return d.dbPool.Ping(ctx)
 }
 
-func (d *dbStorage) Close() error {
+func (d *DBStorage) Close() error {
 	d.dbPool.Close()
 	return nil
 }

@@ -77,9 +77,9 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = ""
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -123,9 +123,9 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	stor := storage.NewWithFileStorage(fileName, false, log)
 	cfg := config.NewServerConfig()
 
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -169,9 +169,9 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		_ = srv2.ListenAndServe()
 	}()
 
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -219,9 +219,9 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 func Test_server_saveWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -250,9 +250,9 @@ func Test_server_saveAndLoadWithFileStorage(t *testing.T) {
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = fileName
 	cfg.StoreInterval = time.Second * 2
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -271,9 +271,9 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -289,9 +289,9 @@ func Test_server_loadWithError(t *testing.T) {
 
 	stor := storage.NewWithFileStorage("", true, log)
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}

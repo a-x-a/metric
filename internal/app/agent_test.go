@@ -39,12 +39,12 @@ func Test_agent_Poll(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		app  *agent
+		app  *Agent
 		args args
 	}{
 		{
 			name: "poll",
-			app:  &agent{Config: cfg},
+			app:  &Agent{config: cfg},
 			args: args{
 				ctx:     context.Background(),
 				metrics: metrics,
@@ -54,7 +54,7 @@ func Test_agent_Poll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.Config.PollInterval*2)
+			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.config.PollInterval*2)
 			defer cancel()
 
 			tt.app.Poll(cancellingCtx, tt.args.metrics)
@@ -90,13 +90,13 @@ func Test_agent_Report(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		app     *agent
+		app     *Agent
 		ctx     context.Context
 		metrics *metric.Metrics
 	}{
 		{
 			name:    "report",
-			app:     &agent{Config: cfg},
+			app:     &Agent{config: cfg},
 			ctx:     context.Background(),
 			metrics: &metrics,
 		},
@@ -104,7 +104,7 @@ func Test_agent_Report(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.Config.ReportInterval)
+			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.config.ReportInterval)
 			defer cancel()
 			tt.app.Report(cancellingCtx, tt.metrics)
 		})

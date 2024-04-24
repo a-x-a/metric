@@ -11,17 +11,17 @@ import (
 )
 
 type (
-	agent struct {
-		Config config.AgentConfig
+	Agent struct {
+		config config.AgentConfig
 	}
 )
 
-func NewAgent() *agent {
-	return &agent{Config: config.NewAgentConfig()}
+func NewAgent() *Agent {
+	return &Agent{config: config.NewAgentConfig()}
 }
 
-func (app *agent) Poll(ctx context.Context, metrics *metric.Metrics) {
-	ticker := time.NewTicker(app.Config.PollInterval)
+func (app *Agent) Poll(ctx context.Context, metrics *metric.Metrics) {
+	ticker := time.NewTicker(app.config.PollInterval)
 	defer ticker.Stop()
 
 	for {
@@ -34,14 +34,14 @@ func (app *agent) Poll(ctx context.Context, metrics *metric.Metrics) {
 	}
 }
 
-func (app *agent) Report(ctx context.Context, metrics *metric.Metrics) {
-	ticker := time.NewTicker(app.Config.ReportInterval)
+func (app *Agent) Report(ctx context.Context, metrics *metric.Metrics) {
+	ticker := time.NewTicker(app.config.ReportInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			err := sender.SendMetrics(ctx, app.Config.ServerAddress, app.Config.PollInterval, *metrics)
+			err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, *metrics)
 			if err != nil {
 				fmt.Println(err)
 			}

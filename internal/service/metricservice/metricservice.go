@@ -11,26 +11,26 @@ import (
 )
 
 type (
-	metricService struct {
+	MetricService struct {
 		storage storage.Storage
 		logger  *zap.Logger
 	}
 
-	DBStorage interface {
+	StorageWithPing interface {
 		Ping(ctx context.Context) error
 	}
 )
 
 var ErrNotSupportedMethod = errors.New("storage doesn't support method")
 
-func New(stor storage.Storage, logger *zap.Logger) *metricService {
-	return &metricService{
+func New(stor storage.Storage, logger *zap.Logger) *MetricService {
+	return &MetricService{
 		storage: stor,
 		logger:  logger,
 	}
 }
 
-func (s *metricService) Push(ctx context.Context, name, kind, value string) error {
+func (s *MetricService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (s *metricService) Push(ctx context.Context, name, kind, value string) erro
 	return s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
+func (s *MetricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
@@ -80,7 +80,7 @@ func (s *metricService) PushCounter(ctx context.Context, name string, value metr
 	return value, s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
+func (s *MetricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
@@ -96,7 +96,7 @@ func (s *metricService) PushGauge(ctx context.Context, name string, value metric
 	return value, nil
 }
 
-func (s metricService) PushBatch(ctx context.Context, records []storage.Record) error {
+func (s MetricService) PushBatch(ctx context.Context, records []storage.Record) error {
 	data := make([]storage.Record, 0, len(records))
 	cache := make(map[string]int)
 	counters := make(map[string]metric.Counter)
@@ -144,7 +144,7 @@ func (s metricService) PushBatch(ctx context.Context, records []storage.Record) 
 	return s.storage.PushBatch(ctx, data)
 }
 
-func (s metricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
+func (s MetricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	if _, err := metric.GetKind(kind); err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (s metricService) Get(ctx context.Context, name, kind string) (*storage.Rec
 	return record, nil
 }
 
-func (s metricService) GetAll(ctx context.Context) []storage.Record {
+func (s MetricService) GetAll(ctx context.Context) []storage.Record {
 	records, err := s.storage.GetAll(ctx)
 	if err != nil {
 		return nil
@@ -166,8 +166,8 @@ func (s metricService) GetAll(ctx context.Context) []storage.Record {
 	return records
 }
 
-func (s metricService) Ping(ctx context.Context) error {
-	dbStorage, ok := s.storage.(DBStorage)
+func (s MetricService) Ping(ctx context.Context) error {
+	dbStorage, ok := s.storage.(StorageWithPing)
 
 	if !ok {
 		return ErrNotSupportedMethod
