@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
@@ -14,6 +16,26 @@ func (h metricHandlers) UpdateBatch(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return
+	}
+
+	if h.signer != nil {
+		hash := r.Header.Get("HashSHA256")
+		h.logger.Info("signer", zap.String("hash", hash))
+		if len(hash) == 0 {
+			responseWithCode(w, http.StatusBadRequest, h.logger)
+			return
+		}
+
+		b, err := json.Marshal(data)
+		if err != nil {
+			responseWithCode(w, http.StatusBadRequest, h.logger)
+			return
+		}
+
+		if ok, err := h.signer.Verify(b, hash); !ok || err != nil {
+			responseWithError(w, http.StatusBadRequest, err, h.logger)
+			return
+		}
 	}
 
 	records := make([]storage.Record, 0)

@@ -15,6 +15,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
+	"github.com/a-x-a/go-metric/internal/signer"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -65,9 +66,13 @@ func NewServer() *Server {
 		}
 	}
 
+	var sign *signer.Signer
+	if len(cfg.Key) > 0 {
+		sign = signer.New(cfg.Key)
+	}
 	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, logger)
 	ms := metricservice.New(ds, logger)
-	rt := handler.NewRouter(ms, logger)
+	rt := handler.NewRouter(ms, logger, sign)
 	srv := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: rt,

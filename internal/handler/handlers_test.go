@@ -117,7 +117,7 @@ func (s mockServiceWithErrorPing) Ping(ctx context.Context) error {
 }
 
 func TestUpdateHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.NewNop(), nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -207,7 +207,7 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.NewNop(), nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -281,7 +281,7 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestListHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.NewNop(), nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -323,7 +323,7 @@ func TestListHandler(t *testing.T) {
 }
 
 func TestPingHandlerOk(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.NewNop(), nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -364,7 +364,7 @@ func TestPingHandlerOk(t *testing.T) {
 	}
 }
 func TestPingHandlerError(t *testing.T) {
-	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop())
+	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop(), nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 

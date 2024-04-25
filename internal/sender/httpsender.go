@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,28 +13,32 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/signer"
 )
 
 type httpSender struct {
 	baseURL string
 	client  *http.Client
+	signer  *signer.Signer
 	batch   []adapter.RequestMetric
 	err     error
 }
 
-func NewSender(serverAddress string, timeout time.Duration) httpSender {
+func NewHTTPSender(serverAddress string, timeout time.Duration, key string) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
+	signer := signer.New(key)
 
 	return httpSender{
 		baseURL: baseURL,
 		client:  client,
+		signer:  signer,
 		batch:   make([]adapter.RequestMetric, 0),
 		err:     nil,
 	}
 }
 
-func (hs *httpSender) doSend(ctx context.Context) error {
+func (hs *httpSender) do(ctx context.Context) error {
 	data, err := json.Marshal(hs.batch)
 	if err != nil {
 		return err
@@ -61,6 +66,15 @@ func (hs *httpSender) doSend(ctx context.Context) error {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
+
+	if hs.signer != nil {
+		hash, err := hs.signer.Hash(data)
+		if err != nil {
+			return err
+		}
+
+		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+	}
 
 	resp, err := hs.client.Do(req)
 	if err != nil {
@@ -90,7 +104,7 @@ func (hs *httpSender) Send(ctx context.Context) *httpSender {
 		return hs
 	}
 
-	hs.err = hs.doSend(ctx)
+	hs.err = hs.do(ctx)
 
 	return hs
 }
@@ -105,8 +119,8 @@ func (hs *httpSender) Add(rm adapter.RequestMetric) *httpSender {
 	return hs
 }
 
-func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, stats metric.Metrics) error {
-	sender := NewSender(serverAddress, timeout)
+func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, stats metric.Metrics) error {
+	sender := NewHTTPSender(serverAddress, timeout, key)
 
 	// отправляем метрики пакета runtime
 	sender.

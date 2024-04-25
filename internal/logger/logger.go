@@ -42,7 +42,7 @@ func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			logger.Info("",
+			logger.Info("request",
 				zap.String("uri", r.RequestURI),
 				zap.String("method", r.Method),
 				zap.Duration("duration", duration),

@@ -9,16 +9,18 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
+	"github.com/a-x-a/go-metric/internal/signer"
 )
 
-func NewRouter(s metricService, log *zap.Logger) http.Handler {
-	metricHendlers := newMetricHandlers(s, log)
+func NewRouter(s metricService, log *zap.Logger, signer *signer.Signer) http.Handler {
+	metricHendlers := newMetricHandlers(s, log, signer)
 
 	r := chi.NewRouter()
 
 	r.Use(logger.LoggerMiddleware(log))
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
+	// r.Use(signer.SignerMiddleware(log))
 
 	r.Get("/", metricHendlers.List)
 

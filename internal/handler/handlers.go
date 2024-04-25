@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/signer"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -27,13 +28,15 @@ type (
 	metricHandlers struct {
 		service metricService
 		logger  *zap.Logger
+		signer  *signer.Signer
 	}
 )
 
-func newMetricHandlers(s metricService, logger *zap.Logger) metricHandlers {
+func newMetricHandlers(s metricService, logger *zap.Logger, signer *signer.Signer) metricHandlers {
 	return metricHandlers{
 		service: s,
 		logger:  logger,
+		signer:  signer,
 	}
 }
 
