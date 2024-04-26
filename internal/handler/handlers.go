@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
-	"github.com/a-x-a/go-metric/internal/signer"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -25,22 +24,20 @@ type (
 		Ping(ctx context.Context) error
 	}
 
-	metricHandlers struct {
+	MetricHandlers struct {
 		service metricService
 		logger  *zap.Logger
-		signer  *signer.Signer
 	}
 )
 
-func newMetricHandlers(s metricService, logger *zap.Logger, signer *signer.Signer) metricHandlers {
-	return metricHandlers{
+func newMetricHandlers(s metricService, logger *zap.Logger) MetricHandlers {
+	return MetricHandlers{
 		service: s,
 		logger:  logger,
-		signer:  signer,
 	}
 }
 
-func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	records := h.service.GetAll(r.Context())
@@ -51,7 +48,7 @@ func (h metricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	kind := chi.URLParam(r, "kind")
@@ -69,7 +66,7 @@ func (h metricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	kind := chi.URLParam(r, "kind")
@@ -85,7 +82,7 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Ping(r.Context()); err != nil {
 		responseWithCode(w, http.StatusInternalServerError, h.logger)
 		return

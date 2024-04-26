@@ -12,15 +12,15 @@ import (
 	"github.com/a-x-a/go-metric/internal/signer"
 )
 
-func NewRouter(s metricService, log *zap.Logger, signer *signer.Signer) http.Handler {
-	metricHendlers := newMetricHandlers(s, log, signer)
+func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
+	metricHendlers := newMetricHandlers(s, log)
 
 	r := chi.NewRouter()
 
 	r.Use(logger.LoggerMiddleware(log))
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
-	// r.Use(signer.SignerMiddleware(log))
+	r.Use(signer.SignerMiddleware(log, key))
 
 	r.Get("/", metricHendlers.List)
 

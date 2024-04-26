@@ -27,12 +27,12 @@ type httpSender struct {
 func NewHTTPSender(serverAddress string, timeout time.Duration, key string) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
-	signer := signer.New(key)
+	sgnr := signer.New(key)
 
 	return httpSender{
 		baseURL: baseURL,
 		client:  client,
-		signer:  signer,
+		signer:  sgnr,
 		batch:   make([]adapter.RequestMetric, 0),
 		err:     nil,
 	}

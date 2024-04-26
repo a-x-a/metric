@@ -8,7 +8,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
-func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
@@ -53,7 +53,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
