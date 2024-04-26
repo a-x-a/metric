@@ -20,7 +20,6 @@ func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
 	r.Use(logger.LoggerMiddleware(log))
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
-	r.Use(signer.SignerMiddleware(log, key))
 
 	r.Get("/", metricHendlers.List)
 
@@ -31,8 +30,13 @@ func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
 	r.Post("/update", metricHendlers.UpdateJSON)
 	r.Post("/update/", metricHendlers.UpdateJSON)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
-	r.Post("/updates", metricHendlers.UpdateBatch)
-	r.Post("/updates/", metricHendlers.UpdateBatch)
+
+	updateGroup := r.Group(nil)
+	if len(key) != 0 {
+		updateGroup.Use(signer.SignerMiddleware(log, key))
+	}
+	updateGroup.Post("/updates", metricHendlers.UpdateBatch)
+	updateGroup.Post("/updates/", metricHendlers.UpdateBatch)
 
 	r.Get("/ping", metricHendlers.Ping)
 	r.Get("/ping/", metricHendlers.Ping)
