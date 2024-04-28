@@ -57,7 +57,7 @@ func Test_agent_Poll(t *testing.T) {
 			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.config.PollInterval*2)
 			defer cancel()
 
-			tt.app.Poll(cancellingCtx, tt.args.metrics)
+			tt.app.poll(cancellingCtx, tt.args.metrics)
 
 			require.NotEmpty(tt.args.metrics)
 			require.NotEmpty(tt.args.metrics.PollCount)
@@ -106,7 +106,7 @@ func Test_agent_Report(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.config.ReportInterval)
 			defer cancel()
-			tt.app.Report(cancellingCtx, tt.metrics)
+			tt.app.report(cancellingCtx, tt.metrics)
 		})
 	}
 }

@@ -43,8 +43,8 @@ var (
 )
 
 func NewServer() *Server {
-	logger := logger.InitLogger(logLevel)
-	defer logger.Sync()
+	log := logger.InitLogger(logLevel)
+	defer log.Sync()
 
 	cfg := config.NewServerConfig()
 
@@ -52,22 +52,22 @@ func NewServer() *Server {
 	if len(cfg.DatabaseDSN) > 0 {
 		poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseDSN)
 		if err != nil {
-			logger.Panic("unable to parse DATABASE_URL", zap.Error(err))
+			log.Panic("unable to parse DATABASE_URL", zap.Error(err))
 		}
 
 		dbConn, err = pgxpool.NewWithConfig(context.Background(), poolConfig)
 		if err != nil {
-			logger.Panic("unable to create connection pool", zap.Error(err))
+			log.Panic("unable to create connection pool", zap.Error(err))
 		}
 
-		if err := migrationRun(cfg.DatabaseDSN, logger); err != nil {
-			logger.Panic("unable to init DB", zap.Error(err))
+		if err := migrationRun(cfg.DatabaseDSN, log); err != nil {
+			log.Panic("unable to init DB", zap.Error(err))
 		}
 	}
 
-	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, logger)
-	ms := metricservice.New(ds, logger)
-	rt := handler.NewRouter(ms, logger, cfg.Key)
+	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, log)
+	ms := metricservice.New(ds, log)
+	rt := handler.NewRouter(ms, log, cfg.Key)
 	srv := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: rt,
@@ -77,7 +77,7 @@ func NewServer() *Server {
 		config:     cfg,
 		storage:    ds,
 		httpServer: srv,
-		logger:     logger,
+		logger:     log,
 	}
 }
 

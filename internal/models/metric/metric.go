@@ -1,8 +1,11 @@
 package metric
 
 import (
+	"context"
 	"errors"
 	"math/rand"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type (
@@ -15,7 +18,9 @@ type (
 
 	Metrics struct {
 		// метрики пакета runtime.
-		Memory MemoryMetrics
+		Runtime RuntimeMetrics
+		// метрики пакета gopsutil.
+		PS PSMetrics
 		// дополнительные метрики.
 		// PollCount - счётчик, увеличивающийся на 1 при каждом обновлении метрики из пакета runtime.
 		PollCount Counter
@@ -31,8 +36,29 @@ var (
 	ErrorMetricNotFound = errors.New("metrics: метрика не найдена")
 )
 
-func (m *Metrics) Poll() {
+func (m *Metrics) Poll(ctx context.Context) error {
 	m.PollCount += 1
 	m.RandomValue = Gauge(rand.Float64())
-	m.Memory.Poll()
+
+	g, _ := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		m.Runtime.Poll()
+
+		return nil
+	})
+
+	g.Go(func() error {
+		if err := m.PS.Poll(); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -124,33 +124,33 @@ func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duratio
 
 	// отправляем метрики пакета runtime
 	sender.
-		Add(adapter.NewUpdateRequestMetricGauge("Alloc", stats.Memory.Alloc)).
-		Add(adapter.NewUpdateRequestMetricGauge("BuckHashSys", stats.Memory.BuckHashSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("Frees", stats.Memory.Frees)).
-		Add(adapter.NewUpdateRequestMetricGauge("GCCPUFraction", stats.Memory.GCCPUFraction)).
-		Add(adapter.NewUpdateRequestMetricGauge("GCSys", stats.Memory.GCSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapAlloc", stats.Memory.HeapAlloc)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapIdle", stats.Memory.HeapIdle)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapInuse", stats.Memory.HeapInuse)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapObjects", stats.Memory.HeapObjects)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapReleased", stats.Memory.HeapReleased)).
-		Add(adapter.NewUpdateRequestMetricGauge("HeapSys", stats.Memory.HeapSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("LastGC", stats.Memory.LastGC)).
-		Add(adapter.NewUpdateRequestMetricGauge("Lookups", stats.Memory.Lookups)).
-		Add(adapter.NewUpdateRequestMetricGauge("MCacheInuse", stats.Memory.MCacheInuse)).
-		Add(adapter.NewUpdateRequestMetricGauge("MCacheSys", stats.Memory.MCacheSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("MSpanInuse", stats.Memory.MSpanInuse)).
-		Add(adapter.NewUpdateRequestMetricGauge("MSpanSys", stats.Memory.MSpanSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("Mallocs", stats.Memory.Mallocs)).
-		Add(adapter.NewUpdateRequestMetricGauge("NextGC", stats.Memory.NextGC)).
-		Add(adapter.NewUpdateRequestMetricGauge("NumForcedGC", stats.Memory.NumForcedGC)).
-		Add(adapter.NewUpdateRequestMetricGauge("NumGC", stats.Memory.NumGC)).
-		Add(adapter.NewUpdateRequestMetricGauge("OtherSys", stats.Memory.OtherSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("PauseTotalNs", stats.Memory.PauseTotalNs)).
-		Add(adapter.NewUpdateRequestMetricGauge("StackInuse", stats.Memory.StackInuse)).
-		Add(adapter.NewUpdateRequestMetricGauge("StackSys", stats.Memory.StackSys)).
-		Add(adapter.NewUpdateRequestMetricGauge("Sys", stats.Memory.Sys)).
-		Add(adapter.NewUpdateRequestMetricGauge("TotalAlloc", stats.Memory.TotalAlloc))
+		Add(adapter.NewUpdateRequestMetricGauge("Alloc", stats.Runtime.Alloc)).
+		Add(adapter.NewUpdateRequestMetricGauge("BuckHashSys", stats.Runtime.BuckHashSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Frees", stats.Runtime.Frees)).
+		Add(adapter.NewUpdateRequestMetricGauge("GCCPUFraction", stats.Runtime.GCCPUFraction)).
+		Add(adapter.NewUpdateRequestMetricGauge("GCSys", stats.Runtime.GCSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapAlloc", stats.Runtime.HeapAlloc)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapIdle", stats.Runtime.HeapIdle)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapInuse", stats.Runtime.HeapInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapObjects", stats.Runtime.HeapObjects)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapReleased", stats.Runtime.HeapReleased)).
+		Add(adapter.NewUpdateRequestMetricGauge("HeapSys", stats.Runtime.HeapSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("LastGC", stats.Runtime.LastGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("Lookups", stats.Runtime.Lookups)).
+		Add(adapter.NewUpdateRequestMetricGauge("MCacheInuse", stats.Runtime.MCacheInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("MCacheSys", stats.Runtime.MCacheSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("MSpanInuse", stats.Runtime.MSpanInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("MSpanSys", stats.Runtime.MSpanSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Mallocs", stats.Runtime.Mallocs)).
+		Add(adapter.NewUpdateRequestMetricGauge("NextGC", stats.Runtime.NextGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("NumForcedGC", stats.Runtime.NumForcedGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("NumGC", stats.Runtime.NumGC)).
+		Add(adapter.NewUpdateRequestMetricGauge("OtherSys", stats.Runtime.OtherSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("PauseTotalNs", stats.Runtime.PauseTotalNs)).
+		Add(adapter.NewUpdateRequestMetricGauge("StackInuse", stats.Runtime.StackInuse)).
+		Add(adapter.NewUpdateRequestMetricGauge("StackSys", stats.Runtime.StackSys)).
+		Add(adapter.NewUpdateRequestMetricGauge("Sys", stats.Runtime.Sys)).
+		Add(adapter.NewUpdateRequestMetricGauge("TotalAlloc", stats.Runtime.TotalAlloc))
 
 	// отправляем обновляемое произвольное значение
 	sender.
