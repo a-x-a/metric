@@ -23,7 +23,7 @@ func TestNewServer(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new server", func(t *testing.T) {
-		srv := NewServer()
+		srv := NewServer("info")
 		require.NotNil(srv)
 	})
 }
@@ -45,7 +45,7 @@ func TestNewServerWithDBErrorInitDB(t *testing.T) {
 			r := recover()
 			require.NotNil(r)
 		}()
-		srv := NewServer()
+		srv := NewServer("info")
 		require.NotNil(srv)
 	})
 }
@@ -66,7 +66,7 @@ func TestNewServerWithDBError(t *testing.T) {
 			r := recover()
 			require.NotNil(r)
 		}()
-		srv := NewServer()
+		srv := NewServer("info")
 		require.NotNil(srv)
 	})
 }

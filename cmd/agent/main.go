@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	agent := app.NewAgent()
+	agent := app.NewAgent("info")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go agent.Run(ctx)

@@ -20,7 +20,7 @@ func main() {
 		syscall.SIGQUIT,
 	)
 
-	srv := app.NewServer()
+	srv := app.NewServer("info")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

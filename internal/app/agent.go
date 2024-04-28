@@ -20,13 +20,14 @@ type (
 	}
 )
 
-func NewAgent() *Agent {
+func NewAgent(logLevel string) *Agent {
 	log := logger.InitLogger(logLevel)
 	defer log.Sync()
 
 	return &Agent{
-		config: config.NewAgentConfig(),
-		logger: log,
+		config:  config.NewAgentConfig(),
+		metrics: metric.Metrics{},
+		logger:  log,
 	}
 }
 

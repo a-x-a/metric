@@ -32,17 +32,12 @@ type (
 	}
 )
 
-const (
-	// logLevel - уровень логирования, по умолчанию info.
-	logLevel = "info"
-)
-
 var (
 	// ErrNotSupportLoadFromFile - хранилище не поддерживает загрузку из файла.
 	ErrStorageNotSupportLoadFromFile = errors.New("storage doesn't support loading from file")
 )
 
-func NewServer() *Server {
+func NewServer(logLevel string) *Server {
 	log := logger.InitLogger(logLevel)
 	defer log.Sync()
 

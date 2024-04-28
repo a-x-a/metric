@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -18,7 +19,7 @@ func TestNewAgent(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new agent", func(t *testing.T) {
-		got := NewAgent()
+		got := NewAgent("info")
 		require.NotNil(got)
 	})
 }
@@ -32,6 +33,7 @@ func Test_agent_Poll(t *testing.T) {
 		ServerAddress:  "",
 	}
 	metrics := &metric.Metrics{}
+	log := zap.L()
 
 	type args struct {
 		ctx     context.Context
@@ -44,7 +46,10 @@ func Test_agent_Poll(t *testing.T) {
 	}{
 		{
 			name: "poll",
-			app:  &Agent{config: cfg},
+			app: &Agent{
+				config: cfg,
+				logger: log,
+			},
 			args: args{
 				ctx:     context.Background(),
 				metrics: metrics,
@@ -87,6 +92,7 @@ func Test_agent_Report(t *testing.T) {
 	metrics := metric.Metrics{
 		PollCount: metric.Counter(12),
 	}
+	log := zap.L()
 
 	tests := []struct {
 		name    string
@@ -95,8 +101,11 @@ func Test_agent_Report(t *testing.T) {
 		metrics *metric.Metrics
 	}{
 		{
-			name:    "report",
-			app:     &Agent{config: cfg},
+			name: "report",
+			app: &Agent{
+				config: cfg,
+				logger: log,
+			},
 			ctx:     context.Background(),
 			metrics: &metrics,
 		},
