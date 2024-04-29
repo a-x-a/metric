@@ -18,6 +18,8 @@ type (
 		ServerAddress string `env:"ADDRESS"`
 		// Key - ключ подписи
 		Key string `env:"KEY"`
+		// RateLimit - количество одновременно исходящих запросов на сервер
+		RateLimit int `env:"RATE_LIMIT"`
 	}
 )
 
@@ -26,6 +28,7 @@ func NewAgentConfig() AgentConfig {
 	reportInterval := 10
 	serverAddress := "localhost:8080"
 	key := ""
+	rateLimit := 1
 
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
@@ -48,6 +51,10 @@ func NewAgentConfig() AgentConfig {
 		flag.StringVar(&key, "k", key, "ключ подписи")
 	}
 
+	if flag.Lookup("l") == nil {
+		flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
+	}
+
 	flag.Parse()
 
 	cfg := AgentConfig{
@@ -55,9 +62,13 @@ func NewAgentConfig() AgentConfig {
 		ReportInterval: time.Duration(reportInterval) * time.Second,
 		ServerAddress:  serverAddress,
 		Key:            key,
+		RateLimit:      rateLimit,
 	}
 
 	_ = env.Parse(&cfg)
 
+	if cfg.RateLimit < 1 {
+		cfg.RateLimit = 1
+	}
 	return cfg
 }

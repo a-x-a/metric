@@ -20,7 +20,7 @@ type httpSender struct {
 	baseURL string
 	client  *http.Client
 	signer  *signer.Signer
-	batch   []adapter.RequestMetric
+	batch   chan adapter.RequestMetric
 	err     error
 }
 
@@ -33,9 +33,69 @@ func NewHTTPSender(serverAddress string, timeout time.Duration, key string) http
 		baseURL: baseURL,
 		client:  client,
 		signer:  sgnr,
-		batch:   make([]adapter.RequestMetric, 0),
+		batch:   make(chan adapter.RequestMetric, 1024),
 		err:     nil,
 	}
+}
+
+func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric) error {
+	if len(batch) == 0 {
+		return fmt.Errorf("metrics send: batch is empty")
+	}
+
+	data, err := json.Marshal(batch)
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
+	if err != nil {
+		return err
+	}
+
+	if _, err := zw.Write(data); err != nil {
+		return err
+	}
+
+	if err := zw.Close(); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
+
+	if hs.signer != nil {
+		hash, err := hs.signer.Hash(data)
+		if err != nil {
+			return err
+		}
+
+		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+	}
+
+	resp, err := hs.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if _, err = io.ReadAll(resp.Body); err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func (hs *httpSender) do(ctx context.Context) error {
@@ -114,13 +174,17 @@ func (hs *httpSender) Add(rm adapter.RequestMetric) *httpSender {
 		return hs
 	}
 
-	hs.batch = append(hs.batch, rm)
+	hs.batch <- rm
 
 	return hs
 }
 
-func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, stats metric.Metrics) error {
+func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics) error {
 	sender := NewHTTPSender(serverAddress, timeout, key)
+
+	for i := 0; i < rateLimit; i++ {
+		go sender.worker(ctx)
+	}
 
 	// отправляем метрики пакета runtime
 	sender.
@@ -151,7 +215,11 @@ func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duratio
 		Add(adapter.NewUpdateRequestMetricGauge("StackSys", stats.Runtime.StackSys)).
 		Add(adapter.NewUpdateRequestMetricGauge("Sys", stats.Runtime.Sys)).
 		Add(adapter.NewUpdateRequestMetricGauge("TotalAlloc", stats.Runtime.TotalAlloc))
-
+	// отправляем метрики пакета gopsutil
+	sender.
+		Add(adapter.NewUpdateRequestMetricGauge("TotalMemory", stats.PS.TotalMemory)).
+		Add(adapter.NewUpdateRequestMetricGauge("FreeMemory", stats.PS.FreeMemory)).
+		Add(adapter.NewUpdateRequestMetricGauge("CPUutilization1", stats.PS.CPUutilization1))
 	// отправляем обновляемое произвольное значение
 	sender.
 		Add(adapter.NewUpdateRequestMetricGauge("RandomValue", stats.RandomValue))
@@ -159,5 +227,26 @@ func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duratio
 	sender.
 		Add(adapter.NewUpdateRequestMetricCounter("PollCount", stats.PollCount))
 
-	return sender.Send(ctx).err
+	close(sender.batch)
+
+	return sender.err
+}
+
+func (hs *httpSender) worker(ctx context.Context) {
+	data := make([]adapter.RequestMetric, 0)
+	for {
+		select {
+		case r, ok := <-hs.batch:
+			if ok {
+				data = append(data, r)
+				continue
+			}
+
+			if len(data) != 0 {
+				hs.err = hs.doSend(ctx, data)
+			}
+
+			return
+		}
+	}
 }

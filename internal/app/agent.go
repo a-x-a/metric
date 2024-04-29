@@ -68,7 +68,7 @@ func (app *Agent) report(ctx context.Context, metrics *metric.Metrics) {
 			func() {
 				app.logger.Info("metrics sending")
 
-				err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, app.config.Key, *metrics)
+				err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, app.config.Key, app.config.RateLimit, *metrics)
 				if err != nil {
 					app.logger.Error("failed to send metrics", zap.Error(err))
 					return
