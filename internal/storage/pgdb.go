@@ -16,12 +16,9 @@ type (
 		logger *zap.Logger
 	}
 
-	// DBConnPool interface {
 	DataBase interface {
 		Storage
-		// 	Acquire(ctx context.Context) (*pgxpool.Conn, error)
 		Ping(ctx context.Context) error
-		// 	Close()
 	}
 )
 
