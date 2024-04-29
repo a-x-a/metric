@@ -14,7 +14,7 @@ import (
 func Test_FileStorage(t *testing.T) {
 	var err error
 	require := require.New(t)
-	log := zap.NewNop()
+	log := zap.L()
 	fileName := os.TempDir() + string(os.PathSeparator) + "test_123456789.json"
 	m := NewWithFileStorage(fileName, false, log)
 	records := [...]Record{
@@ -61,6 +61,37 @@ func Test_FileStorage(t *testing.T) {
 	for _, v := range records {
 		m2.Push(ctx, v.name, v)
 	}
+
+	err = m2.Close()
+	require.NoError(err)
+	require.FileExists(fileName)
+
+	r2, err = m.GetAll(ctx)
+	require.NoError(err)
+	require.ElementsMatch(r, r2)
+	require.Equal(len(r), len(r2))
+
+	err = os.Remove(fileName)
+	require.NoError(err)
+
+	// batch
+	m2 = NewWithFileStorage(fileName, true, log)
+	m2.PushBatch(ctx, records[:])
+	require.FileExists(fileName)
+
+	err = m2.Close()
+	require.NoError(err)
+
+	r2, err = m.GetAll(ctx)
+	require.NoError(err)
+	require.ElementsMatch(r, r2)
+	require.Equal(len(r), len(r2))
+
+	err = os.Remove(fileName)
+	require.NoError(err)
+
+	m2 = NewWithFileStorage(fileName, false, log)
+	m2.PushBatch(ctx, records[:])
 
 	err = m2.Close()
 	require.NoError(err)

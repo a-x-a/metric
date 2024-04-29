@@ -28,3 +28,8 @@ func (m *DBConnPoolMock) Ping(ctx context.Context) error {
 func (m *DBConnPoolMock) Close() {
 	_ = m.Called()
 }
+
+func (m *DBConnPoolMock) Push(ctx context.Context, name string, record Record) error {
+	args := m.Called(ctx, name)
+	return args.Error(0)
+}

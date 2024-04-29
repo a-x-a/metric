@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestPing(t *testing.T) {
+func Test_dbPing(t *testing.T) {
 	tt := []struct {
 		name   string
 		result error
@@ -35,7 +35,7 @@ func TestPing(t *testing.T) {
 	}
 }
 
-func TestCloseNeverFails(t *testing.T) {
+func Test_dbCloseNeverFails(t *testing.T) {
 	m := NewDBConnPoolMock()
 	m.On("Close").Return()
 

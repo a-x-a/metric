@@ -185,3 +185,20 @@ func Test_Close(t *testing.T) {
 	err := m.Close()
 	require.NoError(err)
 }
+
+func Test_PushBatch(t *testing.T) {
+	require := require.New(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	m := NewMemStorage()
+	records := [...]Record{
+		{name: "Alloc", value: metric.Gauge(12.3456)},
+		{name: "PollCount", value: metric.Counter(123)},
+		{name: "Random", value: metric.Gauge(1313.1313)},
+	}
+
+	err := m.PushBatch(ctx, records[:])
+	require.NoError(err)
+	require.Equal(3, len(m.data))
+}
