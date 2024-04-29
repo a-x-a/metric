@@ -12,12 +12,19 @@ import (
 
 type (
 	MetricService struct {
-		storage storage.Storage
+		storage stor
 		logger  *zap.Logger
 	}
 
 	StorageWithPing interface {
 		Ping(ctx context.Context) error
+	}
+
+	stor interface {
+		Push(ctx context.Context, name string, record storage.Record) error
+		PushBatch(ctx context.Context, records []storage.Record) error
+		Get(ctx context.Context, name string) (*storage.Record, error)
+		GetAll(ctx context.Context) ([]storage.Record, error)
 	}
 )
 

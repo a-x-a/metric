@@ -1,2 +1,2 @@
-DROP TABLE IF EXISTS metric;
-DROP TYPE IF EXISTS metrickind;
+DROP TABLE metric;
+DROP TYPE metric_kind;

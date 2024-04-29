@@ -12,20 +12,22 @@ import (
 
 type (
 	DBStorage struct {
-		dbPool DBConnPool
+		dbPool *pgxpool.Pool
 		logger *zap.Logger
 	}
 
-	DBConnPool interface {
-		Acquire(ctx context.Context) (*pgxpool.Conn, error)
+	// DBConnPool interface {
+	DataBase interface {
+		Storage
+		// 	Acquire(ctx context.Context) (*pgxpool.Conn, error)
 		Ping(ctx context.Context) error
-		Close()
+		// 	Close()
 	}
 )
 
 var _ Storage = &DBStorage{}
 
-func NewDBStorage(dbConn DBConnPool, log *zap.Logger) *DBStorage {
+func NewDBStorage(dbConn *pgxpool.Pool, log *zap.Logger) *DBStorage {
 	return &DBStorage{
 		dbPool: dbConn,
 		logger: log,
