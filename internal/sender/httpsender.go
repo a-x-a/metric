@@ -98,76 +98,76 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	return nil
 }
 
-func (hs *httpSender) do(ctx context.Context) error {
-	data, err := json.Marshal(hs.batch)
-	if err != nil {
-		return err
-	}
+// func (hs *httpSender) do(ctx context.Context) error {
+// 	data, err := json.Marshal(hs.batch)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	var buf bytes.Buffer
+// 	var buf bytes.Buffer
 
-	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
-	if err != nil {
-		return err
-	}
+// 	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if _, err := zw.Write(data); err != nil {
-		return err
-	}
+// 	if _, err := zw.Write(data); err != nil {
+// 		return err
+// 	}
 
-	if err := zw.Close(); err != nil {
-		return err
-	}
+// 	if err := zw.Close(); err != nil {
+// 		return err
+// 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
-	if err != nil {
-		return err
-	}
+// 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Encoding", "gzip")
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Content-Encoding", "gzip")
 
-	if hs.signer != nil {
-		hash, err := hs.signer.Hash(data)
-		if err != nil {
-			return err
-		}
+// 	if hs.signer != nil {
+// 		hash, err := hs.signer.Hash(data)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
-	}
+// 		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+// 	}
 
-	resp, err := hs.client.Do(req)
-	if err != nil {
-		return err
-	}
+// 	resp, err := hs.client.Do(req)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	defer resp.Body.Close()
+// 	defer resp.Body.Close()
 
-	if _, err = io.ReadAll(resp.Body); err != nil {
-		return err
-	}
+// 	if _, err = io.ReadAll(resp.Body); err != nil {
+// 		return err
+// 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
-	}
+// 	if resp.StatusCode != http.StatusOK {
+// 		return fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (hs *httpSender) Send(ctx context.Context) *httpSender {
-	if hs.err != nil {
-		return hs
-	}
+// func (hs *httpSender) Send(ctx context.Context) *httpSender {
+// 	if hs.err != nil {
+// 		return hs
+// 	}
 
-	if len(hs.batch) == 0 {
-		hs.err = fmt.Errorf("metrics send: batch is empty")
-		return hs
-	}
+// 	if len(hs.batch) == 0 {
+// 		hs.err = fmt.Errorf("metrics send: batch is empty")
+// 		return hs
+// 	}
 
-	hs.err = hs.do(ctx)
+// 	hs.err = hs.do(ctx)
 
-	return hs
-}
+// 	return hs
+// }
 
 func (hs *httpSender) Add(rm adapter.RequestMetric) *httpSender {
 	if hs.err != nil {
@@ -234,19 +234,12 @@ func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duratio
 
 func (hs *httpSender) worker(ctx context.Context) {
 	data := make([]adapter.RequestMetric, 0)
-	for {
-		select {
-		case r, ok := <-hs.batch:
-			if ok {
-				data = append(data, r)
-				continue
-			}
 
-			if len(data) != 0 {
-				hs.err = hs.doSend(ctx, data)
-			}
+	for r := range hs.batch {
+		data = append(data, r)
+	}
 
-			return
-		}
+	if len(data) != 0 {
+		hs.err = hs.doSend(ctx, data)
 	}
 }
