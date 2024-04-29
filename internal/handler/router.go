@@ -9,28 +9,37 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
+	"github.com/a-x-a/go-metric/internal/signer"
 )
 
-func NewRouter(s metricService, log *zap.Logger) http.Handler {
+func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
-	// mw := middlewarewithlogger.New(log)
 
 	r := chi.NewRouter()
 
 	r.Use(logger.LoggerMiddleware(log))
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
-	// r.Use(mw.Logger)
-	// r.Use(mw.Decompress)
-	// r.Use(mw.Compress)
 
 	r.Get("/", metricHendlers.List)
 
+	r.Post("/value", metricHendlers.GetJSON)
 	r.Post("/value/", metricHendlers.GetJSON)
 	r.Get("/value/{kind}/{name}", metricHendlers.Get)
 
+	r.Post("/update", metricHendlers.UpdateJSON)
 	r.Post("/update/", metricHendlers.UpdateJSON)
 	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
+
+	updateGroup := r.Group(nil)
+	if len(key) != 0 {
+		updateGroup.Use(signer.SignerMiddleware(log, key))
+	}
+	updateGroup.Post("/updates", metricHendlers.UpdateBatch)
+	updateGroup.Post("/updates/", metricHendlers.UpdateBatch)
+
+	r.Get("/ping", metricHendlers.Ping)
+	r.Get("/ping/", metricHendlers.Ping)
 
 	return r
 }

@@ -17,6 +17,8 @@ type (
 var (
 	// ErrInvalidName - не корректное имя записи.
 	ErrInvalidName = errors.New("record: a record has to have a valid name")
+	// ErrNotFound - запись не найдена.
+	ErrNotFound = errors.New("record: a record not found")
 )
 
 func NewRecord(name string) (Record, error) {
