@@ -3,6 +3,9 @@ package app
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -21,7 +24,15 @@ func migrationRun(dsn string, log *zap.Logger) error {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "go_metric", driver)
+	startDir := ""
+	if pwd, err := os.Getwd(); err == nil {
+		startDir = strings.ReplaceAll(pwd, "\\", "/")
+	}
+
+	migrationDir := "migrations"
+	sourceURL := fmt.Sprintf("file://%s/%s", startDir, migrationDir)
+
+	m, err := migrate.NewWithDatabaseInstance(sourceURL, "go_metric", driver)
 	if err != nil {
 		return err
 	}
