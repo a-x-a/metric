@@ -24,13 +24,10 @@ func migrationRun(dsn string, log *zap.Logger) error {
 		return err
 	}
 
-	startDir := ""
+	sourceURL := "file://migrations"
 	if pwd, err := os.Getwd(); err == nil {
-		startDir = strings.ReplaceAll(pwd, "\\", "/")
+		sourceURL = fmt.Sprintf("file://%s/migrations", strings.ReplaceAll(pwd, "\\", "/"))
 	}
-
-	migrationDir := "migrations"
-	sourceURL := fmt.Sprintf("file://%s/%s", startDir, migrationDir)
 
 	m, err := migrate.NewWithDatabaseInstance(sourceURL, "go_metric", driver)
 	if err != nil {
