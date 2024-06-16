@@ -8,7 +8,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
-func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
@@ -23,7 +23,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 
 	switch kind {
 	case metric.KindCounter:
-		val, err := h.service.PushCounter(data.ID, metric.Counter(*data.Delta))
+		val, err := h.service.PushCounter(r.Context(), data.ID, metric.Counter(*data.Delta))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -33,7 +33,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := h.service.PushGauge(data.ID, metric.Gauge(*data.Value))
+		val, err := h.service.PushGauge(r.Context(), data.ID, metric.Gauge(*data.Value))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -53,7 +53,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
+func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
@@ -66,16 +66,18 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, err := h.service.Get(data.ID, data.MType)
+	record, err := h.service.Get(r.Context(), data.ID, data.MType)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound, h.logger)
 		return
 	}
 
+	value := record.GetValue()
+
 	switch kind {
 	case metric.KindCounter:
-		val, err := metric.ToCounter(value)
-		if err != nil {
+		val, ok := value.(metric.Counter)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}
@@ -84,8 +86,8 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := metric.ToGauge(value)
-		if err != nil {
+		val, ok := value.(metric.Gauge)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}

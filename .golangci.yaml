@@ -136,7 +136,7 @@ linters:
     #   - exportloopref
     #   - forbidigo
     - forcetypeassert
-    #   - funlen
+    - funlen
     - gci
     #   - ginkgolinter
     #   - gocheckcompilerdirectives
@@ -292,6 +292,10 @@ linters-settings:
       - "8"
       - "9"
       - "0600"
+      - "10"
+      - "15"
+      - "30"
+      - "1024"
     ignored-functions:
       - strings.SplitN
   varnamelen:

@@ -1,6 +1,9 @@
 package metricservice
 
 import (
+	"context"
+	"errors"
+
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -8,20 +11,33 @@ import (
 )
 
 type (
-	metricService struct {
-		storage storage.Storage
+	MetricService struct {
+		storage stor
 		logger  *zap.Logger
+	}
+
+	StorageWithPing interface {
+		Ping(ctx context.Context) error
+	}
+
+	stor interface {
+		Push(ctx context.Context, name string, record storage.Record) error
+		PushBatch(ctx context.Context, records []storage.Record) error
+		Get(ctx context.Context, name string) (*storage.Record, error)
+		GetAll(ctx context.Context) ([]storage.Record, error)
 	}
 )
 
-func New(stor storage.Storage, logger *zap.Logger) *metricService {
-	return &metricService{
+var ErrNotSupportedMethod = errors.New("storage doesn't support method")
+
+func New(stor storage.Storage, logger *zap.Logger) *MetricService {
+	return &MetricService{
 		storage: stor,
 		logger:  logger,
 	}
 }
 
-func (s *metricService) Push(name, kind, value string) error {
+func (s *MetricService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -44,36 +60,34 @@ func (s *metricService) Push(name, kind, value string) error {
 		if err != nil {
 			return err
 		}
-		if v, ok := s.storage.Get(name); ok {
+		if v, err := s.storage.Get(ctx, name); err == nil {
 			if oldVal, ok := v.GetValue().(metric.Counter); ok {
 				val += oldVal
 			}
 		}
 		record.SetValue(val)
-	default:
-		return metric.ErrorInvalidMetricKind
 	}
 
-	return s.storage.Push(name, record)
+	return s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+func (s *MetricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
 	}
 
-	if v, ok := s.storage.Get(name); ok {
+	if v, err := s.storage.Get(ctx, name); err == nil {
 		if oldVal, ok := v.GetValue().(metric.Counter); ok {
 			value += oldVal
 		}
 	}
 	record.SetValue(value)
 
-	return value, s.storage.Push(name, record)
+	return value, s.storage.Push(ctx, name, record)
 }
 
-func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+func (s *MetricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
 		return 0, err
@@ -81,7 +95,7 @@ func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge
 
 	record.SetValue(value)
 
-	err = s.storage.Push(name, record)
+	err = s.storage.Push(ctx, name, record)
 	if err != nil {
 		return 0, err
 	}
@@ -89,23 +103,82 @@ func (s *metricService) PushGauge(name string, value metric.Gauge) (metric.Gauge
 	return value, nil
 }
 
-func (s metricService) Get(name, kind string) (string, error) {
-	if _, err := metric.GetKind(kind); err != nil {
-		return "", err
+func (s MetricService) PushBatch(ctx context.Context, records []storage.Record) error {
+	data := make([]storage.Record, 0, len(records))
+	cache := make(map[string]int)
+	counters := make(map[string]metric.Counter)
+
+	for _, v := range records {
+		id := v.GetName()
+		value := v.GetValue()
+
+		if i, ok := cache[id]; ok {
+			if value.IsCounter() {
+				if oldValue, ok := counters[id]; ok {
+					value = oldValue + value.(metric.Counter)
+				}
+				counters[id] = value.(metric.Counter)
+			}
+
+			data[i].SetValue(value)
+
+			continue
+		}
+
+		record, err := storage.NewRecord(id)
+		if err != nil {
+			return err
+		}
+
+		if value.IsCounter() {
+			storRecord, err := s.Get(ctx, id, value.Kind())
+			if err != nil && !errors.Is(err, metric.ErrorMetricNotFound) {
+				return err
+			}
+
+			if storRecord != nil {
+				oldValue := storRecord.GetValue()
+				value = oldValue.(metric.Counter) + value.(metric.Counter)
+			}
+			counters[id] = value.(metric.Counter)
+		}
+
+		record.SetValue(value)
+		cache[id] = len(data)
+		data = append(data, record)
 	}
 
-	record, ok := s.storage.Get(name)
-	if !ok {
-		return "", metric.ErrorMetricNotFound
-	}
-
-	value := record.GetValue().String()
-
-	return value, nil
+	return s.storage.PushBatch(ctx, data)
 }
 
-func (s metricService) GetAll() []storage.Record {
-	records := s.storage.GetAll()
+func (s MetricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
+	if _, err := metric.GetKind(kind); err != nil {
+		return nil, err
+	}
+
+	record, err := s.storage.Get(ctx, name)
+	if err != nil {
+		return nil, metric.ErrorMetricNotFound
+	}
+
+	return record, nil
+}
+
+func (s MetricService) GetAll(ctx context.Context) []storage.Record {
+	records, err := s.storage.GetAll(ctx)
+	if err != nil {
+		return nil
+	}
 
 	return records
+}
+
+func (s MetricService) Ping(ctx context.Context) error {
+	dbStorage, ok := s.storage.(StorageWithPing)
+
+	if !ok {
+		return ErrNotSupportedMethod
+	}
+
+	return dbStorage.Ping(ctx)
 }
