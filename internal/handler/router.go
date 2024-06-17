@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/encoder"
@@ -20,6 +21,8 @@ func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
 	r.Use(logger.LoggerMiddleware(log))
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
+
+	r.Mount("/debug", middleware.Profiler())
 
 	r.Get("/", metricHendlers.List)
 
