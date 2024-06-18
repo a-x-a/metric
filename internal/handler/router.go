@@ -47,12 +47,25 @@ func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
 	return r
 }
 
+// responseWithError writes an error response to the http.ResponseWriter and logs the error.
+//
+// Parameters:
+// - w: the http.ResponseWriter to write the response to.
+// - code: the HTTP status code to send in the response.
+// - err: the error to include in the response.
+// - logger: the logger to use for logging the error.
 func responseWithError(w http.ResponseWriter, code int, err error, logger *zap.Logger) {
 	resp := fmt.Sprintf("%d: %s", code, err.Error())
 	logger.Error(resp)
 	http.Error(w, resp, code)
 }
 
+// responseWithCode writes an HTTP status code response to the http.ResponseWriter and logs the code.
+//
+// Parameters:
+// - w: the http.ResponseWriter to write the response to.
+// - code: the HTTP status code to send in the response.
+// - logger: the logger to use for logging the response code.
 func responseWithCode(w http.ResponseWriter, code int, logger *zap.Logger) {
 	resp := fmt.Sprintf("%d: %s", code, http.StatusText(code))
 	logger.Debug(resp)
