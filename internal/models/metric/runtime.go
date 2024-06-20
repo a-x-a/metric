@@ -5,8 +5,8 @@ import (
 )
 
 type (
+	//RuntimeMetrics метрики пакета runtime.
 	RuntimeMetrics struct {
-		// метрики пакета runtime.
 		Alloc         Gauge
 		BuckHashSys   Gauge
 		Frees         Gauge
@@ -37,7 +37,7 @@ type (
 	}
 )
 
-// Poll - обновляет значения показателей метрик.
+// Poll обновляет значения показателей метрик.
 func (rm *RuntimeMetrics) Poll() {
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)

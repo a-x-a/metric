@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	// Counter тип счётчик.
 	Counter int64
 )
 

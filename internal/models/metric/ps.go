@@ -5,8 +5,8 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
+// PSMetrics метрики пакета gopsutil.
 type PSMetrics struct {
-	// метрики пакета gopsutil.
 	TotalMemory     Gauge
 	FreeMemory      Gauge
 	CPUutilization1 Gauge

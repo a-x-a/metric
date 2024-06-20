@@ -5,11 +5,12 @@ import (
 )
 
 type (
+	// MetricKind тип метрики.
 	MetricKind string
 )
 
 const (
-	// типы метрик.
+	// KindGauge, KindCounter типы метрик.
 	KindGauge, KindCounter MetricKind = "gauge", "counter"
 )
 
@@ -20,7 +21,7 @@ var (
 	ErrorInvalidMetricKind = errors.New("model: не корректный тип метрики")
 )
 
-// GetKind - возвращает корректный тип метрики для строкового представления.
+// GetKind возвращает корректный тип метрики для строкового представления.
 // Если передан не корректный тип метрики, то возвращает ошибку ErrorInvalidMetricType.
 func GetKind(kindRaw string) (MetricKind, error) {
 	if v, ok := metricKinds[kindRaw]; ok {

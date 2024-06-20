@@ -9,17 +9,23 @@ import (
 )
 
 type (
+	// Metric методы метрик.
 	Metric interface {
-		Kind() string   // Kind - возвращает тип метрики.
-		String() string // Stringer.
+		// Kind возвращает тип метрики.
+		Kind() string
+		// String возвращает строковое представление значения метрики.
+		String() string
+		// IsCounter возвращает true если метрика является счётчиком.
 		IsCounter() bool
+		// IsGauge возвращает true если метрика является датчиком.
 		IsGauge() bool
 	}
 
+	// Metrics структура метрик.
 	Metrics struct {
-		// метрики пакета runtime.
+		// Runtime метрики пакета runtime.
 		Runtime RuntimeMetrics
-		// метрики пакета gopsutil.
+		// PS метрики пакета gopsutil.
 		PS PSMetrics
 		// дополнительные метрики.
 		// PollCount - счётчик, увеличивающийся на 1 при каждом обновлении метрики из пакета runtime.
@@ -36,6 +42,7 @@ var (
 	ErrorMetricNotFound = errors.New("metrics: метрика не найдена")
 )
 
+// Poll обновление метрик.
 func (m *Metrics) Poll(ctx context.Context) error {
 	m.PollCount += 1
 	m.RandomValue = Gauge(rand.Float64())

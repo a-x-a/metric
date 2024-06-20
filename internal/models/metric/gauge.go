@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	// Gauge тип датчик
 	Gauge float64
 )
 
