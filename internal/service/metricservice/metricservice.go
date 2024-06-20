@@ -175,7 +175,6 @@ func (s MetricService) GetAll(ctx context.Context) []storage.Record {
 
 func (s MetricService) Ping(ctx context.Context) error {
 	dbStorage, ok := s.storage.(StorageWithPing)
-
 	if !ok {
 		return ErrNotSupportedMethod
 	}
