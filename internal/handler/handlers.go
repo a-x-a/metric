@@ -14,40 +14,38 @@ import (
 )
 
 type (
-	// metricService provides methods for handling metrics.
+	// metricService содержит описание методов для обработки запросов.
 	metricService interface {
-		// Push pushes a metric with the given name, kind, and value.
+		// Push добавляет метрику с указанным именем, типом и значением.
 		Push(ctx context.Context, name, kind, value string) error
 
-		// PushCounter pushes a counter metric with the given name and value.
+		// PushCounter добавляет метрику с указанным именем с типом counter и значением.
 		PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error)
 
-		// PushGauge pushes a gauge metric with the given name and value.
+		// PushGauge добавляет метрику с указанным именем с типом gauge и значением.
 		PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error)
 
-		// PushBatch pushes a batch of records to the storage.
+		// PushBatch добавляет набор метрик.
 		PushBatch(ctx context.Context, records []storage.Record) error
 
-		// Get retrieves a record with the given name and kind.
+		// Get получает текущее значение метрики с указанным именем и типом.
 		Get(ctx context.Context, name, kind string) (*storage.Record, error)
 
-		// GetAll retrieves all records from the storage.
+		// GetAll получает текущее значение всех метрик.
 		GetAll(ctx context.Context) []storage.Record
 
-		// Ping pings the service.
+		// Ping проверяет состояние сервиса.
 		Ping(ctx context.Context) error
 	}
 
-	// MetricHandlers contains methods for handling metrics.
+	// MetricHandlers содержит методы для обработки запросов.
 	MetricHandlers struct {
-		// service is the metric service.
 		service metricService
-		// logger is the logger for the metric handlers.
-		logger *zap.Logger
+		logger  *zap.Logger
 	}
 )
 
-// NewMetricHandlers creates a new MetricHandlers instance.
+// newMetricHandlers создаёт новый экземпляр объекта MetricHandlers.
 func newMetricHandlers(s metricService, logger *zap.Logger) MetricHandlers {
 	return MetricHandlers{
 		service: s,
@@ -55,18 +53,18 @@ func newMetricHandlers(s metricService, logger *zap.Logger) MetricHandlers {
 	}
 }
 
-// List handles the HTTP GET request to retrieve all records.
-// It sets the Content-Type header to "text/html; charset=UTF-8".
-// It gets all records from the service and writes them to the response writer.
-// It then responds with status code http.StatusOK.
-
-// List retrieves all records and writes them to the ResponseWriter in a tabular format.
+//	List godoc
 //
-// Parameters:
-//   - w: The ResponseWriter to write the response.
-//   - r: The Request object representing the HTTP request.
+//	@Summary		List
+//	@Description	Возвращает список полученных от сервиса метрик ввиде обычного текста.
+//	@Tags			list
+//	@ID				list
+//	@Produce		html
+//	@Success		200
+//	@Router			/list [get]
 //
-// Returns: None.
+// List обрабатывает HTTP-GET-запрос на получение списка текущих значений всех метрик.
+// Возвращает список полученных от сервиса метрик ввиде обычного текста.
 func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -78,13 +76,21 @@ func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-// Get retrieves a specific record based on the provided kind and name.
+//	Get godoc
 //
-// Parameters:
-//   - w: The ResponseWriter to write the response.
-//   - r: The Request object representing the HTTP request.
+//	@Summary		Get
+//	@Description	Возвращает текущее значение метрики с указанным имененм и типом.
+//	@Tags			value
+//	@ID				get
+//	@Produce		html
+//	@Param			kind	path	string	true
+//	@Param			name	path	string	true
+//	@Success		200
+//	@Failure		404
+//	@Router			/value/{kind}/{name} [get]
 //
-// Returns: None.
+// Get возвращает текущее значение метрики с указанным имененм и типом.
+// В случае ошибки, статус ответа 404
 func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -103,13 +109,22 @@ func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-// Update updates a specific record with the provided kind, name, and value.
+//	Update godoc
 //
-// Parameters:
-//   - w: The ResponseWriter to write the response.
-//   - r: The Request object representing the HTTP request.
+//	@Summary		Update
+//	@Description	Обновляет текущее значение метрики с указанным имененм и типом.
+//	@Tags			update
+//	@ID				update
+//	@Produce		html
+//	@Param			kind	path	string	true
+//	@Param			name	path	string	true
+//	@Param			value	path	string	true
+//	@Success		200
+//	@Failure		404
+//	@Router			/update/{kind}/{name}/{value} [post]
 //
-// Returns: None.
+// Update обновляет значение метрики с указанным именем и типом.
+// В случае ошибки, статус ответа 404
 func (h MetricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -127,18 +142,17 @@ func (h MetricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 //	Ping godoc
-// 
-//	@Summary Ping
-//	@Description Performs a health check by pinging the service.
-//	@Tags ping
-//	@ID ping
-//	@Success 200
-//	@Failure 500
-//	@Router /ping [get]
-//line for correct view in godoc
-// Ping handles the HTTP GET request to ping the service.
-// It responds with status code http.StatusOK if the service is healthy.
-// It responds with status code http.StatusInternalServerError if there is an error pinging the service.
+//
+//	@Summary		Ping
+//	@Description	Performs a health check by pinging the service.
+//	@Tags			ping
+//	@ID				ping
+//	@Success		200
+//	@Failure		500
+//	@Router			/ping [get]
+//
+// Ping проверяет состояние сервиса.
+// В случае ошибки, статус ответа 500
 func (h MetricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Ping(r.Context()); err != nil {
 		responseWithCode(w, http.StatusInternalServerError, h.logger)

@@ -8,6 +8,20 @@ import (
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
+//	UpdateJSON godoc
+//
+//	@Summary		UpdateJSON
+//	@Description	Обновляет текущее значение метрики с указанным имененм и типом.
+//	@Tags			update
+//	@ID				updateJSON
+//	@Produce		json
+//	@Param			data	body	adapter.RequestMetric	true
+//	@Success		200
+//	@Failure		404
+//	@Failure		500
+//	@Router			/update [post]
+//
+// Update обновляет текущее значение метрики с указанным именем и типом полученные в формате JSON.
 func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -53,6 +67,22 @@ func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
+//	GetJSON godoc
+//
+//	@Summary		GetJSON
+//	@Description	Возвращает текущее значение метрики в формате JSON с указанным имененм и типом.
+//	@Tags			value
+//	@ID				getJSON
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body	adapter.RequestMetric	true
+//	@Success		200
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/value [get]
+//
+// Get возвращает текущее значение метрики в формате JSON с указанным имененм и типом в формате.
 func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {

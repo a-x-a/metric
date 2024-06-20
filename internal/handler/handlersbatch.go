@@ -9,6 +9,20 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
+//	UpdateBatch godoc
+//
+//	@Summary		UpdateBatch
+//	@Description	Обновляет текущие значения метрик из набора.
+//	@Tags			updatebatch
+//	@ID				updatebatch
+//	@Produce		json
+//	@Param			data	body	[]adapter.RequestMetric	true
+//	@Failure		404
+//	@Failure		500
+//	@Router			/updates [post]
+//
+// Update обновляет значение метрики с указанным именем и типом.
+// В случае ошибки, статус ответа 404
 func (h MetricHandlers) UpdateBatch(w http.ResponseWriter, r *http.Request) {
 	data := make([]adapter.RequestMetric, 0)
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
