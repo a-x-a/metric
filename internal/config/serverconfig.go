@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// ServerConfig - настройки сервера.
 	ServerConfig struct {
 		// ListenAddress - адрес сервера сбора метрик
 		ListenAddress string `env:"ADDRESS"`
@@ -30,6 +31,7 @@ type (
 	}
 )
 
+// NewServerConfig - создаёт экземпляр настроек сервера.
 func NewServerConfig() ServerConfig {
 	storeInterval := 300
 	cfg := ServerConfig{

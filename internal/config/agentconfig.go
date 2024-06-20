@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// AgentConfig - настройки агента.
 	AgentConfig struct {
 		// PollInterval - частота обновления метрик, по умолчанию 2 сек
 		PollInterval time.Duration `env:"POLL_INTERVAL"`
@@ -23,6 +24,7 @@ type (
 	}
 )
 
+// NewAgentConfig - создаёт экземпляр настроек агента.
 func NewAgentConfig() AgentConfig {
 	pollInterval := 2
 	reportInterval := 10
