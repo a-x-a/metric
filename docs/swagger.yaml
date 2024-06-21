@@ -1,0 +1,178 @@
+basePath: /
+definitions:
+  adapter.RequestMetric:
+    properties:
+      delta:
+        description: значение метрики в случае передачи counter
+        type: integer
+      id:
+        description: имя метрики
+        type: string
+      type:
+        description: параметр, принимающий значение gauge или counter
+        type: string
+      value:
+        description: значение метрики в случае передачи gauge
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Сервис для сбора рантайм-метрик.
+  title: Сервис сбора метрик и алертинга.
+  version: "0.1"
+paths:
+  /list:
+    get:
+      description: Возвращает список полученных от сервиса метрик ввиде обычного текста.
+      operationId: list
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+      summary: List
+      tags:
+      - list
+  /ping:
+    get:
+      description: Performs a health check by pinging the service.
+      operationId: ping
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Ping
+      tags:
+      - ping
+  /update:
+    post:
+      description: Обновляет текущее значение метрики с указанным имененм и типом.
+      operationId: updateJSON
+      parameters:
+      - description: 'Параметры метрики: имя, тип, значение'
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/adapter.RequestMetric'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: UpdateJSON
+      tags:
+      - update
+  /update/{kind}/{name}/{value}:
+    post:
+      description: Обновляет текущее значение метрики с указанным имененм и типом.
+      operationId: update
+      parameters:
+      - description: Тип метрики
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Имяметрики
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Значение метрики
+        in: path
+        name: value
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+      summary: Update
+      tags:
+      - update
+  /updates:
+    post:
+      description: Обновляет текущие значения метрик из набора.
+      operationId: updatebatch
+      parameters:
+      - description: Набор метрик
+        in: body
+        name: data
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/adapter.RequestMetric'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: UpdateBatch
+      tags:
+      - updatebatch
+  /value:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает текущее значение метрики в формате JSON с указанным
+        имененм и типом.
+      operationId: getJSON
+      parameters:
+      - description: 'Параметры метрики: имя, тип'
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/adapter.RequestMetric'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: GetJSON
+      tags:
+      - value
+  /value/{kind}/{name}:
+    get:
+      description: Возвращает текущее значение метрики с указанным имененм и типом.
+      operationId: get
+      parameters:
+      - description: Тип метрики
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Имя метрики
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+      summary: Get
+      tags:
+      - value
+swagger: "2.0"

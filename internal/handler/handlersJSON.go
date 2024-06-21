@@ -15,7 +15,7 @@ import (
 //	@Tags			update
 //	@ID				updateJSON
 //	@Produce		json
-//	@Param			data	body	adapter.RequestMetric	true
+//	@Param			data	body	adapter.RequestMetric	true	"Параметры метрики: имя, тип, значение"
 //	@Success		200
 //	@Failure		404
 //	@Failure		500
@@ -75,7 +75,7 @@ func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 //	@ID				getJSON
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body	adapter.RequestMetric	true
+//	@Param			data	body	adapter.RequestMetric	true	"Параметры метрики: имя, тип"
 //	@Success		200
 //	@Failure		400
 //	@Failure		404

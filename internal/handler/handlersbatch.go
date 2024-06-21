@@ -16,7 +16,7 @@ import (
 //	@Tags			updatebatch
 //	@ID				updatebatch
 //	@Produce		json
-//	@Param			data	body	[]adapter.RequestMetric	true
+//	@Param			data	body	[]adapter.RequestMetric	true	"Набор метрик"
 //	@Failure		404
 //	@Failure		500
 //	@Router			/updates [post]

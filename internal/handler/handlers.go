@@ -83,8 +83,8 @@ func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 //	@Tags			value
 //	@ID				get
 //	@Produce		html
-//	@Param			kind	path	string	true
-//	@Param			name	path	string	true
+//	@Param			kind	path	string	true	"Тип метрики"
+//	@Param			name	path	string	true	"Имя метрики"
 //	@Success		200
 //	@Failure		404
 //	@Router			/value/{kind}/{name} [get]
@@ -116,9 +116,9 @@ func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 //	@Tags			update
 //	@ID				update
 //	@Produce		html
-//	@Param			kind	path	string	true
-//	@Param			name	path	string	true
-//	@Param			value	path	string	true
+//	@Param			kind	path	string	true	"Тип метрики"
+//	@Param			name	path	string	true	"Имяметрики"
+//	@Param			value	path	string	true	"Значение метрики"
 //	@Success		200
 //	@Failure		404
 //	@Router			/update/{kind}/{name}/{value} [post]
