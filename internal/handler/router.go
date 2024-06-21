@@ -19,7 +19,7 @@ import (
 // - s: сервис сбора метрик.
 // - log: логгер для логирования результатов запросов и ответов.
 // - key: ключ для подписи ответов.
-func NewRouter(s metricService, log *zap.Logger, key string) http.Handler {
+func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
 
 	r := chi.NewRouter()

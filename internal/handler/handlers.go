@@ -14,8 +14,8 @@ import (
 )
 
 type (
-	// metricService содержит описание методов для обработки запросов.
-	metricService interface {
+	// MetricService содержит описание методов сервиса сбора метрик.
+	MetricService interface {
 		// Push добавляет метрику с указанным именем, типом и значением.
 		Push(ctx context.Context, name, kind, value string) error
 
@@ -40,13 +40,13 @@ type (
 
 	// MetricHandlers содержит методы для обработки запросов.
 	MetricHandlers struct {
-		service metricService
+		service MetricService
 		logger  *zap.Logger
 	}
 )
 
 // newMetricHandlers создаёт новый экземпляр объекта MetricHandlers.
-func newMetricHandlers(s metricService, logger *zap.Logger) MetricHandlers {
+func newMetricHandlers(s MetricService, logger *zap.Logger) MetricHandlers {
 	return MetricHandlers{
 		service: s,
 		logger:  logger,
