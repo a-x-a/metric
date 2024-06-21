@@ -460,7 +460,7 @@ func Test_Ping(t *testing.T) {
 	}
 }
 
-func Example_Ping() {
+func ExampleMetricHandlers_Ping() {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(nil)

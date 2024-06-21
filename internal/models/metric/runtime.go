@@ -37,7 +37,7 @@ type (
 	}
 )
 
-// Poll обновляет значения показателей метрик.
+// Poll обновляет значения метрик.
 func (rm *RuntimeMetrics) Poll() {
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)

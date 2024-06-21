@@ -36,13 +36,13 @@ type (
 )
 
 var (
-	// ErrorMetricNameIsNull - не указано имя метрики.
+	// ErrorMetricNameIsNull - ошибка при создании метрики, не указано имя метрики.
 	ErrorMetricNameIsNull = errors.New("metrics: ошибка cоздания метрики, не указано име метрики")
-	// ErrorMetricNotFound - метрика не найдена.
+	// ErrorMetricNotFound - ошибка при получении метрики, метрика не найдена.
 	ErrorMetricNotFound = errors.New("metrics: метрика не найдена")
 )
 
-// Poll обновление метрик.
+// Poll обновляет значения метрик.
 func (m *Metrics) Poll(ctx context.Context) error {
 	m.PollCount += 1
 	m.RandomValue = Gauge(rand.Float64())

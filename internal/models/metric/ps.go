@@ -12,6 +12,7 @@ type PSMetrics struct {
 	CPUutilization1 Gauge
 }
 
+// Poll обновляет значения метрик.
 func (ps *PSMetrics) Poll() error {
 	vm, err := mem.VirtualMemory()
 	if err != nil {

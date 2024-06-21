@@ -17,12 +17,13 @@ import (
 //	@ID				updatebatch
 //	@Produce		json
 //	@Param			data	body	[]adapter.RequestMetric	true	"Набор метрик"
-//	@Failure		404
+//	@Failure		400
 //	@Failure		500
 //	@Router			/updates [post]
 //
-// Update обновляет значение метрики с указанным именем и типом.
-// В случае ошибки, статус ответа 404
+//line for correct view in godoc.
+// UpdateBatch обновляет значение метрики с указанным именем и типом.
+// В случае ошибки, статус ответа http.StatusBadRequest.
 func (h MetricHandlers) UpdateBatch(w http.ResponseWriter, r *http.Request) {
 	data := make([]adapter.RequestMetric, 0)
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {

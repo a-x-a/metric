@@ -15,10 +15,14 @@ import (
 
 // NewRouter создаёт новый экземпляр роутера.
 //
-// Parameters:
-// - s: сервис сбора метрик.
-// - log: логгер для логирования результатов запросов и ответов.
-// - key: ключ для подписи ответов.
+// Параметры:
+//	- s: сервис сбора метрик.
+//	- log: логгер для логирования результатов запросов и ответов.
+//	- key: ключ для подписи ответов.
+//
+// Возвращаемое значение:
+//	- *http.Handler - роутер.
+//
 func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
 
