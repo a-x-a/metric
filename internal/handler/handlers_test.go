@@ -10,9 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -322,10 +324,97 @@ func TestListHandler(t *testing.T) {
 	}
 }
 
-func TestPingHandlerOk(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop(), "")
-	srv := httptest.NewServer(rt)
-	defer srv.Close()
+// func TestPingHandlerOk(t *testing.T) {
+// 	rt := NewRouter(mockService{}, zap.NewNop(), "")
+// 	srv := httptest.NewServer(rt)
+// 	defer srv.Close()
+
+// 	type result struct {
+// 		code int
+// 	}
+// 	tt := []struct {
+// 		name     string
+// 		path     string
+// 		method   string
+// 		expected result
+// 	}{
+// 		{
+// 			name:   "ping",
+// 			path:   "/ping/",
+// 			method: http.MethodGet,
+// 			expected: result{
+// 				code: http.StatusOK,
+// 			},
+// 		},
+// 	}
+
+// 	for _, tc := range tt {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			client := http.Client{}
+// 			path := srv.URL + tc.path
+// 			req, err := http.NewRequest(tc.method, path, nil)
+// 			require.NoError(t, err)
+
+// 			req.Header.Set("Content-Type", "text/plain")
+// 			resp, err := client.Do(req)
+// 			require.NoError(t, err)
+
+// 			defer resp.Body.Close()
+
+// 			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+// 		})
+// 	}
+// }
+// func TestPingHandlerError(t *testing.T) {
+// 	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop(), "")
+// 	srv := httptest.NewServer(rt)
+// 	defer srv.Close()
+
+// 	type result struct {
+// 		code int
+// 	}
+// 	tt := []struct {
+// 		name     string
+// 		path     string
+// 		method   string
+// 		expected result
+// 	}{
+// 		{
+// 			name:   "ping",
+// 			path:   "/ping/",
+// 			method: http.MethodGet,
+// 			expected: result{
+// 				code: http.StatusInternalServerError,
+// 			},
+// 		},
+// 	}
+
+// 	for _, tc := range tt {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			client := http.Client{}
+// 			path := srv.URL + tc.path
+// 			req, err := http.NewRequest(tc.method, path, nil)
+// 			require.NoError(t, err)
+
+// 			req.Header.Set("Content-Type", "text/plain")
+// 			resp, err := client.Do(req)
+// 			require.NoError(t, err)
+
+// 			defer resp.Body.Close()
+
+// 			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+// 		})
+// 	}
+// }
+
+func Test_Ping(t *testing.T) {
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
 
 	type result struct {
 		code int
@@ -334,53 +423,23 @@ func TestPingHandlerOk(t *testing.T) {
 		name     string
 		path     string
 		method   string
+		err      error
 		expected result
 	}{
 		{
-			name:   "ping",
-			path:   "/ping/",
+			name:   "ping OK",
+			path:   "/ping",
 			method: http.MethodGet,
+			err:    nil,
 			expected: result{
 				code: http.StatusOK,
 			},
 		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			client := http.Client{}
-			path := srv.URL + tc.path
-			req, err := http.NewRequest(tc.method, path, nil)
-			require.NoError(t, err)
-
-			req.Header.Set("Content-Type", "text/plain")
-			resp, err := client.Do(req)
-			require.NoError(t, err)
-
-			defer resp.Body.Close()
-
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
-		})
-	}
-}
-func TestPingHandlerError(t *testing.T) {
-	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop(), "")
-	srv := httptest.NewServer(rt)
-	defer srv.Close()
-
-	type result struct {
-		code int
-	}
-	tt := []struct {
-		name     string
-		path     string
-		method   string
-		expected result
-	}{
 		{
-			name:   "ping",
-			path:   "/ping/",
+			name:   "ping InternalServerError",
+			path:   "/ping",
 			method: http.MethodGet,
+			err:    metricservice.ErrNotSupportedMethod,
 			expected: result{
 				code: http.StatusInternalServerError,
 			},
@@ -389,18 +448,34 @@ func TestPingHandlerError(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			client := http.Client{}
-			path := srv.URL + tc.path
-			req, err := http.NewRequest(tc.method, path, nil)
-			require.NoError(t, err)
+			srvc.EXPECT().Ping(context.Background()).Return(tc.err)
 
-			req.Header.Set("Content-Type", "text/plain")
-			resp, err := client.Do(req)
-			require.NoError(t, err)
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			w := httptest.NewRecorder()
 
-			defer resp.Body.Close()
+			h.Ping(w, req)
 
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
 	}
+}
+
+func Example_Ping() {
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().Ping(context.Background()).Return(nil)
+
+	h := newMetricHandlers(srvc, log)
+
+	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
+	w := httptest.NewRecorder()
+
+	h.Ping(w, req)
+
+	fmt.Println(w.Code)
+
+	// Output:
+	// 200
 }
