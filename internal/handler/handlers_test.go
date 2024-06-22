@@ -465,11 +465,6 @@ func TestUpdateBatchHandler(t *testing.T) {
 	data, err := json.Marshal(getRequestMetrics())
 	assert.NoError(err)
 
-	hash, err := sgnr.Hash(data)
-	assert.NoError(err)
-
-	bodyReader := strings.NewReader(string(data))
-
 	type result struct {
 		code int
 	}
@@ -477,12 +472,18 @@ func TestUpdateBatchHandler(t *testing.T) {
 		name     string
 		path     string
 		method   string
+		records  []storage.Record
+		body     string
+		err      error
 		expected result
 	}{
 		{
-			name:   "update batch",
-			path:   "/updates",
-			method: http.MethodPost,
+			name:    "update batch normal",
+			path:    "/updates",
+			method:  http.MethodPost,
+			records: records,
+			body:    string(data),
+			err:     nil,
 			expected: result{
 				code: http.StatusOK,
 			},
@@ -491,9 +492,13 @@ func TestUpdateBatchHandler(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			srvc.EXPECT().PushBatch(context.Background(), records).Return(nil)
+			srvc.EXPECT().PushBatch(context.Background(), tc.records).Return(tc.err)
 
-			req := httptest.NewRequest(tc.method, tc.path, bodyReader)
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+
+			hash, err := sgnr.Hash([]byte(tc.body))
+			assert.NoError(err)
+
 			req.Header.Set("HashSHA256", hex.EncodeToString(hash))
 
 			w := httptest.NewRecorder()
