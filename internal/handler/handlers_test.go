@@ -2,10 +2,13 @@ package handler
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,10 +16,44 @@ import (
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 
+	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
+	"github.com/a-x-a/go-metric/internal/signer"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
+
+func getRecords() []storage.Record {
+	records := []storage.Record{}
+	record, _ := storage.NewRecord("Alloc")
+	record.SetValue(metric.Gauge(12.345))
+	records = append(records, record)
+
+	record, _ = storage.NewRecord("PollCount")
+	record.SetValue(metric.Counter(123))
+	records = append(records, record)
+
+	record, _ = storage.NewRecord("Random")
+	record.SetValue(metric.Gauge(1313.1313))
+	records = append(records, record)
+
+	return records
+}
+
+func getRequestMetrics() []adapter.RequestMetric {
+	records := []adapter.RequestMetric{}
+
+	record := adapter.NewUpdateRequestMetricGauge("Alloc", 12.345)
+	records = append(records, record)
+
+	record = adapter.NewUpdateRequestMetricCounter("PollCount", 123)
+	records = append(records, record)
+
+	record = adapter.NewUpdateRequestMetricGauge("Random", 1313.1313)
+	records = append(records, record)
+
+	return records
+}
 
 type mockService struct{}
 
@@ -106,16 +143,8 @@ func (s mockService) Ping(ctx context.Context) error {
 	return nil
 }
 
-type mockServiceWithErrorPing struct {
-	mockService
-}
-
 func (s mockService) PushBatch(ctx context.Context, records []storage.Record) error {
 	return nil
-}
-
-func (s mockServiceWithErrorPing) Ping(ctx context.Context) error {
-	return fmt.Errorf("no ping")
 }
 
 func TestUpdateHandler(t *testing.T) {
@@ -209,6 +238,7 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
+	assert := assert.New(t)
 	rt := NewRouter(mockService{}, zap.NewNop(), "")
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
@@ -277,15 +307,19 @@ func TestGetHandler(t *testing.T) {
 
 			defer resp.Body.Close()
 
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
 		})
 	}
 }
 
 func TestListHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop(), "")
-	srv := httptest.NewServer(rt)
-	defer srv.Close()
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(t)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
 
 	type result struct {
 		code int
@@ -294,12 +328,14 @@ func TestListHandler(t *testing.T) {
 		name     string
 		path     string
 		method   string
+		records  []storage.Record
 		expected result
 	}{
 		{
-			name:   "get all metrics",
-			path:   "/",
-			method: http.MethodGet,
+			name:    "get all metrics",
+			path:    "/",
+			method:  http.MethodGet,
+			records: nil,
 			expected: result{
 				code: http.StatusOK,
 			},
@@ -308,104 +344,37 @@ func TestListHandler(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			client := http.Client{}
-			path := srv.URL + tc.path
-			req, err := http.NewRequest(tc.method, path, nil)
-			require.NoError(t, err)
+			srvc.EXPECT().GetAll(context.Background()).Return(tc.records)
 
-			req.Header.Set("Content-Type", "text/plain")
-			resp, err := client.Do(req)
-			require.NoError(t, err)
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			w := httptest.NewRecorder()
 
-			defer resp.Body.Close()
+			h.List(w, req)
 
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
 	}
 }
 
-// func TestPingHandlerOk(t *testing.T) {
-// 	rt := NewRouter(mockService{}, zap.NewNop(), "")
-// 	srv := httptest.NewServer(rt)
-// 	defer srv.Close()
+func ExampleMetricHandlers_List() {
+	log := zap.NewNop()
 
-// 	type result struct {
-// 		code int
-// 	}
-// 	tt := []struct {
-// 		name     string
-// 		path     string
-// 		method   string
-// 		expected result
-// 	}{
-// 		{
-// 			name:   "ping",
-// 			path:   "/ping/",
-// 			method: http.MethodGet,
-// 			expected: result{
-// 				code: http.StatusOK,
-// 			},
-// 		},
-// 	}
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().GetAll(context.Background()).Return(nil)
 
-// 	for _, tc := range tt {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			client := http.Client{}
-// 			path := srv.URL + tc.path
-// 			req, err := http.NewRequest(tc.method, path, nil)
-// 			require.NoError(t, err)
+	h := newMetricHandlers(srvc, log)
 
-// 			req.Header.Set("Content-Type", "text/plain")
-// 			resp, err := client.Do(req)
-// 			require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
 
-// 			defer resp.Body.Close()
+	h.List(w, req)
 
-// 			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
-// 		})
-// 	}
-// }
-// func TestPingHandlerError(t *testing.T) {
-// 	rt := NewRouter(mockServiceWithErrorPing{}, zap.NewNop(), "")
-// 	srv := httptest.NewServer(rt)
-// 	defer srv.Close()
+	fmt.Println(w.Code)
 
-// 	type result struct {
-// 		code int
-// 	}
-// 	tt := []struct {
-// 		name     string
-// 		path     string
-// 		method   string
-// 		expected result
-// 	}{
-// 		{
-// 			name:   "ping",
-// 			path:   "/ping/",
-// 			method: http.MethodGet,
-// 			expected: result{
-// 				code: http.StatusInternalServerError,
-// 			},
-// 		},
-// 	}
-
-// 	for _, tc := range tt {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			client := http.Client{}
-// 			path := srv.URL + tc.path
-// 			req, err := http.NewRequest(tc.method, path, nil)
-// 			require.NoError(t, err)
-
-// 			req.Header.Set("Content-Type", "text/plain")
-// 			resp, err := client.Do(req)
-// 			require.NoError(t, err)
-
-// 			defer resp.Body.Close()
-
-// 			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
-// 		})
-// 	}
-// }
+	// Output:
+	// 200
+}
 
 func Test_Ping(t *testing.T) {
 	assert := assert.New(t)
@@ -473,6 +442,96 @@ func ExampleMetricHandlers_Ping() {
 	w := httptest.NewRecorder()
 
 	h.Ping(w, req)
+
+	fmt.Println(w.Code)
+
+	// Output:
+	// 200
+}
+
+func TestUpdateBatchHandler(t *testing.T) {
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(t)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
+
+	sgnr := signer.New("secret")
+
+	records := getRecords()
+
+	data, err := json.Marshal(getRequestMetrics())
+	assert.NoError(err)
+
+	hash, err := sgnr.Hash(data)
+	assert.NoError(err)
+
+	bodyReader := strings.NewReader(string(data))
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		expected result
+	}{
+		{
+			name:   "update batch",
+			path:   "/updates",
+			method: http.MethodPost,
+			expected: result{
+				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			srvc.EXPECT().PushBatch(context.Background(), records).Return(nil)
+
+			req := httptest.NewRequest(tc.method, tc.path, bodyReader)
+			req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+
+			w := httptest.NewRecorder()
+
+			h.UpdateBatch(w, req)
+
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func ExampleMetricHandlers_UpdateBatch() {
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().PushBatch(context.Background(), getRecords()).Return(nil)
+
+	log := zap.NewNop()
+	h := newMetricHandlers(srvc, log)
+
+	data, err := json.Marshal(getRequestMetrics())
+	if err != nil {
+		return
+	}
+
+	sgnr := signer.New("secret")
+	hash, err := sgnr.Hash(data)
+	if err != nil {
+		return
+	}
+
+	bodyReader := strings.NewReader(string(data))
+
+	req := httptest.NewRequest(http.MethodPost, "/updates", bodyReader)
+	req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+
+	w := httptest.NewRecorder()
+
+	h.UpdateBatch(w, req)
 
 	fmt.Println(w.Code)
 
