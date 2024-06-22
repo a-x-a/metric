@@ -16,13 +16,13 @@ type (
 		storage stor
 		logger  *zap.Logger
 	}
-	
+
 	// StorageWithPing хранилище, поддерживающее метод Ping.
 	StorageWithPing interface {
 		Ping(ctx context.Context) error
 	}
 
-	// stor основные методы хранилища
+	// stor основные методы хранилища.
 	stor interface {
 		Push(ctx context.Context, name string, record storage.Record) error
 		PushBatch(ctx context.Context, records []storage.Record) error
@@ -31,7 +31,7 @@ type (
 	}
 )
 
-// ErrNotSupportedMethod ошибка, не поддерживаемый метод
+// ErrNotSupportedMethod ошибка, не поддерживаемый метод.
 var ErrNotSupportedMethod = errors.New("storage doesn't support method")
 
 // New создает новый экземпляр сервиса сбора метрик.
@@ -42,7 +42,6 @@ var ErrNotSupportedMethod = errors.New("storage doesn't support method")
 //
 // Возвращаемое значение:
 // - *MetricService - сервис сбора метрик.
-//
 func New(stor storage.Storage, logger *zap.Logger) *MetricService {
 	return &MetricService{
 		storage: stor,
@@ -60,7 +59,6 @@ func New(stor storage.Storage, logger *zap.Logger) *MetricService {
 //
 // Возвращаемое значение:
 // - error - ошибка.
-//
 func (s *MetricService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
@@ -104,7 +102,6 @@ func (s *MetricService) Push(ctx context.Context, name, kind, value string) erro
 //
 // Возвращаемое значение:
 // - error - ошибка.
-//
 func (s *MetricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
@@ -130,7 +127,6 @@ func (s *MetricService) PushCounter(ctx context.Context, name string, value metr
 //
 // Возвращаемое значение:
 // - error - ошибка.
-//
 func (s *MetricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	record, err := storage.NewRecord(name)
 	if err != nil {
@@ -155,7 +151,6 @@ func (s *MetricService) PushGauge(ctx context.Context, name string, value metric
 //
 // Возвращаемое значение:
 // - error - ошибка.
-//
 func (s MetricService) PushBatch(ctx context.Context, records []storage.Record) error {
 	data := make([]storage.Record, 0, len(records))
 	cache := make(map[string]int)
@@ -214,7 +209,6 @@ func (s MetricService) PushBatch(ctx context.Context, records []storage.Record) 
 // Возвращаемое значение:
 // - *storage.Record - текущее значение метрики;
 // - error - ошибка.
-//
 func (s MetricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	if _, err := metric.GetKind(kind); err != nil {
 		return nil, err
@@ -235,7 +229,6 @@ func (s MetricService) Get(ctx context.Context, name, kind string) (*storage.Rec
 //
 // Возвращаемое значение:
 // - []storage.Record - текущее значение всех метрик.
-//
 func (s MetricService) GetAll(ctx context.Context) []storage.Record {
 	records, err := s.storage.GetAll(ctx)
 	if err != nil {
@@ -252,7 +245,6 @@ func (s MetricService) GetAll(ctx context.Context) []storage.Record {
 //
 // Возвращаемое значение:
 // - error - ошибка.
-//
 func (s MetricService) Ping(ctx context.Context) error {
 	dbStorage, ok := s.storage.(StorageWithPing)
 	if !ok {
