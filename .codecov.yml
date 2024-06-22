@@ -8,6 +8,10 @@ coverage:
     patch:
       default:
         target: 50.0
+    project:
+      default:
+        target: auto
+        threshold: 1%
 ignore:
   - "**/*_test.go"
   - "**/*_mock.go"
