@@ -8,6 +8,9 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/a-x-a/go-metric/docs"
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/signer"
@@ -16,13 +19,12 @@ import (
 // NewRouter создаёт новый экземпляр роутера.
 //
 // Параметры:
-//	- s: сервис сбора метрик.
-//	- log: логгер для логирования результатов запросов и ответов.
-//	- key: ключ для подписи ответов.
+//   - s: сервис сбора метрик.
+//   - log: логгер для логирования результатов запросов и ответов.
+//   - key: ключ для подписи ответов.
 //
 // Возвращаемое значение:
-//	- *http.Handler - роутер.
-//
+//   - *http.Handler - роутер.
 func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
 
@@ -53,6 +55,8 @@ func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
 
 	r.Get("/ping", metricHendlers.Ping)
 	r.Get("/ping/", metricHendlers.Ping)
+
+	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
 
 	return r
 }

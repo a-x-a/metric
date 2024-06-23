@@ -1,13 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Сервис для сбора рантайм-метрик.",
-        "title": "Сервис сбора метрик и алертинга.",
-        "contact": {},
-        "version": "0.1"
+        "contact": {}
     },
-    "host": "localhost:8080",
-    "basePath": "/",
     "paths": {
         "/list": {
             "get": {
@@ -22,7 +17,7 @@
                 "operationId": "list",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     }
                 }
             }
@@ -37,10 +32,10 @@
                 "operationId": "ping",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     },
                     "500": {
-                        "description": "Internal Server Error"
+                        "description": ""
                     }
                 }
             }
@@ -69,13 +64,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     },
                     "404": {
-                        "description": "Not Found"
+                        "description": ""
                     },
                     "500": {
-                        "description": "Internal Server Error"
+                        "description": ""
                     }
                 }
             }
@@ -116,10 +111,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     },
-                    "404": {
-                        "description": "Not Found"
+                    "400": {
+                        "description": ""
                     }
                 }
             }
@@ -150,11 +145,11 @@
                     }
                 ],
                 "responses": {
-                    "404": {
-                        "description": "Not Found"
+                    "400": {
+                        "description": ""
                     },
                     "500": {
-                        "description": "Internal Server Error"
+                        "description": ""
                     }
                 }
             }
@@ -186,16 +181,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": ""
                     },
                     "404": {
-                        "description": "Not Found"
+                        "description": ""
                     },
                     "500": {
-                        "description": "Internal Server Error"
+                        "description": ""
                     }
                 }
             }
@@ -229,10 +224,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": ""
                     },
                     "404": {
-                        "description": "Not Found"
+                        "description": ""
                     }
                 }
             }
