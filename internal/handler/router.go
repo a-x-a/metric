@@ -10,7 +10,7 @@ import (
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	_ "github.com/a-x-a/go-metric/api"
+	_ "github.com/a-x-a/go-metric/docs/api"
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/signer"
