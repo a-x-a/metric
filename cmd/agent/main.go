@@ -8,28 +8,26 @@ import (
 	"syscall"
 
 	"github.com/a-x-a/go-metric/internal/app"
-	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 func main() {
-	agent := app.NewAgent()
-	ctx := context.Background()
-	metric := &metric.Metrics{}
+	agent := app.NewAgent("info")
 
-	go agent.Poll(ctx, metric)
-	go agent.Report(ctx, metric)
-
+	ctx, cancel := context.WithCancel(context.Background())
+	go agent.Run(ctx)
 	fmt.Println("agent started")
-
 	// select {}
 	idleConnsClosed := make(chan struct{})
+
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		data := <-sigint
+		cancel()
 		fmt.Println("received signal: " + data.String())
 		fmt.Println("start to shutdown...")
 		close(idleConnsClosed)
 	}()
+
 	<-idleConnsClosed
 }
