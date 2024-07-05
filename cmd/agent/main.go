@@ -10,13 +10,23 @@ import (
 	"github.com/a-x-a/go-metric/internal/app"
 )
 
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
+
 func main() {
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
+
 	agent := app.NewAgent("info")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go agent.Run(ctx)
 	fmt.Println("agent started")
-	// select {}
+
 	idleConnsClosed := make(chan struct{})
 
 	go func() {
