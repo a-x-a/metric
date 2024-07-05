@@ -1,3 +1,4 @@
+// Package encoder описывает middleware для работа со сжатыми HTTP запросами и ответами.
 package encoder
 
 import (

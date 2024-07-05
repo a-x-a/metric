@@ -1,3 +1,4 @@
+// Package metric описывает основные сущности.
 package metric
 
 import (

@@ -1,3 +1,4 @@
+// Package handler хэндлеры для обработки входящих HTTP запросов.
 package handler
 
 import (
@@ -41,19 +42,18 @@ type (
 	// MetricHandlers хэндлер для обработки запросов.
 	MetricHandlers struct {
 		service MetricService // сервис сбора метрик.
-		logger  *zap.Logger // логгер для логирования результатов запросов и ответов.
+		logger  *zap.Logger   // логгер для логирования результатов запросов и ответов.
 	}
 )
 
 // newMetricHandlers создаёт новый экземпляр объекта MetricHandlers.
 //
 // Параметры:
-//	- s: сервис сбора метрик.
-//	- log: логгер для логирования результатов запросов и ответов.
+//   - s: сервис сбора метрик.
+//   - log: логгер для логирования результатов запросов и ответов.
 //
 // Возвращаемое значение:
-//	- MetricHandlers - хэндлер для обработки запросов.
-//
+//   - MetricHandlers - хэндлер для обработки запросов.
 func newMetricHandlers(s MetricService, logger *zap.Logger) MetricHandlers {
 	return MetricHandlers{
 		service: s,
@@ -71,9 +71,10 @@ func newMetricHandlers(s MetricService, logger *zap.Logger) MetricHandlers {
 //	@Success		200
 //	@Router			/list [get]
 //
-//line for correct view in godoc.
 // List обрабатывает HTTP-GET-запрос на получение списка текущих значений всех метрик.
 // Возвращает список полученных от сервиса метрик ввиде обычного текста.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -98,9 +99,10 @@ func (h MetricHandlers) List(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404
 //	@Router			/value/{kind}/{name} [get]
 //
-//line for correct view in godoc.
 // Get возвращает текущее значение метрики с указанным имененм и типом.
 // В случае ошибки, статус ответа http.StatusNotFound.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -132,10 +134,11 @@ func (h MetricHandlers) Get(w http.ResponseWriter, r *http.Request) {
 //	@Success		200
 //	@Failure		400
 //	@Router			/update/{kind}/{name}/{value} [post]
-// 
-//line for correct view in godoc.
+//
 // Update обновляет значение метрики с указанным именем и типом.
 // В случае ошибки, статус ответа http.StatusBadRequest.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -162,9 +165,10 @@ func (h MetricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/ping [get]
 //
-//line for correct view in godoc.
 // Ping проверяет состояние сервиса.
 // В случае ошибки, статус ответа http.StatusInternalServerError.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Ping(r.Context()); err != nil {
 		responseWithCode(w, http.StatusInternalServerError, h.logger)

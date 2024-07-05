@@ -66,7 +66,7 @@ func (m *withFileStorage) Save() error {
 	defer f.Close()
 
 	encoder := json.NewEncoder(f)
-	snapshot := m.memStorage.GetSnapShot()
+	snapshot := m.GetSnapShot()
 
 	if err := encoder.Encode(snapshot.data); err != nil {
 		return err

@@ -1,3 +1,4 @@
+// Package sender отвечает за оправку данных от агента к серверу.
 package sender
 
 import (
@@ -55,11 +56,11 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 		return err
 	}
 
-	if _, err := zw.Write(data); err != nil {
+	if _, err = zw.Write(data); err != nil {
 		return err
 	}
 
-	if err := zw.Close(); err != nil {
+	if err = zw.Close(); err != nil {
 		return err
 	}
 
@@ -72,7 +73,8 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	req.Header.Set("Content-Encoding", "gzip")
 
 	if hs.signer != nil {
-		hash, err := hs.signer.Hash(data)
+		var hash []byte
+		hash, err = hs.signer.Hash(data)
 		if err != nil {
 			return err
 		}

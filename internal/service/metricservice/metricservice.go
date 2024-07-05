@@ -1,3 +1,4 @@
+// Package metricservice сервис сбора метрик.
 package metricservice
 
 import (

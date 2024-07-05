@@ -1,3 +1,4 @@
+// Package signer подписывает и проверяет переданные данные.
 package signer
 
 import (
@@ -22,11 +23,10 @@ type Signer struct {
 // New создаёт новый экземпляр Signer.
 //
 // Параметры:
-//	- key: ключ для подписи.
+//   - key: ключ для подписи.
 //
 // Возвращаемое значение:
-//	- экземпляр Signer или nil в случае ошибки.
-//
+//   - экземпляр Signer или nil в случае ошибки.
 func New(key string) *Signer {
 	if len(key) == 0 {
 		return nil
@@ -38,11 +38,10 @@ func New(key string) *Signer {
 // Hash подписывает данные и возвращает хэш.
 //
 // Параметры:
-//	- data: данные для подписи.
+//   - data: данные для подписи.
 //
 // Возвращаемое значение:
-//	- хэш или ошибку.
-//
+//   - хэш или ошибку.
 func (s *Signer) Hash(data []byte) ([]byte, error) {
 	h := hmac.New(sha256.New, s.key)
 	h.Write(data)
@@ -53,12 +52,11 @@ func (s *Signer) Hash(data []byte) ([]byte, error) {
 // Verify проверяет подпись данных.
 //
 // Параметры:
-//	- data: данные для подписи.
-//	- hash: хэш.
+//   - data: данные для подписи.
+//   - hash: хэш.
 //
 // Возвращаемое значение:
-//	- true, если подпись верна, false в противном случае или ошибку.
-//
+//   - true, если подпись верна, false в противном случае или ошибку.
 func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 	mac1, err := hex.DecodeString(hash)
 	if err != nil {
@@ -76,9 +74,8 @@ func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 // SignerMiddleware middleware для подписи данных.
 //
 // Параметры:
-//	- log: логгер.
-//	- key: ключ для подписи.
-//
+//   - log: логгер.
+//   - key: ключ для подписи.
 func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

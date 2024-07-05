@@ -25,7 +25,8 @@ func migrationRun(dsn string, log *zap.Logger) error {
 	}
 
 	sourceURL := "file://migrations"
-	if pwd, err := os.Getwd(); err == nil {
+	var pwd string
+	if pwd, err = os.Getwd(); err == nil {
 		sourceURL = fmt.Sprintf("file://%s/migrations", strings.ReplaceAll(pwd, "\\", "/"))
 	}
 

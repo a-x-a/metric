@@ -1,3 +1,4 @@
+// Package logger описывает middleware для логирования HTTP запросов и ответов.
 package logger
 
 import (

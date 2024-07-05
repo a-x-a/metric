@@ -165,12 +165,14 @@ func (d *DBStorage) GetAll(ctx context.Context) ([]Record, error) {
 
 	records := make([]Record, 0)
 	_, err = pgx.ForEachRow(rows, []any{&name, &kindRaw, &valueRaw}, func() error {
-		kind, err := metric.GetKind(kindRaw)
+		var kind metric.MetricKind
+		kind, err = metric.GetKind(kindRaw)
 		if err != nil {
 			return err
 		}
 
-		record, err := NewRecord(name)
+		var record Record
+		record, err = NewRecord(name)
 		if err != nil {
 			return err
 		}

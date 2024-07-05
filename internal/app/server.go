@@ -1,3 +1,4 @@
+// Package app инициализация и запуск приложения.
 package app
 
 import (
