@@ -78,7 +78,7 @@ func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 //   - key: ключ для подписи.
 func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fn := func(w http.ResponseWriter, r *http.Request) {
 			sgnr := New(key)
 			if sgnr == nil {
 				next.ServeHTTP(w, r)
@@ -92,10 +92,6 @@ func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.
 			}
 
 			log.Info("SIGNER", zap.String("hash received", hash))
-			if len(hash) == 0 {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
 
 			buf, _ := io.ReadAll(r.Body)
 			rdr1 := io.NopCloser(bytes.NewBuffer(buf))
@@ -110,6 +106,7 @@ func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.
 
 			b, err := json.Marshal(data)
 			if err != nil {
+				log.Info("SIGNER", zap.Error(err))
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -125,6 +122,8 @@ func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.
 
 			r.Body = rdr2
 			next.ServeHTTP(w, r)
-		})
+		}
+
+		return http.HandlerFunc(fn)
 	}
 }

@@ -243,13 +243,11 @@ func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duratio
 }
 
 func (hs *httpSender) worker(ctx context.Context) {
-	data := make([]adapter.RequestMetric, 0)
+	data := make([]adapter.RequestMetric, 0, len(hs.batch))
 
 	for r := range hs.batch {
 		data = append(data, r)
 	}
 
-	if len(data) != 0 {
-		hs.err = hs.doSend(ctx, data)
-	}
+	hs.err = hs.doSend(ctx, data)
 }

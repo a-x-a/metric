@@ -14,7 +14,7 @@ import (
 type (
 	// MetricService сервис сбора метрик.
 	MetricService struct {
-		storage stor
+		storage repository
 		logger  *zap.Logger
 	}
 
@@ -24,7 +24,7 @@ type (
 	}
 
 	// stor основные методы хранилища.
-	stor interface {
+	repository interface {
 		Push(ctx context.Context, name string, record storage.Record) error
 		PushBatch(ctx context.Context, records []storage.Record) error
 		Get(ctx context.Context, name string) (*storage.Record, error)
