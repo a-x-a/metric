@@ -1,3 +1,4 @@
+// Package encoder описывает middleware для работа со сжатыми HTTP запросами и ответами.
 package encoder
 
 import (
@@ -8,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// DecompressMiddleware middleware для распаковки данных.
 func DecompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +44,7 @@ func DecompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handl
 	}
 }
 
+// CompressMiddleware middleware для упаковки данных.
 func CompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

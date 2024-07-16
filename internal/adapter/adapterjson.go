@@ -1,3 +1,4 @@
+// Package adapter методы для конвертации внутреней модели metric в модель используему в запросах.
 package adapter
 
 import "github.com/a-x-a/go-metric/internal/models/metric"

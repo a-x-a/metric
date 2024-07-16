@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ func NewMemStorage() *memStorage {
 	}
 }
 
-func (m *memStorage) Push(name string, record Record) error {
+func (m *memStorage) Push(ctx context.Context, name string, record Record) error {
 	m.Lock()
 	defer m.Unlock()
 	m.data[name] = record
@@ -25,15 +26,31 @@ func (m *memStorage) Push(name string, record Record) error {
 	return nil
 }
 
-func (m *memStorage) Get(name string) (Record, bool) {
+func (m *memStorage) PushBatch(ctx context.Context, records []Record) error {
 	m.Lock()
 	defer m.Unlock()
-	record, ok := m.data[name]
 
-	return record, ok
+	for _, v := range records {
+		key := v.GetName()
+		m.data[key] = v
+	}
+
+	return nil
 }
 
-func (m *memStorage) GetAll() []Record {
+func (m *memStorage) Get(ctx context.Context, name string) (*Record, error) {
+	m.Lock()
+	defer m.Unlock()
+
+	record, ok := m.data[name]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	return &record, nil
+}
+
+func (m *memStorage) GetAll(ctx context.Context) ([]Record, error) {
 	records := make([]Record, len(m.data))
 	i := 0
 
@@ -44,7 +61,7 @@ func (m *memStorage) GetAll() []Record {
 		i++
 	}
 
-	return records
+	return records, nil
 }
 
 func (m *memStorage) GetSnapShot() *memStorage {
@@ -57,5 +74,11 @@ func (m *memStorage) GetSnapShot() *memStorage {
 		snap[k] = v
 	}
 
-	return &memStorage{data: snap}
+	return &memStorage{
+		data: snap,
+	}
+}
+
+func (m *memStorage) Close() error {
+	return nil
 }

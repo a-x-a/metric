@@ -1,3 +1,4 @@
+// Package config инициализирует настройки сервера.
 package config
 
 import (
@@ -9,6 +10,7 @@ import (
 )
 
 type (
+	// ServerConfig - настройки сервера.
 	ServerConfig struct {
 		// ListenAddress - адрес сервера сбора метрик
 		ListenAddress string `env:"ADDRESS"`
@@ -23,15 +25,22 @@ type (
 		// определяющее, загружать или нет ранее сохранённые значения
 		// из указанного файла при старте сервера (по умолчанию `true`).
 		Restore bool `env:"RESTORE"`
+		// DatabaseDSN - строка с адресом подключения к БД.
+		DatabaseDSN string `env:"DATABASE_DSN"`
+		// Key - ключ подписи
+		Key string `env:"KEY"`
 	}
 )
 
+// NewServerConfig - создаёт экземпляр настроек сервера.
 func NewServerConfig() ServerConfig {
 	storeInterval := 300
 	cfg := ServerConfig{
 		ListenAddress:   "localhost:8080",
 		FileStoregePath: "/tmp/metrics-db.json",
 		Restore:         true,
+		DatabaseDSN:     "",
+		Key:             "",
 	}
 
 	flag.Usage = func() {
@@ -53,6 +62,14 @@ func NewServerConfig() ServerConfig {
 
 	if flag.Lookup("r") == nil {
 		flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "загружать или нет ранее сохранённые значения из файла при старте")
+	}
+
+	if flag.Lookup("d") == nil {
+		flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "строка с адресом подключения к БД")
+	}
+
+	if flag.Lookup("k") == nil {
+		flag.StringVar(&cfg.Key, "k", cfg.Key, "ключ подписи")
 	}
 
 	flag.Parse()
