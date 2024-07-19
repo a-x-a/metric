@@ -14,13 +14,13 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
-	"github.com/a-x-a/go-metric/internal/signer"
+	"github.com/a-x-a/go-metric/internal/security"
 )
 
 type httpSender struct {
 	baseURL string
 	client  *http.Client
-	signer  *signer.Signer
+	signer  *security.Signer
 	batch   chan adapter.RequestMetric
 	err     error
 }
@@ -28,7 +28,7 @@ type httpSender struct {
 func newHTTPSender(serverAddress string, timeout time.Duration, key string) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
-	sgnr := signer.New(key)
+	sgnr := security.NewSigner(key)
 
 	return httpSender{
 		baseURL: baseURL,
@@ -99,77 +99,6 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 
 	return nil
 }
-
-// func (hs *httpSender) do(ctx context.Context) error {
-// 	data, err := json.Marshal(hs.batch)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	var buf bytes.Buffer
-
-// 	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if _, err := zw.Write(data); err != nil {
-// 		return err
-// 	}
-
-// 	if err := zw.Close(); err != nil {
-// 		return err
-// 	}
-
-// 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("Content-Encoding", "gzip")
-
-// 	if hs.signer != nil {
-// 		hash, err := hs.signer.Hash(data)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
-// 	}
-
-// 	resp, err := hs.client.Do(req)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer resp.Body.Close()
-
-// 	if _, err = io.ReadAll(resp.Body); err != nil {
-// 		return err
-// 	}
-
-// 	if resp.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("metrics send failed: (%d)", resp.StatusCode)
-// 	}
-
-// 	return nil
-// }
-
-// func (hs *httpSender) Send(ctx context.Context) *httpSender {
-// 	if hs.err != nil {
-// 		return hs
-// 	}
-
-// 	if len(hs.batch) == 0 {
-// 		hs.err = fmt.Errorf("metrics send: batch is empty")
-// 		return hs
-// 	}
-
-// 	hs.err = hs.do(ctx)
-
-// 	return hs
-// }
 
 func (hs *httpSender) add(rm adapter.RequestMetric) *httpSender {
 	if hs.err != nil {

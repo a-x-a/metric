@@ -1,5 +1,5 @@
-// Package signer подписывает и проверяет переданные данные.
-package signer
+// Package security реализует функции, связанные с безопасностью при передаче данных.
+package security
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ type Signer struct {
 //
 // Возвращаемое значение:
 //   - экземпляр Signer или nil в случае ошибки.
-func New(key string) *Signer {
+func NewSigner(key string) *Signer {
 	if len(key) == 0 {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			sgnr := New(key)
+			sgnr := NewSigner(key)
 			if sgnr == nil {
 				next.ServeHTTP(w, r)
 				return

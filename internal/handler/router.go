@@ -13,7 +13,7 @@ import (
 	_ "github.com/a-x-a/go-metric/docs/api"
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/logger"
-	"github.com/a-x-a/go-metric/internal/signer"
+	"github.com/a-x-a/go-metric/internal/security"
 )
 
 // NewRouter создаёт новый экземпляр роутера.
@@ -48,7 +48,7 @@ func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
 
 	updateGroup := r.Group(nil)
 	if len(key) != 0 {
-		updateGroup.Use(signer.SignerMiddleware(log, key))
+		updateGroup.Use(security.SignerMiddleware(log, key))
 	}
 	updateGroup.Post("/updates", metricHendlers.UpdateBatch)
 	updateGroup.Post("/updates/", metricHendlers.UpdateBatch)

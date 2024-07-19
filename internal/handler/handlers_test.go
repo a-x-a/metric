@@ -18,8 +18,8 @@ import (
 
 	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/security"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
-	"github.com/a-x-a/go-metric/internal/signer"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -458,7 +458,7 @@ func TestUpdateBatchHandler(t *testing.T) {
 
 	h := newMetricHandlers(srvc, log)
 
-	sgnr := signer.New("secret")
+	sgnr := security.NewSigner("secret")
 
 	records := getRecords()
 
@@ -523,7 +523,7 @@ func ExampleMetricHandlers_UpdateBatch() {
 		return
 	}
 
-	sgnr := signer.New("secret")
+	sgnr := security.NewSigner("secret")
 	hash, err := sgnr.Hash(data)
 	if err != nil {
 		return
