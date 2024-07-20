@@ -21,12 +21,12 @@ type httpSender struct {
 	baseURL   string
 	client    *http.Client
 	signer    *security.Signer
-	сryptoKey security.PublicKey
+	cryptoKey security.PublicKey
 	batch     chan adapter.RequestMetric
 	err       error
 }
 
-func newHTTPSender(serverAddress string, timeout time.Duration, key string, сryptoKey security.PublicKey) httpSender {
+func newHTTPSender(serverAddress string, timeout time.Duration, key string, cryptoKey security.PublicKey) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
 	sgnr := security.NewSigner(key)
@@ -35,7 +35,7 @@ func newHTTPSender(serverAddress string, timeout time.Duration, key string, сry
 		baseURL:   baseURL,
 		client:    client,
 		signer:    sgnr,
-		сryptoKey: сryptoKey,
+		cryptoKey: cryptoKey,
 		batch:     make(chan adapter.RequestMetric, 1024),
 		err:       nil,
 	}
@@ -70,8 +70,8 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 		return err
 	}
 
-	if hs.сryptoKey != nil {
-		b, err := security.Encrypt(&buf, hs.сryptoKey)
+	if hs.cryptoKey != nil {
+		b, err := security.Encrypt(&buf, hs.cryptoKey)
 		if err != nil {
 			return err
 		}
@@ -134,8 +134,8 @@ func (hs *httpSender) add(rm adapter.RequestMetric) *httpSender {
 // - rateLimit: количество одновременно исходящих запросов на сервер.
 // - stats: коллекция мсетрик для отправки.
 // - сryptoKey публичныq ключ.
-func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics, сryptoKey security.PublicKey) error {
-	sender := newHTTPSender(serverAddress, timeout, key, сryptoKey)
+func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics, cryptoKey security.PublicKey) error {
+	sender := newHTTPSender(serverAddress, timeout, key, cryptoKey)
 
 	for i := 0; i < rateLimit; i++ {
 		go sender.worker(ctx)

@@ -38,8 +38,8 @@ func DecryptMiddleware(logger *zap.Logger, key PrivateKey) func(next http.Handle
 			msg, err := Decrypt(r.Body, key)
 			if err != nil {
 				logger.Error("security.DecryptMiddleware Decrypt", zap.Error(err))
-				// http.Error(w, err.Error(), http.StatusInternalServerError)
-				next.ServeHTTP(w, r)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				// next.ServeHTTP(w, r)
 				return
 			}
 
