@@ -27,39 +27,6 @@ type (
 	}
 )
 
-func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
-	var err error
-	var tmp struct {
-		PollInterval   string `json:"poll_interval"`
-		ReportInterval string `json:"report_interval"`
-		RateLimit      int    `json:"rate_limit"`
-		ServerAddress  string `json:"address"`
-		Key            string `json:"key"`
-		CryptoKey      string `json:"crypto_key"`
-	}
-
-	if err = json.Unmarshal(b, &tmp); err != nil {
-		return err
-	}
-
-	cfg.PollInterval, err = time.ParseDuration(tmp.PollInterval)
-	if err != nil {
-		return err
-	}
-
-	cfg.ReportInterval, err = time.ParseDuration(tmp.ReportInterval)
-	if err != nil {
-		return err
-	}
-
-	cfg.RateLimit = tmp.RateLimit
-	cfg.ServerAddress = tmp.ServerAddress
-	cfg.Key = tmp.Key
-	cfg.CryptoKey = tmp.CryptoKey
-
-	return nil
-}
-
 // NewAgentConfig создаёт экземпляр настроек агента.
 func NewAgentConfig() AgentConfig {
 	return AgentConfig{
@@ -147,6 +114,48 @@ func (cfg *AgentConfig) Parse() error {
 	if cfg.RateLimit < 1 {
 		cfg.RateLimit = 1
 	}
+
+	return nil
+}
+
+func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
+	type Alias AgentConfig
+
+	var tmp struct {
+		PollInterval   string `json:"poll_interval"`
+		ReportInterval string `json:"report_interval"`
+		*Alias
+		// RateLimit      int    `json:"rate_limit"`
+		// ServerAddress  string `json:"address"`
+		// Key            string `json:"key"`
+		// CryptoKey      string `json:"crypto_key"`
+	}
+
+	tmp.Alias = (*Alias)(cfg)
+
+	var err error
+	if err = json.Unmarshal(b, &tmp); err != nil {
+		return err
+	}
+
+	if len(tmp.PollInterval) != 0 {
+		cfg.PollInterval, err = time.ParseDuration(tmp.PollInterval)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(tmp.ReportInterval) != 0 {
+		cfg.ReportInterval, err = time.ParseDuration(tmp.ReportInterval)
+		if err != nil {
+			return err
+		}
+	}
+
+	// cfg.RateLimit = tmp.RateLimit
+	// cfg.ServerAddress = tmp.ServerAddress
+	// cfg.Key = tmp.Key
+	// cfg.CryptoKey = tmp.CryptoKey
 
 	return nil
 }
