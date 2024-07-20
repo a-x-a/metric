@@ -125,10 +125,6 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 		PollInterval   string `json:"poll_interval"`
 		ReportInterval string `json:"report_interval"`
 		*Alias
-		// RateLimit      int    `json:"rate_limit"`
-		// ServerAddress  string `json:"address"`
-		// Key            string `json:"key"`
-		// CryptoKey      string `json:"crypto_key"`
 	}
 
 	tmp.Alias = (*Alias)(cfg)
@@ -151,11 +147,6 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 			return err
 		}
 	}
-
-	// cfg.RateLimit = tmp.RateLimit
-	// cfg.ServerAddress = tmp.ServerAddress
-	// cfg.Key = tmp.Key
-	// cfg.CryptoKey = tmp.CryptoKey
 
 	return nil
 }

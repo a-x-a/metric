@@ -34,37 +34,6 @@ type (
 	}
 )
 
-func (cfg *ServerConfig) UnmarshalJSON(b []byte) error {
-	var err error
-	var tmp struct {
-		ListenAddress   string `json:"address"`
-		StoreInterval   string `json:"store_interval"`
-		FileStoregePath string `json:"store_file"`
-		Restore         bool   `json:"restore"`
-		DatabaseDSN     string `json:"database_dsn"`
-		Key             string `json:"key"`
-		CryptoKey       string `json:"crypto_key"`
-	}
-
-	if err = json.Unmarshal(b, &tmp); err != nil {
-		return err
-	}
-
-	cfg.StoreInterval, err = time.ParseDuration(tmp.StoreInterval)
-	if err != nil {
-		return err
-	}
-
-	cfg.ListenAddress = tmp.ListenAddress
-	cfg.FileStoregePath = tmp.FileStoregePath
-	cfg.Restore = tmp.Restore
-	cfg.DatabaseDSN = tmp.DatabaseDSN
-	cfg.Key = tmp.Key
-	cfg.CryptoKey = tmp.CryptoKey
-
-	return nil
-}
-
 // NewServerConfig - создаёт экземпляр настроек сервера.
 func NewServerConfig() ServerConfig {
 	storeInterval := 300
@@ -158,6 +127,31 @@ func (cfg *ServerConfig) Parse() error {
 	err := env.Parse(cfg)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (cfg *ServerConfig) UnmarshalJSON(b []byte) error {
+	type Alias ServerConfig
+
+	var tmp struct {
+		StoreInterval string `json:"store_interval"`
+		*Alias
+	}
+
+	tmp.Alias = (*Alias)(cfg)
+
+	var err error
+	if err = json.Unmarshal(b, &tmp); err != nil {
+		return err
+	}
+
+	if len(tmp.StoreInterval) != 0 {
+		cfg.StoreInterval, err = time.ParseDuration(tmp.StoreInterval)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

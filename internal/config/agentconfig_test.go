@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -28,8 +27,8 @@ func TestAgentConfig_UnmarshalJSON(t *testing.T) {
 }`,
 			expected: AgentConfig{
 				ServerAddress:  "0.0.0.0:1234",
-				PollInterval:   1 * time.Second,
-				ReportInterval: 5 * time.Second,
+				PollInterval:   time.Duration(1) * time.Second,
+				ReportInterval: time.Duration(5) * time.Second,
 				RateLimit:      5,
 				Key:            "secret",
 				CryptoKey:      "./path/to/publickey.pem",
@@ -42,8 +41,8 @@ func TestAgentConfig_UnmarshalJSON(t *testing.T) {
 		}`,
 			expected: AgentConfig{
 				ServerAddress:  "localhost:8080",
-				PollInterval:   2 * time.Second,
-				ReportInterval: 10 * time.Second,
+				PollInterval:   time.Duration(2) * time.Second,
+				ReportInterval: time.Duration(10) * time.Second,
 				RateLimit:      1,
 				Key:            "",
 				CryptoKey:      "./path/to/publickey.pem",
@@ -56,9 +55,8 @@ func TestAgentConfig_UnmarshalJSON(t *testing.T) {
 			cfg := NewAgentConfig()
 
 			err := json.Unmarshal([]byte(tc.src), &cfg)
-			fmt.Println("cfg=", cfg)
 			require.NoError(err)
-			fmt.Println("expected", tc.expected)
+
 			require.Equal(tc.expected, cfg)
 		})
 	}
