@@ -23,13 +23,17 @@ type (
 )
 
 func NewAgent(logLevel string) *Agent {
+	var err error
 	log := logger.InitLogger(logLevel)
 	defer log.Sync()
 
 	cfg := config.NewAgentConfig()
+	err = cfg.Parse()
+	if err != nil {
+		log.Panic("agent failed to parse config", zap.Error(err))
+	}
 
 	var publicKey security.PublicKey
-	var err error
 	if len(cfg.CryptoKey) != 0 {
 		publicKey, err = security.NewPublicKey(cfg.CryptoKey)
 		if err != nil {
