@@ -206,7 +206,7 @@ linters:
     #   - structcheck
     #   - stylecheck
     #   - tagalign
-    #   - tagliatelle
+    - tagliatelle
     #   - tenv
     #   - testableexamples
     #   - testifylint
