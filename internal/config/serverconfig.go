@@ -124,8 +124,7 @@ func (cfg *ServerConfig) Parse() error {
 		}
 	})
 
-	err := env.Parse(cfg)
-	if err != nil {
+	if err := env.Parse(cfg); err != nil {
 		return err
 	}
 
