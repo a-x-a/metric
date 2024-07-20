@@ -71,7 +71,7 @@ func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 	return hmac.Equal(mac1, mac2), nil
 }
 
-// SignerMiddleware middleware для подписи данных.
+// SignerMiddleware HTTP middleware для проверки подписи данных.
 //
 // Параметры:
 //   - log: логгер.

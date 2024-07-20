@@ -15,6 +15,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/logger"
+	"github.com/a-x-a/go-metric/internal/security"
 	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
@@ -25,6 +26,7 @@ type (
 		storage    storage.Storage
 		httpServer *http.Server
 		logger     *zap.Logger
+		key        security.PrivateKey
 	}
 
 	WithFileStorage interface {
@@ -34,7 +36,7 @@ type (
 )
 
 var (
-	// ErrNotSupportLoadFromFile - хранилище не поддерживает загрузку из файла.
+	// ErrNotSupportLoadFromFile хранилище не поддерживает загрузку из файла.
 	ErrStorageNotSupportLoadFromFile = errors.New("storage doesn't support loading from file")
 )
 
@@ -43,6 +45,15 @@ func NewServer(logLevel string) *Server {
 	defer log.Sync()
 
 	cfg := config.NewServerConfig()
+
+	var privateKey security.PrivateKey
+	var err error
+	if len(cfg.CryptoKey) != 0 {
+		privateKey, err = security.NewPrivateKey(cfg.CryptoKey)
+		if err != nil {
+			log.Panic("server failed to get private key", zap.Error(err))
+		}
+	}
 
 	var dbConn *pgxpool.Pool
 	if len(cfg.DatabaseDSN) > 0 {
@@ -63,7 +74,7 @@ func NewServer(logLevel string) *Server {
 
 	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, log)
 	ms := metricservice.New(ds, log)
-	rt := handler.NewRouter(ms, log, cfg.Key)
+	rt := handler.NewRouter(ms, log, cfg.Key, privateKey)
 	srv := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: rt,
@@ -74,6 +85,7 @@ func NewServer(logLevel string) *Server {
 		storage:    ds,
 		httpServer: srv,
 		logger:     log,
+		key:        privateKey,
 	}
 }
 

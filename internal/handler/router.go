@@ -25,12 +25,17 @@ import (
 //
 // Возвращаемое значение:
 //   - *http.Handler - роутер.
-func NewRouter(s MetricService, log *zap.Logger, key string) http.Handler {
+func NewRouter(s MetricService, log *zap.Logger, key string, privateKey security.PrivateKey) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
 
 	r := chi.NewRouter()
 
 	r.Use(logger.LoggerMiddleware(log))
+
+	if privateKey != nil {
+		r.Use(security.DecryptMiddleware(log, privateKey))
+	}
+
 	r.Use(encoder.DecompressMiddleware(log))
 	r.Use(encoder.CompressMiddleware(log))
 

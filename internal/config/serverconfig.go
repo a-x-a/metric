@@ -29,6 +29,8 @@ type (
 		DatabaseDSN string `env:"DATABASE_DSN"`
 		// Key - ключ подписи
 		Key string `env:"KEY"`
+		//CryptoKey - путь до файла с приватным ключом
+		CryptoKey string `env:"CRYPTO_KEY"`
 	}
 )
 
@@ -41,6 +43,7 @@ func NewServerConfig() ServerConfig {
 		Restore:         true,
 		DatabaseDSN:     "",
 		Key:             "",
+		CryptoKey:       "",
 	}
 
 	flag.Usage = func() {
@@ -70,6 +73,10 @@ func NewServerConfig() ServerConfig {
 
 	if flag.Lookup("k") == nil {
 		flag.StringVar(&cfg.Key, "k", cfg.Key, "ключ подписи")
+	}
+
+	if flag.Lookup("crypto-key") == nil {
+		flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "путь до файла с приватным ключом")
 	}
 
 	flag.Parse()

@@ -18,24 +18,26 @@ import (
 )
 
 type httpSender struct {
-	baseURL string
-	client  *http.Client
-	signer  *security.Signer
-	batch   chan adapter.RequestMetric
-	err     error
+	baseURL   string
+	client    *http.Client
+	signer    *security.Signer
+	сryptoKey security.PublicKey
+	batch     chan adapter.RequestMetric
+	err       error
 }
 
-func newHTTPSender(serverAddress string, timeout time.Duration, key string) httpSender {
+func newHTTPSender(serverAddress string, timeout time.Duration, key string, сryptoKey security.PublicKey) httpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
 	sgnr := security.NewSigner(key)
 
 	return httpSender{
-		baseURL: baseURL,
-		client:  client,
-		signer:  sgnr,
-		batch:   make(chan adapter.RequestMetric, 1024),
-		err:     nil,
+		baseURL:   baseURL,
+		client:    client,
+		signer:    sgnr,
+		сryptoKey: сryptoKey,
+		batch:     make(chan adapter.RequestMetric, 1024),
+		err:       nil,
 	}
 }
 
@@ -47,6 +49,10 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	data, err := json.Marshal(batch)
 	if err != nil {
 		return err
+	}
+
+	if len(data) == 0 {
+		return fmt.Errorf("metrics send: data is empty")
 	}
 
 	var buf bytes.Buffer
@@ -62,6 +68,14 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 
 	if err = zw.Close(); err != nil {
 		return err
+	}
+
+	if hs.сryptoKey != nil {
+		b, err := security.Encrypt(&buf, hs.сryptoKey)
+		if err != nil {
+			return err
+		}
+		buf = *b
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
@@ -116,10 +130,12 @@ func (hs *httpSender) add(rm adapter.RequestMetric) *httpSender {
 // - ctx: контекст.
 // - serverAddress: адрес сервера сбора метрик.
 // - timeout: частота отправки метрик на сервер.
+// - key: ключ подписи данных.
 // - rateLimit: количество одновременно исходящих запросов на сервер.
 // - stats: коллекция мсетрик для отправки.
-func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics) error {
-	sender := newHTTPSender(serverAddress, timeout, key)
+// - сryptoKey публичныq ключ.
+func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics, сryptoKey security.PublicKey) error {
+	sender := newHTTPSender(serverAddress, timeout, key, сryptoKey)
 
 	for i := 0; i < rateLimit; i++ {
 		go sender.worker(ctx)
