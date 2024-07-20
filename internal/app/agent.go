@@ -9,6 +9,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/security"
 	"github.com/a-x-a/go-metric/internal/sender"
 )
 
@@ -17,6 +18,7 @@ type (
 		config  config.AgentConfig
 		metrics metric.Metrics
 		logger  *zap.Logger
+		key     security.PublicKey
 	}
 )
 
@@ -24,10 +26,22 @@ func NewAgent(logLevel string) *Agent {
 	log := logger.InitLogger(logLevel)
 	defer log.Sync()
 
+	cfg := config.NewAgentConfig()
+
+	var publicKey security.PublicKey
+	var err error
+	if len(cfg.CryptoKey) != 0 {
+		publicKey, err = security.NewPublicKey(cfg.CryptoKey)
+		if err != nil {
+			log.Panic("agent failed to get public key", zap.Error(err))
+		}
+	}
+
 	return &Agent{
-		config:  config.NewAgentConfig(),
+		config:  cfg,
 		metrics: metric.Metrics{},
 		logger:  log,
+		key:     publicKey,
 	}
 }
 
@@ -68,7 +82,7 @@ func (app *Agent) report(ctx context.Context, metrics *metric.Metrics) {
 			func() {
 				app.logger.Info("metrics sending")
 
-				err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, app.config.Key, app.config.RateLimit, *metrics)
+				err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, app.config.Key, app.config.RateLimit, *metrics, app.key)
 				if err != nil {
 					app.logger.Error("failed to send metrics", zap.Error(err))
 					return
