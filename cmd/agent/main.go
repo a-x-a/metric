@@ -31,10 +31,17 @@ func main() {
 
 	go func() {
 		sigint := make(chan os.Signal, 1)
-		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		data := <-sigint
+		signal.Notify(sigint,
+			os.Interrupt,
+			syscall.SIGHUP,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT,
+		)
+
+		signal := <-sigint
 		cancel()
-		fmt.Println("received signal: " + data.String())
+		fmt.Println("received signal: " + signal.String())
 		fmt.Println("start to shutdown...")
 		close(idleConnsClosed)
 	}()
