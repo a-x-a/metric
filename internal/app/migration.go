@@ -3,13 +3,11 @@ package app
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"os"
-	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"go.uber.org/zap"
 )
 
@@ -24,13 +22,12 @@ func migrationRun(dsn string, log *zap.Logger) error {
 		return err
 	}
 
-	sourceURL := "file://migrations"
-	var pwd string
-	if pwd, err = os.Getwd(); err == nil {
-		sourceURL = fmt.Sprintf("file://%s/migrations", strings.ReplaceAll(pwd, "\\", "/"))
+	d, err := iofs.New(migrationFS, "migrations")
+	if err != nil {
+		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(sourceURL, "go_metric", driver)
+	m, err := migrate.NewWithInstance("iofs", d, "go_metric", driver)
 	if err != nil {
 		return err
 	}
