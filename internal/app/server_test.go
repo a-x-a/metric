@@ -32,7 +32,6 @@ func TestNewServerWithDBErrorInitDB(t *testing.T) {
 	require := require.New(t)
 
 	original, present := os.LookupEnv("DATABASE_DSN")
-	// os.Setenv("DATABASE_DSN", "host=localhost user=postgres password=12345 dbname=go_metric sslmode=disable")
 	os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
 	if present {
 		defer os.Setenv("DATABASE_DSN", original)
@@ -40,7 +39,7 @@ func TestNewServerWithDBErrorInitDB(t *testing.T) {
 		defer os.Unsetenv("DATABASE_DSN")
 	}
 
-	t.Run("panik: no connect to db", func(t *testing.T) {
+	t.Run("panic: no connect to db", func(t *testing.T) {
 		defer func() {
 			r := recover()
 			require.NotNil(r)
@@ -192,29 +191,6 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 
 	wg.Wait()
 }
-
-// func Test_serverPanic(t *testing.T) {
-// 	require := require.New(t)
-
-// 	defer func() {
-// 		r := recover()
-// 		require.NotNil(r)
-// 	}()
-
-// 	stor := storage.NewMemStorage()
-// 	cfg := config.NewServerConfig()
-// 	cfg.LogLevel = "unknown"
-// 	srv := server{
-// 		Config:     cfg,
-// 		Storage:    stor,
-// 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-// 	}
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-// 	defer cancel()
-
-// 	srv.Run(ctx)
-// }
 
 func Test_server_saveWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
