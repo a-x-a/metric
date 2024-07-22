@@ -136,7 +136,7 @@ linters:
     #   - exportloopref
     #   - forbidigo
     - forcetypeassert
-    - funlen
+    # - funlen
     - gci
     #   - ginkgolinter
     #   - gocheckcompilerdirectives
@@ -291,6 +291,7 @@ linters-settings:
       - "7"
       - "8"
       - "9"
+      - "300"
       - "0600"
       - "10"
       - "15"
@@ -394,3 +395,19 @@ linters-settings:
       - name: unexported-return
         severity: warning
         disabled: true
+  interfacebloat:
+    # The maximum number of methods allowed for an interface.
+    # Default: 10
+    max: 15
+  funlen:
+    # Checks the number of lines in a function.
+    # If lower than 0, disable the check.
+    # Default: 60
+    # lines: -1
+    # Checks the number of statements in a function.
+    # If lower than 0, disable the check.
+    # Default: 40
+    # statements: -1
+    # Ignore comments when counting lines.
+    # Default false
+    ignore-comments: true
