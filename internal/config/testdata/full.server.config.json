@@ -1,0 +1,9 @@
+{
+  "address": "0.0.0.0:1234",
+  "store_interval": "5s",
+  "store_file": "/path/to/file.db",
+  "database_dsn": "postgres://postgres:postgres@127.0.0.1:5432/praktikum?sslmode=disable",
+  "restore": true,
+  "key": "secret",
+  "crypto_key": "./path/to/private.pem"
+}
