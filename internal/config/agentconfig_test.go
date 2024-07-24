@@ -1,51 +1,73 @@
 package config
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestAgentConfig_UnmarshalJSON(t *testing.T) {
+func TestAgentConfigLoadFromFile(t *testing.T) {
 	require := require.New(t)
 	tt := []struct {
-		name     string
-		src      string
-		expected AgentConfig
+		name  string
+		path  string
+		check func(t *testing.T, cfg AgentConfig, err error)
 	}{
 		{
-			name: "Load full configuration",
-			src: `{
-"address": "0.0.0.0:1234",
-"poll_interval": "1s",
-"report_interval": "5s",
-"key": "secret",
-"rate_limit": 5,
-"crypto_key": "./path/to/publickey.pem"
-}`,
-			expected: AgentConfig{
-				ServerAddress:  "0.0.0.0:1234",
-				PollInterval:   time.Duration(1) * time.Second,
-				ReportInterval: time.Duration(5) * time.Second,
-				RateLimit:      5,
-				Key:            "secret",
-				CryptoKey:      "./path/to/publickey.pem",
+			name: "load full configuration",
+			path: "testdata/full.agent.config.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				cfgExpected := AgentConfig{
+					ServerAddress:  "0.0.0.0:1234",
+					PollInterval:   time.Duration(1) * time.Second,
+					ReportInterval: time.Duration(5) * time.Second,
+					RateLimit:      5,
+					Key:            "secret",
+					CryptoKey:      "./path/to/publickey.pem",
+				}
+
+				require.NoError(err)
+				require.Equal(cfgExpected, cfg)
 			},
 		},
 		{
-			name: "Load partial configuration",
-			src: `{
-		"crypto_key": "./path/to/publickey.pem"
-		}`,
-			expected: AgentConfig{
-				ServerAddress:  "localhost:8080",
-				PollInterval:   time.Duration(2) * time.Second,
-				ReportInterval: time.Duration(10) * time.Second,
-				RateLimit:      1,
-				Key:            "",
-				CryptoKey:      "./path/to/publickey.pem",
+			name: "load partial configuration",
+			path: "testdata/partial.agent.config.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				cfgDefault := NewAgentConfig()
+				cfgDefault.CryptoKey = "./path/to/publickey.pem"
+
+				require.NoError(err)
+				require.Equal(cfgDefault, cfg)
+			},
+		},
+		{
+			name: "load config with invalid poll_interval",
+			path: "testdata/invalid.agent.config.1.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				require.Error(err)
+			},
+		},
+		{
+			name: "load config with invalid report_interval",
+			path: "testdata/invalid.agent.config.2.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				require.Error(err)
+			},
+		},
+		{
+			name: "load config with invalid json format",
+			path: "testdata/invalid.agent.config.3.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				require.Error(err)
+			},
+		},
+		{
+			name: "load config file error",
+			path: "testdata/no.file.json",
+			check: func(t *testing.T, cfg AgentConfig, err error) {
+				require.Error(err)
 			},
 		},
 	}
@@ -53,41 +75,16 @@ func TestAgentConfig_UnmarshalJSON(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := NewAgentConfig()
+			err := loadConfigFromFile(tc.path, &cfg)
 
-			err := json.Unmarshal([]byte(tc.src), &cfg)
-			require.NoError(err)
-
-			require.Equal(tc.expected, cfg)
+			tc.check(t, cfg, err)
 		})
 	}
 }
 
-func TestAgentConfig_UnmarshallInvalidJSON(t *testing.T) {
+func TestAgentConfigParse(t *testing.T) {
 	require := require.New(t)
-	tt := []struct {
-		name string
-		src  string
-	}{
-		{
-			name: "Parse config with invalid data",
-			src:  `{"address": 2}`,
-		},
-		{
-			name: "Parse config with invalid poll interval",
-			src:  `{"poll_interval": "_"}`,
-		},
-		{
-			name: "Parse config with invalid report interval",
-			src:  `{"report_interval": "x"}`,
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := NewAgentConfig()
-
-			err := json.Unmarshal([]byte(tc.src), &cfg)
-			require.Error(err)
-		})
-	}
+	cfg := NewAgentConfig()
+	err := cfg.Parse()
+	require.NoError(err)
 }
