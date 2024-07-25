@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+          env: GITHUB_TRACE=1
+          GIT_CURL_VERBOSE=1
 
       - name: Download autotests binaries
         uses: robinraju/release-downloader@v1.8
@@ -61,8 +63,6 @@ jobs:
           go build -buildvcs=false -o server
 
       - name: "Code increment #1"
-        env: GITHUB_TRACE=1
-          GIT_CURL_VERBOSE=1
         if: |
           github.ref == 'refs/heads/main' ||
           github.head_ref == 'iter1' ||
