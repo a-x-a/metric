@@ -61,6 +61,8 @@ jobs:
           go build -buildvcs=false -o server
 
       - name: "Code increment #1"
+        env: GITHUB_TRACE=1
+          GIT_CURL_VERBOSE=1
         if: |
           github.ref == 'refs/heads/main' ||
           github.head_ref == 'iter1' ||
