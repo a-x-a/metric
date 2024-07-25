@@ -50,13 +50,11 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	if err != nil {
 		return err
 	}
-
 	if len(data) == 0 {
 		return fmt.Errorf("metrics send: data is empty")
 	}
 
 	var buf bytes.Buffer
-
 	err = encoder.Encoding(data, &buf)
 	if err != nil {
 		return err
@@ -84,7 +82,6 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 		if err != nil {
 			return err
 		}
-
 		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
 	}
 
