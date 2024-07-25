@@ -39,84 +39,6 @@ func NewAgentConfig() AgentConfig {
 	}
 }
 
-func (cfg *AgentConfig) Parse() error {
-	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
-		flag.PrintDefaults()
-	}
-
-	serverAddress := cfg.ServerAddress
-	if flag.Lookup("a") == nil {
-		flag.StringVar(&serverAddress, "a", serverAddress, "адрес и порт сервера сбора метрик")
-	}
-
-	pollInterval := 2
-	if flag.Lookup("p") == nil {
-		flag.IntVar(&pollInterval, "p", pollInterval, "частота обновления метрик")
-	}
-
-	reportInterval := 10
-	if flag.Lookup("r") == nil {
-		flag.IntVar(&reportInterval, "r", reportInterval, "частота отправки метрик на сервер")
-	}
-
-	key := cfg.Key
-	if flag.Lookup("k") == nil {
-		flag.StringVar(&key, "k", key, "ключ подписи")
-	}
-
-	rateLimit := int(cfg.RateLimit)
-	if flag.Lookup("l") == nil {
-		flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
-	}
-
-	cryptoKey := cfg.CryptoKey
-	if flag.Lookup("crypto-key") == nil {
-		flag.StringVar(&cryptoKey, "crypto-key", cryptoKey, "путь до файла с публичным ключом в формате PEM")
-	}
-
-	configFile := ""
-	if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
-		flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
-		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
-	}
-
-	flag.Parse()
-
-	if len(configFile) != 0 {
-		if err := loadConfigFromFile(configFile, cfg); err != nil {
-			return err
-		}
-	}
-
-	flag.Visit(func(f *flag.Flag) {
-		switch f.Name {
-		case "a":
-			cfg.ServerAddress = serverAddress
-		case "p":
-			cfg.PollInterval = time.Duration(pollInterval) * time.Second
-		case "r":
-			cfg.ReportInterval = time.Duration(reportInterval) * time.Second
-		case "k":
-			cfg.Key = key
-		case "l":
-			cfg.RateLimit = rateLimit
-		case "crypto-key":
-			cfg.CryptoKey = cryptoKey
-		}
-	})
-
-	if err := env.Parse(cfg); err != nil {
-		return err
-	}
-
-	if cfg.RateLimit < 1 {
-		cfg.RateLimit = 1
-	}
-
-	return nil
-}
-
 func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 	type Alias AgentConfig
 
@@ -148,4 +70,84 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+func (cfg *AgentConfig) Parse() error {
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Использование:\n")
+		flag.PrintDefaults()
+	}
+
+	tmp := NewAgentConfig()
+
+	declarateAgentFlags(&tmp)
+
+	pollInterval := 2
+	if flag.Lookup("p") == nil {
+		flag.IntVar(&pollInterval, "p", pollInterval, "частота обновления метрик")
+	}
+
+	reportInterval := 10
+	if flag.Lookup("r") == nil {
+		flag.IntVar(&reportInterval, "r", reportInterval, "частота отправки метрик на сервер")
+	}
+
+	configFile := ""
+	if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
+		flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
+		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
+	}
+
+	flag.Parse()
+
+	if len(configFile) != 0 {
+		if err := loadConfigFromFile(configFile, cfg); err != nil {
+			return err
+		}
+	}
+
+	flag.Visit(func(f *flag.Flag) {
+		switch f.Name {
+		case "a":
+			cfg.ServerAddress = tmp.ServerAddress
+		case "p":
+			cfg.PollInterval = time.Duration(pollInterval) * time.Second
+		case "r":
+			cfg.ReportInterval = time.Duration(reportInterval) * time.Second
+		case "k":
+			cfg.Key = tmp.Key
+		case "l":
+			cfg.RateLimit = tmp.RateLimit
+		case "crypto-key":
+			cfg.CryptoKey = tmp.CryptoKey
+		}
+	})
+
+	if err := env.Parse(cfg); err != nil {
+		return err
+	}
+
+	if cfg.RateLimit < 1 {
+		cfg.RateLimit = 1
+	}
+
+	return nil
+}
+
+func declarateAgentFlags(cfg *AgentConfig) {
+	if flag.Lookup("a") == nil {
+		flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес и порт сервера сбора метрик")
+	}
+
+	if flag.Lookup("k") == nil {
+		flag.StringVar(&cfg.Key, "k", cfg.Key, "ключ подписи")
+	}
+
+	if flag.Lookup("l") == nil {
+		flag.IntVar(&cfg.RateLimit, "l", cfg.RateLimit, "количество одновременно исходящих запросов на сервер")
+	}
+
+	if flag.Lookup("crypto-key") == nil {
+		flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "путь до файла с публичным ключом в формате PEM")
+	}
 }
