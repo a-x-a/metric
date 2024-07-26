@@ -65,7 +65,7 @@ func (cfg *AgentConfig) Parse() error {
 		flag.StringVar(&key, "k", key, "ключ подписи")
 	}
 
-	rateLimit := int(cfg.RateLimit)
+	rateLimit := cfg.RateLimit
 	if flag.Lookup("l") == nil {
 		flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
 	}
@@ -84,7 +84,9 @@ func (cfg *AgentConfig) Parse() error {
 	flag.Parse()
 
 	if len(configFile) != 0 {
+		fmt.Println("loadConfigFromFile", configFile)
 		if err := loadConfigFromFile(configFile, cfg); err != nil {
+			fmt.Println("loadConfigFromFile err", err)
 			return err
 		}
 	}
@@ -113,7 +115,7 @@ func (cfg *AgentConfig) Parse() error {
 	if cfg.RateLimit < 1 {
 		cfg.RateLimit = 1
 	}
-
+	fmt.Println("cfg =", cfg)
 	return nil
 }
 
