@@ -59,12 +59,11 @@ jobs:
         run: |
           cd cmd/server
           go build -buildvcs=false -o server
-
-      - name: "Code increment #1"
-        run: |
           BRANCH=${{ github.head_ref }}
           echo running on branch
           echo $BRANCH
+
+      - name: "Code increment #1"
         if: |
           github.ref == 'refs/heads/main' ||
           github.head_ref == 'iter1' ||
