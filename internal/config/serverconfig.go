@@ -57,45 +57,45 @@ func (cfg *ServerConfig) Parse() error {
 	}
 
 	listenAddress := cfg.ListenAddress
-	// if flag.Lookup("a") == nil {
-	flag.StringVar(&listenAddress, "a", listenAddress, "адрес и порт сервера сбора метрик")
-	// }
+	if flag.Lookup("a") == nil {
+		flag.StringVar(&listenAddress, "a", listenAddress, "адрес и порт сервера сбора метрик")
+	}
 
 	storeInterval := 300
-	// if flag.Lookup("i") == nil {
-	flag.IntVar(&storeInterval, "i", storeInterval, "интервал сохранения текущих показаний сервера на диск")
-	// }
+	if flag.Lookup("i") == nil {
+		flag.IntVar(&storeInterval, "i", storeInterval, "интервал сохранения текущих показаний сервера на диск")
+	}
 
 	fileStoregePath := cfg.FileStoregePath
-	// if flag.Lookup("f") == nil {
-	flag.StringVar(&fileStoregePath, "f", fileStoregePath, "полное имя файла, куда сохраняются текущие значения")
-	// }
+	if flag.Lookup("f") == nil {
+		flag.StringVar(&fileStoregePath, "f", fileStoregePath, "полное имя файла, куда сохраняются текущие значения")
+	}
 
 	restore := cfg.Restore
-	// if flag.Lookup("r") == nil {
-	flag.BoolVar(&restore, "r", restore, "загружать или нет ранее сохранённые значения из файла при старте")
-	// }
+	if flag.Lookup("r") == nil {
+		flag.BoolVar(&restore, "r", restore, "загружать или нет ранее сохранённые значения из файла при старте")
+	}
 
 	databaseDSN := cfg.DatabaseDSN
-	// if flag.Lookup("d") == nil {
-	flag.StringVar(&databaseDSN, "d", databaseDSN, "строка с адресом подключения к БД")
-	// }
+	if flag.Lookup("d") == nil {
+		flag.StringVar(&databaseDSN, "d", databaseDSN, "строка с адресом подключения к БД")
+	}
 
 	key := cfg.Key
-	// if flag.Lookup("k") == nil {
-	flag.StringVar(&key, "k", key, "ключ подписи")
-	// }
+	if flag.Lookup("k") == nil {
+		flag.StringVar(&key, "k", key, "ключ подписи")
+	}
 
 	cryptoKey := cfg.CryptoKey
-	// if flag.Lookup("crypto-key") == nil {
-	flag.StringVar(&cryptoKey, "crypto-key", cryptoKey, "путь до файла с приватным ключом")
-	// }
+	if flag.Lookup("crypto-key") == nil {
+		flag.StringVar(&cryptoKey, "crypto-key", cryptoKey, "путь до файла с приватным ключом")
+	}
 
 	configFile := ""
-	// if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
-	flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
-	flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
-	// }
+	if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
+		flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
+		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
+	}
 
 	flag.Parse()
 

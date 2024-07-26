@@ -46,40 +46,40 @@ func (cfg *AgentConfig) Parse() error {
 	}
 
 	serverAddress := cfg.ServerAddress
-	// if flag.Lookup("a") == nil {
-	flag.StringVar(&serverAddress, "a", serverAddress, "адрес и порт сервера сбора метрик")
-	// }
+	if flag.Lookup("a") == nil {
+		flag.StringVar(&serverAddress, "a", serverAddress, "адрес и порт сервера сбора метрик")
+	}
 
 	pollInterval := 2
-	// if flag.Lookup("p") == nil {
-	flag.IntVar(&pollInterval, "p", pollInterval, "частота обновления метрик")
-	// }
+	if flag.Lookup("p") == nil {
+		flag.IntVar(&pollInterval, "p", pollInterval, "частота обновления метрик")
+	}
 
 	reportInterval := 10
-	// if flag.Lookup("r") == nil {
-	flag.IntVar(&reportInterval, "r", reportInterval, "частота отправки метрик на сервер")
-	// }
+	if flag.Lookup("r") == nil {
+		flag.IntVar(&reportInterval, "r", reportInterval, "частота отправки метрик на сервер")
+	}
 
 	key := cfg.Key
-	// if flag.Lookup("k") == nil {
-	flag.StringVar(&key, "k", key, "ключ подписи")
-	// }
+	if flag.Lookup("k") == nil {
+		flag.StringVar(&key, "k", key, "ключ подписи")
+	}
 
 	rateLimit := int(cfg.RateLimit)
-	// if flag.Lookup("l") == nil {
-	flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
-	// }
+	if flag.Lookup("l") == nil {
+		flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
+	}
 
 	cryptoKey := cfg.CryptoKey
-	// if flag.Lookup("crypto-key") == nil {
-	flag.StringVar(&cryptoKey, "crypto-key", cryptoKey, "путь до файла с публичным ключом в формате PEM")
-	// }
+	if flag.Lookup("crypto-key") == nil {
+		flag.StringVar(&cryptoKey, "crypto-key", cryptoKey, "путь до файла с публичным ключом в формате PEM")
+	}
 
 	configFile := ""
-	// if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
-	flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
-	flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
-	// }
+	if flag.Lookup("config") == nil && flag.Lookup("c") == nil {
+		flag.StringVar(&configFile, "config", configFile, "путь до конфигурационного файла в формате JSON")
+		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
+	}
 
 	flag.Parse()
 
