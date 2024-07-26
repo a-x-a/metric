@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -81,25 +82,27 @@ func (cfg *AgentConfig) Parse() error {
 		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
 	}
 
+	log.Println("flag.Parse()")
 	flag.Parse()
 
 	if len(configFile) != 0 {
-		fmt.Println("loadConfigFromFile", configFile)
+		log.Println("loadConfigFromFile", configFile)
 		if err := loadConfigFromFile(configFile, cfg); err != nil {
-			fmt.Println("loadConfigFromFile err", err)
+			log.Println("loadConfigFromFile err", err)
 			return err
 		}
 	}
+
+	log.Printf("pollInterval=%v (%T)", pollInterval, pollInterval)
+	log.Printf("reportInterval=%v (%T)", reportInterval, reportInterval)
 
 	flag.Visit(func(f *flag.Flag) {
 		switch f.Name {
 		case "a":
 			cfg.ServerAddress = serverAddress
 		case "p":
-			fmt.Printf("pollInterval=%v (%T)", pollInterval, pollInterval)
 			cfg.PollInterval = time.Duration(pollInterval) * time.Second
 		case "r":
-			fmt.Printf("reportInterval=%v (%T)", reportInterval, reportInterval)
 			cfg.ReportInterval = time.Duration(reportInterval) * time.Second
 		case "k":
 			cfg.Key = key
@@ -136,7 +139,9 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 	if err = json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
-	fmt.Println("tmp:", tmp)
+
+	log.Println("tmp:", tmp)
+
 	if len(tmp.PollInterval) != 0 {
 		cfg.PollInterval, err = time.ParseDuration(tmp.PollInterval)
 		if err != nil {
