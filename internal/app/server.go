@@ -48,7 +48,7 @@ func NewServer(logLevel string) *Server {
 	cfg := config.NewServerConfig()
 	err = cfg.Parse()
 	if err != nil {
-		log.Panic("server failed to parse config", zap.Error(err))
+		log.Warn("server failed to parse config", zap.Error(err))
 	}
 
 	var privateKey security.PrivateKey

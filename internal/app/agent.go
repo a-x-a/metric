@@ -30,7 +30,7 @@ func NewAgent(logLevel string) *Agent {
 	cfg := config.NewAgentConfig()
 	err = cfg.Parse()
 	if err != nil {
-		log.Panic("agent failed to parse config", zap.Error(err))
+		log.Warn("agent failed to parse config", zap.Error(err))
 	}
 
 	var publicKey security.PublicKey
