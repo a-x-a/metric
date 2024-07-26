@@ -17,16 +17,55 @@ import (
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
-var log *zap.Logger = zap.NewNop()
+var log *zap.Logger = zap.L()
 
 func TestNewServer(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new server", func(t *testing.T) {
-		cfg := config.NewServerConfig()
-		loger := zap.NewNop()
-		defer loger.Sync()
-		srv := NewServer(cfg, loger)
+		srv := NewServer("info")
+		require.NotNil(srv)
+	})
+}
+
+func TestNewServerWithDBErrorInitDB(t *testing.T) {
+	require := require.New(t)
+
+	original, present := os.LookupEnv("DATABASE_DSN")
+	os.Setenv("DATABASE_DSN", "postgres://postgres:1234@localhost:5432/go_metric?sslmode=disable")
+	if present {
+		defer os.Setenv("DATABASE_DSN", original)
+	} else {
+		defer os.Unsetenv("DATABASE_DSN")
+	}
+
+	t.Run("panic: no connect to db", func(t *testing.T) {
+		defer func() {
+			r := recover()
+			require.NotNil(r)
+		}()
+		srv := NewServer("info")
+		require.NotNil(srv)
+	})
+}
+
+func TestNewServerWithDBError(t *testing.T) {
+	require := require.New(t)
+
+	original, present := os.LookupEnv("DATABASE_DSN")
+	os.Setenv("DATABASE_DSN", "host=localhost port=port")
+	if present {
+		defer os.Setenv("DATABASE_DSN", original)
+	} else {
+		defer os.Unsetenv("DATABASE_DSN")
+	}
+
+	t.Run("panic create new server with db", func(t *testing.T) {
+		defer func() {
+			r := recover()
+			require.NotNil(r)
+		}()
+		srv := NewServer("info")
 		require.NotNil(srv)
 	})
 }
@@ -37,9 +76,9 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = ""
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -83,9 +122,9 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	stor := storage.NewWithFileStorage(fileName, false, log)
 	cfg := config.NewServerConfig()
 
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -129,9 +168,9 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		_ = srv2.ListenAndServe()
 	}()
 
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -153,35 +192,12 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 	wg.Wait()
 }
 
-// func Test_serverPanic(t *testing.T) {
-// 	require := require.New(t)
-
-// 	defer func() {
-// 		r := recover()
-// 		require.NotNil(r)
-// 	}()
-
-// 	stor := storage.NewMemStorage()
-// 	cfg := config.NewServerConfig()
-// 	cfg.LogLevel = "unknown"
-// 	srv := server{
-// 		Config:     cfg,
-// 		Storage:    stor,
-// 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-// 	}
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-// 	defer cancel()
-
-// 	srv.Run(ctx)
-// }
-
 func Test_server_saveWithMemStorage(t *testing.T) {
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -210,9 +226,9 @@ func Test_server_saveAndLoadWithFileStorage(t *testing.T) {
 	cfg := config.NewServerConfig()
 	cfg.FileStoregePath = fileName
 	cfg.StoreInterval = time.Second * 2
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -231,9 +247,9 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 
 	stor := storage.NewMemStorage()
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}
@@ -249,9 +265,9 @@ func Test_server_loadWithError(t *testing.T) {
 
 	stor := storage.NewWithFileStorage("", true, log)
 	cfg := config.NewServerConfig()
-	srv := server{
-		Config:     cfg,
-		Storage:    stor,
+	srv := Server{
+		config:     cfg,
+		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
 		logger:     zap.NewNop(),
 	}

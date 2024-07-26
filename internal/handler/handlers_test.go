@@ -1,23 +1,63 @@
 package handler
 
 import (
+	"context"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 
+	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/security"
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
+func getRecords() []storage.Record {
+	records := []storage.Record{}
+	record, _ := storage.NewRecord("Alloc")
+	record.SetValue(metric.Gauge(12.345))
+	records = append(records, record)
+
+	record, _ = storage.NewRecord("PollCount")
+	record.SetValue(metric.Counter(123))
+	records = append(records, record)
+
+	record, _ = storage.NewRecord("Random")
+	record.SetValue(metric.Gauge(1313.1313))
+	records = append(records, record)
+
+	return records
+}
+
+func getRequestMetrics() []adapter.RequestMetric {
+	records := []adapter.RequestMetric{}
+
+	record := adapter.NewUpdateRequestMetricGauge("Alloc", 12.345)
+	records = append(records, record)
+
+	record = adapter.NewUpdateRequestMetricCounter("PollCount", 123)
+	records = append(records, record)
+
+	record = adapter.NewUpdateRequestMetricGauge("Random", 1313.1313)
+	records = append(records, record)
+
+	return records
+}
+
 type mockService struct{}
 
-func (s mockService) Push(name, kind, value string) error {
+func (s mockService) Push(ctx context.Context, name, kind, value string) error {
 	metricKind, err := metric.GetKind(kind)
 	if err != nil {
 		return err
@@ -41,7 +81,7 @@ func (s mockService) Push(name, kind, value string) error {
 	return nil
 }
 
-func (s mockService) PushCounter(name string, value metric.Counter) (metric.Counter, error) {
+func (s mockService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -49,7 +89,7 @@ func (s mockService) PushCounter(name string, value metric.Counter) (metric.Coun
 	return value, nil
 }
 
-func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, error) {
+func (s mockService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	if name == "" {
 		return 0, storage.ErrInvalidName
 	}
@@ -57,29 +97,35 @@ func (s mockService) PushGauge(name string, value metric.Gauge) (metric.Gauge, e
 	return value, nil
 }
 
-func (s mockService) Get(name, kind string) (string, error) {
+func (s mockService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	_, err := metric.GetKind(kind)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	records := map[string]string{
-		"Alloc":     fmt.Sprintf("%.3f", 12.345),
-		"PollCount": fmt.Sprintf("%d", 123),
-		"Random":    fmt.Sprintf("%.3f", 1313.131),
-	}
+	records := make(map[string]storage.Record)
+	r, _ := storage.NewRecord("Alloc")
+	r.SetValue(metric.Gauge(12.345))
+	records["Alloc"] = r
+	r, _ = storage.NewRecord("PollCount")
+	r.SetValue(metric.Counter(123))
+	records["PollCount"] = r
+	r, _ = storage.NewRecord("Random")
+	r.SetValue(metric.Gauge(1313.1313))
+	records["Random"] = r
+
 	value, ok := records[name]
 	if !ok {
-		return "", metric.ErrorMetricNotFound
+		return nil, metric.ErrorMetricNotFound
 	}
 
-	return value, nil
+	return &value, nil
 }
 
-func (s mockService) GetAll() []storage.Record {
+func (s mockService) GetAll(ctx context.Context) []storage.Record {
 	records := []storage.Record{}
 	record, _ := storage.NewRecord("Alloc")
-	record.SetValue(metric.Gauge(12.3456))
+	record.SetValue(metric.Gauge(12.345))
 	records = append(records, record)
 
 	record, _ = storage.NewRecord("PollCount")
@@ -93,8 +139,16 @@ func (s mockService) GetAll() []storage.Record {
 	return records
 }
 
+func (s mockService) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (s mockService) PushBatch(ctx context.Context, records []storage.Record) error {
+	return nil
+}
+
 func TestUpdateHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.NewNop(), "", nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -184,7 +238,8 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	assert := assert.New(t)
+	rt := NewRouter(mockService{}, zap.NewNop(), "", nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -252,15 +307,19 @@ func TestGetHandler(t *testing.T) {
 
 			defer resp.Body.Close()
 
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
 		})
 	}
 }
 
 func TestListHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop())
-	srv := httptest.NewServer(rt)
-	defer srv.Close()
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(t)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
 
 	type result struct {
 		code int
@@ -269,12 +328,14 @@ func TestListHandler(t *testing.T) {
 		name     string
 		path     string
 		method   string
+		records  []storage.Record
 		expected result
 	}{
 		{
-			name:   "get all metrics",
-			path:   "/",
-			method: http.MethodGet,
+			name:    "get all metrics",
+			path:    "/",
+			method:  http.MethodGet,
+			records: nil,
 			expected: result{
 				code: http.StatusOK,
 			},
@@ -283,18 +344,202 @@ func TestListHandler(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			client := http.Client{}
-			path := srv.URL + tc.path
-			req, err := http.NewRequest(tc.method, path, nil)
-			require.NoError(t, err)
+			srvc.EXPECT().GetAll(context.Background()).Return(tc.records)
 
-			req.Header.Set("Content-Type", "text/plain")
-			resp, err := client.Do(req)
-			require.NoError(t, err)
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			w := httptest.NewRecorder()
 
-			defer resp.Body.Close()
+			h.List(w, req)
 
-			assert.Equal(t, tc.expected.code, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
 	}
+}
+
+func ExampleMetricHandlers_List() {
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().GetAll(context.Background()).Return(nil)
+
+	h := newMetricHandlers(srvc, log)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+
+	h.List(w, req)
+
+	fmt.Println(w.Code)
+
+	// Output:
+	// 200
+}
+
+func Test_Ping(t *testing.T) {
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		err      error
+		expected result
+	}{
+		{
+			name:   "ping OK",
+			path:   "/ping",
+			method: http.MethodGet,
+			err:    nil,
+			expected: result{
+				code: http.StatusOK,
+			},
+		},
+		{
+			name:   "ping InternalServerError",
+			path:   "/ping",
+			method: http.MethodGet,
+			err:    metricservice.ErrNotSupportedMethod,
+			expected: result{
+				code: http.StatusInternalServerError,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			srvc.EXPECT().Ping(context.Background()).Return(tc.err)
+
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			w := httptest.NewRecorder()
+
+			h.Ping(w, req)
+
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func ExampleMetricHandlers_Ping() {
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().Ping(context.Background()).Return(nil)
+
+	h := newMetricHandlers(srvc, log)
+
+	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
+	w := httptest.NewRecorder()
+
+	h.Ping(w, req)
+
+	fmt.Println(w.Code)
+
+	// Output:
+	// 200
+}
+
+func TestUpdateBatchHandler(t *testing.T) {
+	assert := assert.New(t)
+	log := zap.NewNop()
+
+	ctrl := gomock.NewController(t)
+	srvc := metricservice.NewMockmetricService(ctrl)
+
+	h := newMetricHandlers(srvc, log)
+
+	sgnr := security.NewSigner("secret")
+
+	records := getRecords()
+
+	data, err := json.Marshal(getRequestMetrics())
+	assert.NoError(err)
+
+	type result struct {
+		code int
+	}
+	tt := []struct {
+		name     string
+		path     string
+		method   string
+		records  []storage.Record
+		body     string
+		err      error
+		expected result
+	}{
+		{
+			name:    "update batch normal",
+			path:    "/updates",
+			method:  http.MethodPost,
+			records: records,
+			body:    string(data),
+			err:     nil,
+			expected: result{
+				code: http.StatusOK,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			srvc.EXPECT().PushBatch(context.Background(), tc.records).Return(tc.err)
+
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+
+			hash, err := sgnr.Hash([]byte(tc.body))
+			assert.NoError(err)
+
+			req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+
+			w := httptest.NewRecorder()
+
+			h.UpdateBatch(w, req)
+
+			assert.Equal(tc.expected.code, w.Code, "Код ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func ExampleMetricHandlers_UpdateBatch() {
+	ctrl := gomock.NewController(nil)
+	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc.EXPECT().PushBatch(context.Background(), getRecords()).Return(nil)
+
+	log := zap.NewNop()
+	h := newMetricHandlers(srvc, log)
+
+	data, err := json.Marshal(getRequestMetrics())
+	if err != nil {
+		return
+	}
+
+	sgnr := security.NewSigner("secret")
+	hash, err := sgnr.Hash(data)
+	if err != nil {
+		return
+	}
+
+	bodyReader := strings.NewReader(string(data))
+
+	req := httptest.NewRequest(http.MethodPost, "/updates", bodyReader)
+	req.Header.Set("HashSHA256", hex.EncodeToString(hash))
+
+	w := httptest.NewRecorder()
+
+	h.UpdateBatch(w, req)
+
+	fmt.Println(w.Code)
+
+	// Output:
+	// 200
 }
