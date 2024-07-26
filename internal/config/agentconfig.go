@@ -65,7 +65,7 @@ func (cfg *AgentConfig) Parse() error {
 		flag.StringVar(&key, "k", key, "ключ подписи")
 	}
 
-	rateLimit := cfg.RateLimit
+	rateLimit := int(cfg.RateLimit)
 	if flag.Lookup("l") == nil {
 		flag.IntVar(&rateLimit, "l", rateLimit, "количество одновременно исходящих запросов на сервер")
 	}
