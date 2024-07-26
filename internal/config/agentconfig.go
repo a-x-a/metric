@@ -96,8 +96,10 @@ func (cfg *AgentConfig) Parse() error {
 		case "a":
 			cfg.ServerAddress = serverAddress
 		case "p":
+			fmt.Printf("pollInterval=%v (%T)", pollInterval, pollInterval)
 			cfg.PollInterval = time.Duration(pollInterval) * time.Second
 		case "r":
+			fmt.Printf("reportInterval=%v (%T)", reportInterval, reportInterval)
 			cfg.ReportInterval = time.Duration(reportInterval) * time.Second
 		case "k":
 			cfg.Key = key
@@ -134,7 +136,7 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 	if err = json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
-
+	fmt.Println("tmp:", tmp)
 	if len(tmp.PollInterval) != 0 {
 		cfg.PollInterval, err = time.ParseDuration(tmp.PollInterval)
 		if err != nil {
