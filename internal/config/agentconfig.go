@@ -84,9 +84,7 @@ func (cfg *AgentConfig) Parse() error {
 	flag.Parse()
 
 	if len(configFile) != 0 {
-		fmt.Println("loadConfigFromFile", configFile)
 		if err := loadConfigFromFile(configFile, cfg); err != nil {
-			fmt.Println("loadConfigFromFile err", err)
 			return err
 		}
 	}
@@ -115,7 +113,7 @@ func (cfg *AgentConfig) Parse() error {
 	if cfg.RateLimit < 1 {
 		cfg.RateLimit = 1
 	}
-	fmt.Println("cfg =", cfg)
+
 	return nil
 }
 
