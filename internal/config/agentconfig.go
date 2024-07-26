@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -82,19 +81,13 @@ func (cfg *AgentConfig) Parse() error {
 		flag.StringVar(&configFile, "c", configFile, "путь до конфигурационного файла в формате JSON (короткиф формат)")
 	}
 
-	log.Println("flag.Parse()")
 	flag.Parse()
 
 	if len(configFile) != 0 {
-		log.Println("loadConfigFromFile", configFile)
 		if err := loadConfigFromFile(configFile, cfg); err != nil {
-			log.Println("loadConfigFromFile err", err)
 			return err
 		}
 	}
-
-	log.Printf("pollInterval=%v (%T)", pollInterval, pollInterval)
-	log.Printf("reportInterval=%v (%T)", reportInterval, reportInterval)
 
 	flag.Visit(func(f *flag.Flag) {
 		switch f.Name {
@@ -120,7 +113,7 @@ func (cfg *AgentConfig) Parse() error {
 	if cfg.RateLimit < 1 {
 		cfg.RateLimit = 1
 	}
-	fmt.Println("cfg =", cfg)
+
 	return nil
 }
 
@@ -139,8 +132,6 @@ func (cfg *AgentConfig) UnmarshalJSON(b []byte) error {
 	if err = json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
-
-	log.Println("tmp:", tmp)
 
 	if len(tmp.PollInterval) != 0 {
 		cfg.PollInterval, err = time.ParseDuration(tmp.PollInterval)
