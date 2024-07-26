@@ -3,7 +3,6 @@ package sender
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/hex"
 	"encoding/json"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/a-x-a/go-metric/internal/adapter"
+	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/security"
 )
@@ -50,23 +50,13 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	if err != nil {
 		return err
 	}
-
 	if len(data) == 0 {
 		return fmt.Errorf("metrics send: data is empty")
 	}
 
 	var buf bytes.Buffer
-
-	zw, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
+	err = encoder.Encoding(data, &buf)
 	if err != nil {
-		return err
-	}
-
-	if _, err = zw.Write(data); err != nil {
-		return err
-	}
-
-	if err = zw.Close(); err != nil {
 		return err
 	}
 
@@ -92,7 +82,6 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 		if err != nil {
 			return err
 		}
-
 		req.Header.Set("HashSHA256", hex.EncodeToString(hash))
 	}
 
