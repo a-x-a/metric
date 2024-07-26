@@ -8,7 +8,6 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/gostaticanalysis/builtinprint v0.1.0
 	github.com/jackc/pgx/v5 v5.5.5
-	github.com/pashagolub/pgxmock/v3 v3.4.0
 	github.com/shirou/gopsutil/v3 v3.24.3
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/http-swagger v1.3.4
