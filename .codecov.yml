@@ -15,3 +15,4 @@ coverage:
 ignore:
   - "**/*_test.go"
   - "**/*_mock.go"
+  - "**/pgdb.go"
