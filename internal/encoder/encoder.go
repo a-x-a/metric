@@ -1,6 +1,8 @@
+// Package encoder описывает middleware для работа со сжатыми HTTP запросами и ответами.
 package encoder
 
 import (
+	"bytes"
 	"compress/gzip"
 	"net/http"
 	"strings"
@@ -8,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// DecompressMiddleware HTTP middleware для распаковки данных.
 func DecompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +45,7 @@ func DecompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handl
 	}
 }
 
+// CompressMiddleware HTTP middleware для упаковки данных.
 func CompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -67,4 +71,21 @@ func CompressMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler
 			next.ServeHTTP(compressWriter{ResponseWriter: w, Writer: zw}, r)
 		})
 	}
+}
+
+func Encoding(data []byte, buf *bytes.Buffer) error {
+	zw, err := gzip.NewWriterLevel(buf, gzip.BestSpeed)
+	if err != nil {
+		return err
+	}
+
+	if _, err = zw.Write(data); err != nil {
+		return err
+	}
+
+	if err = zw.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }

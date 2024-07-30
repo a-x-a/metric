@@ -22,10 +22,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read реализация метода Read для zip-сжатия данных.
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close реализация метода Close для zip-сжатия данных.
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err

@@ -1,12 +1,32 @@
+// Package logger описывает middleware для логирования HTTP запросов и ответов.
 package logger
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"go.uber.org/zap"
 )
 
+func InitLogger(level string) *zap.Logger {
+	lvl, err := zap.ParseAtomicLevel(level)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := zap.NewProductionConfig()
+	cfg.Level = lvl
+
+	zl, err := cfg.Build()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return zl
+}
+
+// LoggerMiddleware middleware для логирования запросов.
 func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +44,7 @@ func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			logger.Info("",
+			logger.Info("request",
 				zap.String("uri", r.RequestURI),
 				zap.String("method", r.Method),
 				zap.Duration("duration", duration),

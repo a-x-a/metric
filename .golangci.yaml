@@ -136,7 +136,7 @@ linters:
     #   - exportloopref
     #   - forbidigo
     - forcetypeassert
-    #   - funlen
+    # - funlen
     - gci
     #   - ginkgolinter
     #   - gocheckcompilerdirectives
@@ -150,10 +150,10 @@ linters:
     #   - godot
     #   - godox
     #   - goerr113
-    #   - gofmt
+    # - gofmt
     - gofumpt
     #   - goheader
-    # - goimports
+    - goimports
     - golint
     # - gomnd
     #   - gomoddirectives
@@ -164,7 +164,7 @@ linters:
     #   - gosmopolitan
     #   - govet
     #   - grouper
-    #   - ifshort
+    - ifshort
     #   - importas
     #   - inamedparam
     #   - ineffassign
@@ -198,7 +198,7 @@ linters:
     #   - reassign
     #   - revive
     #   - rowserrcheck
-    #   - scopelint
+    - scopelint
     #   - sloglint
     #   - spancheck
     #   - sqlclosecheck
@@ -206,7 +206,7 @@ linters:
     #   - structcheck
     #   - stylecheck
     #   - tagalign
-    #   - tagliatelle
+    - tagliatelle
     #   - tenv
     #   - testableexamples
     #   - testifylint
@@ -291,7 +291,12 @@ linters-settings:
       - "7"
       - "8"
       - "9"
+      - "300"
       - "0600"
+      - "10"
+      - "15"
+      - "30"
+      - "1024"
     ignored-functions:
       - strings.SplitN
   varnamelen:
@@ -390,3 +395,19 @@ linters-settings:
       - name: unexported-return
         severity: warning
         disabled: true
+  interfacebloat:
+    # The maximum number of methods allowed for an interface.
+    # Default: 10
+    max: 15
+  funlen:
+    # Checks the number of lines in a function.
+    # If lower than 0, disable the check.
+    # Default: 60
+    # lines: 90
+    # Checks the number of statements in a function.
+    # If lower than 0, disable the check.
+    # Default: 40
+    # statements: -1
+    # Ignore comments when counting lines.
+    # Default false
+    ignore-comments: true
