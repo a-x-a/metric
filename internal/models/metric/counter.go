@@ -6,7 +6,7 @@ import (
 
 type (
 	// Counter тип метрики.
-	Counter int64 
+	Counter int64
 )
 
 // Kind возвращает строку, тип метрики.
@@ -30,14 +30,13 @@ func (c Counter) IsGauge() bool {
 }
 
 // ToCounter преобразует строковое представление значения метрики в значение с типом counter.
-// 
+//
 // Параметры:
-//	- value - строковое представление значения метрики.
+//   - value - строковое представление значения метрики.
 //
 // Возвращаемое значение:
-//	- Counter - значение с типом counter.
-//	- error - ошибка, если преобразование не удалось.
-//
+//   - Counter - значение с типом counter.
+//   - error - ошибка, если преобразование не удалось.
 func ToCounter(value string) (Counter, error) {
 	val, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {

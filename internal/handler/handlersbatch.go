@@ -21,9 +21,10 @@ import (
 //	@Failure		500
 //	@Router			/updates [post]
 //
-//line for correct view in godoc.
 // UpdateBatch обновляет значение метрики с указанным именем и типом.
 // В случае ошибки, статус ответа http.StatusBadRequest.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) UpdateBatch(w http.ResponseWriter, r *http.Request) {
 	data := make([]adapter.RequestMetric, 0)
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {

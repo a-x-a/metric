@@ -21,8 +21,9 @@ import (
 //	@Failure		500
 //	@Router			/update [post]
 //
-//line for correct view in godoc.
 // UpdateJSON обновляет текущее значение метрики с указанным именем и типом полученные в формате JSON.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -83,8 +84,9 @@ func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/value [get]
 //
-//line for correct view in godoc.
 // GetJSON возвращает текущее значение метрики в формате JSON с указанным имененм и типом в формате.
+//
+//line for correct view in godoc.
 func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 	data := &adapter.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {

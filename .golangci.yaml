@@ -150,7 +150,7 @@ linters:
     #   - godot
     #   - godox
     #   - goerr113
-    - gofmt
+    # - gofmt
     - gofumpt
     #   - goheader
     - goimports
@@ -164,7 +164,7 @@ linters:
     #   - gosmopolitan
     #   - govet
     #   - grouper
-    #   - ifshort
+    - ifshort
     #   - importas
     #   - inamedparam
     #   - ineffassign
@@ -198,7 +198,7 @@ linters:
     #   - reassign
     #   - revive
     #   - rowserrcheck
-    #   - scopelint
+    - scopelint
     #   - sloglint
     #   - spancheck
     #   - sqlclosecheck
