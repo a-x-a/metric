@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -25,7 +26,7 @@ import (
 //
 // Возвращаемое значение:
 //   - *http.Handler - роутер.
-func NewRouter(s MetricService, log *zap.Logger, key string, privateKey security.PrivateKey) http.Handler {
+func NewRouter(s MetricService, log *zap.Logger, key string, privateKey security.PrivateKey, trustedSubnet *net.IPNet) http.Handler {
 	metricHendlers := newMetricHandlers(s, log)
 
 	r := chi.NewRouter()
@@ -47,16 +48,20 @@ func NewRouter(s MetricService, log *zap.Logger, key string, privateKey security
 	r.Post("/value/", metricHendlers.GetJSON)
 	r.Get("/value/{kind}/{name}", metricHendlers.Get)
 
-	r.Post("/update", metricHendlers.UpdateJSON)
-	r.Post("/update/", metricHendlers.UpdateJSON)
-	r.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
-
 	updateGroup := r.Group(nil)
-	if len(key) != 0 {
-		updateGroup.Use(security.SignerMiddleware(log, key))
+	if trustedSubnet != nil {
+		updateGroup.Use(security.TrustedSubnetMiddleware(log, trustedSubnet))
 	}
-	updateGroup.Post("/updates", metricHendlers.UpdateBatch)
-	updateGroup.Post("/updates/", metricHendlers.UpdateBatch)
+	updateGroup.Post("/update", metricHendlers.UpdateJSON)
+	updateGroup.Post("/update/", metricHendlers.UpdateJSON)
+	updateGroup.Post("/update/{kind}/{name}/{value}", metricHendlers.Update)
+
+	updateBatchGroup := updateGroup.Group(nil)
+	if len(key) != 0 {
+		updateBatchGroup.Use(security.SignerMiddleware(log, key))
+	}
+	updateBatchGroup.Post("/updates", metricHendlers.UpdateBatch)
+	updateBatchGroup.Post("/updates/", metricHendlers.UpdateBatch)
 
 	r.Get("/ping", metricHendlers.Ping)
 	r.Get("/ping/", metricHendlers.Ping)

@@ -29,8 +29,10 @@ type (
 		DatabaseDSN string `env:"DATABASE_DSN" json:"database_dsn"`
 		// Key - ключ подписи
 		Key string `env:"KEY" json:"key"`
-		//CryptoKey - путь до файла с приватным ключом
+		// CryptoKey - путь до файла с приватным ключом
 		CryptoKey string `env:"CRYPTO_KEY" json:"crypto_key"`
+		// TrustedSubnet - доверенная подсеть, строковое представление бесклассовой адресации (CIDR)
+		TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 	}
 )
 
@@ -44,6 +46,7 @@ func NewServerConfig() ServerConfig {
 		DatabaseDSN:     "",
 		Key:             "",
 		CryptoKey:       "",
+		TrustedSubnet:   "",
 		StoreInterval:   time.Duration(storeInterval) * time.Second,
 	}
 
@@ -120,6 +123,8 @@ func (cfg *ServerConfig) Parse() error {
 			cfg.Key = tmp.Key
 		case "crypto-key":
 			cfg.CryptoKey = tmp.CryptoKey
+		case "t":
+			cfg.TrustedSubnet = tmp.TrustedSubnet
 		}
 	})
 
@@ -153,5 +158,9 @@ func declarateServerFlags(cfg *ServerConfig) {
 
 	if flag.Lookup("crypto-key") == nil {
 		flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "путь до файла с приватным ключом")
+	}
+
+	if flag.Lookup("t") == nil {
+		flag.StringVar(&cfg.TrustedSubnet, "t", cfg.TrustedSubnet, "доверенная подсеть в нотации CIDR")
 	}
 }

@@ -148,7 +148,7 @@ func (s mockService) PushBatch(ctx context.Context, records []storage.Record) er
 }
 
 func TestUpdateHandler(t *testing.T) {
-	rt := NewRouter(mockService{}, zap.NewNop(), "", nil)
+	rt := NewRouter(mockService{}, zap.NewNop(), "", nil, nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -239,7 +239,7 @@ func TestUpdateHandler(t *testing.T) {
 
 func TestGetHandler(t *testing.T) {
 	assert := assert.New(t)
-	rt := NewRouter(mockService{}, zap.NewNop(), "", nil)
+	rt := NewRouter(mockService{}, zap.NewNop(), "", nil, nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 

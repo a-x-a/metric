@@ -4,6 +4,7 @@ package app
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -76,9 +77,17 @@ func NewServer(logLevel string) *Server {
 		}
 	}
 
+	var trustedSubnet *net.IPNet
+	if len(cfg.TrustedSubnet) != 0 {
+		_, trustedSubnet, err = net.ParseCIDR(cfg.TrustedSubnet)
+		if err != nil {
+			log.Panic("unable to parse CIDR", zap.Error(err))
+		}
+	}
+
 	ds := storage.NewDataStorage(dbConn, cfg.FileStoregePath, cfg.StoreInterval, log)
 	ms := metricservice.New(ds, log)
-	rt := handler.NewRouter(ms, log, cfg.Key, privateKey)
+	rt := handler.NewRouter(ms, log, cfg.Key, privateKey, trustedSubnet)
 	srv := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: rt,

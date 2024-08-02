@@ -50,13 +50,13 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	if err != nil {
 		return err
 	}
+
 	if len(data) == 0 {
 		return fmt.Errorf("metrics send: data is empty")
 	}
 
 	var buf bytes.Buffer
-	err = encoder.Encoding(data, &buf)
-	if err != nil {
+	if err = encoder.Encoding(data, &buf); err != nil {
 		return err
 	}
 
@@ -68,6 +68,11 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 		buf = *b
 	}
 
+	ip, err := getOutboundIP()
+	if err != nil {
+		return err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, hs.baseURL+"/updates", &buf)
 	if err != nil {
 		return err
@@ -75,6 +80,7 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("X-Real-IP", ip.String())
 
 	if hs.signer != nil {
 		var hash []byte

@@ -22,7 +22,7 @@ import (
 )
 
 func sendTestRequest(t *testing.T, method, path string, data []byte) *http.Response {
-	rt := NewRouter(mockService{}, zap.L(), "", nil)
+	rt := NewRouter(mockService{}, zap.L(), "", nil, nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -227,7 +227,7 @@ func sendTestRequestWithMocStorage(t *testing.T, method, path string, data []byt
 	ctrl := gomock.NewController(t)
 	ds := storage.NewMockStorage(ctrl)
 	srvc := metricservice.New(ds, zap.L())
-	rt := NewRouter(srvc, zap.L(), "", nil)
+	rt := NewRouter(srvc, zap.L(), "", nil, nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 

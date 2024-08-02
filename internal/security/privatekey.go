@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-// PrivateKey приватный RSA ключ, используется дл расшифровки данных.
+// PrivateKey тип описывающий приватный RSA ключ используемый для расшифровки данных.
 type PrivateKey *rsa.PrivateKey
 
 // NewPrivateKey считывает приватный RSA ключ из файла.
