@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"go.uber.org/zap"
@@ -14,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/a-x-a/go-metric/internal/config"
+	"github.com/a-x-a/go-metric/internal/grpcserver"
 	"github.com/a-x-a/go-metric/internal/handler"
 	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/security"
@@ -26,6 +29,7 @@ type (
 		config     config.ServerConfig
 		storage    storage.Storage
 		httpServer *http.Server
+		grpcServer *grpcserver.MetricServer
 		logger     *zap.Logger
 		key        security.PrivateKey
 	}
@@ -93,10 +97,13 @@ func NewServer(logLevel string) *Server {
 		Handler: rt,
 	}
 
+	grpcMetricServer := grpcserver.New(ms, cfg.GRPCAddress, trustedSubnet)
+
 	return &Server{
 		config:     cfg,
 		storage:    ds,
 		httpServer: srv,
+		grpcServer: grpcMetricServer,
 		logger:     log,
 		key:        privateKey,
 	}
@@ -116,19 +123,49 @@ func (s *Server) Run(ctx context.Context) {
 		}
 	}
 
-	s.logger.Info("start http server", zap.String("address", s.config.ListenAddress))
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint,
+		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
 
-	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		s.logger.Panic("failed to start http server", zap.Error(err))
+	errChan := make(chan error, 1)
+
+	s.logger.Info("start http server", zap.String("address", s.config.ListenAddress))
+	go func() {
+		errChan <- s.httpServer.ListenAndServe()
+		close(errChan)
+	}()
+
+	s.logger.Info("start grpc server", zap.String("address", s.config.GRPCAddress))
+	s.grpcServer.Start()
+
+	select {
+	case signal := <-sigint:
+		s.logger.Info("start server shutdown", zap.String("signal", signal.String()))
+	case err := <-errChan:
+		if !errors.Is(err, http.ErrServerClosed) {
+			s.logger.Panic("failed to start http server", zap.Error(err))
+		}
+	case err := <-s.grpcServer.Notify():
+		s.logger.Panic("failed to start grpc server", zap.Error(err))
 	}
+
+	ctxShutdown, cancelShutdown := context.WithTimeout(ctx, time.Second*5)
+	defer cancelShutdown()
+
+	s.Shutdown(ctxShutdown)
 }
 
-func (s *Server) Shutdown(ctx context.Context, signal os.Signal) {
-	s.logger.Info("start server shutdown", zap.String("signal", signal.String()))
-
+func (s *Server) Shutdown(ctx context.Context) {
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		s.logger.Warn("server shutdowning error", zap.Error(err))
 	}
+
+	s.grpcServer.Stop()
 
 	if err := s.storage.Close(); err != nil {
 		s.logger.Error("storage close ", zap.Error(err))

@@ -40,8 +40,8 @@ func getRecords() []storage.Record {
 	return records
 }
 
-func getRequestMetrics() []adapter.RequestMetric {
-	records := []adapter.RequestMetric{}
+func getRequestMetrics() []metric.RequestMetric {
+	records := []metric.RequestMetric{}
 
 	record := adapter.NewUpdateRequestMetricGauge("Alloc", 12.345)
 	records = append(records, record)
@@ -145,6 +145,13 @@ func (s mockService) Ping(ctx context.Context) error {
 
 func (s mockService) PushBatch(ctx context.Context, records []storage.Record) error {
 	return nil
+}
+func (s mockService) UpdateBatch(ctx context.Context, requestMetrics []metric.RequestMetric) error {
+	return nil
+}
+
+func (s mockService) Update(ctx context.Context, requestMetric metric.RequestMetric) (metric.RequestMetric, error) {
+	return metric.RequestMetric{}, nil
 }
 
 func TestUpdateHandler(t *testing.T) {
@@ -317,7 +324,7 @@ func TestListHandler(t *testing.T) {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(t)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 
 	h := newMetricHandlers(srvc, log)
 
@@ -360,7 +367,7 @@ func ExampleMetricHandlers_List() {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(nil)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 	srvc.EXPECT().GetAll(context.Background()).Return(nil)
 
 	h := newMetricHandlers(srvc, log)
@@ -381,7 +388,7 @@ func Test_Ping(t *testing.T) {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(nil)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 
 	h := newMetricHandlers(srvc, log)
 
@@ -433,7 +440,7 @@ func ExampleMetricHandlers_Ping() {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(nil)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 	srvc.EXPECT().Ping(context.Background()).Return(nil)
 
 	h := newMetricHandlers(srvc, log)
@@ -454,7 +461,7 @@ func TestUpdateBatchHandler(t *testing.T) {
 	log := zap.NewNop()
 
 	ctrl := gomock.NewController(t)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 
 	h := newMetricHandlers(srvc, log)
 
@@ -512,7 +519,7 @@ func TestUpdateBatchHandler(t *testing.T) {
 
 func ExampleMetricHandlers_UpdateBatch() {
 	ctrl := gomock.NewController(nil)
-	srvc := metricservice.NewMockmetricService(ctrl)
+	srvc := metricservice.NewMockMetricService(ctrl)
 	srvc.EXPECT().PushBatch(context.Background(), getRecords()).Return(nil)
 
 	log := zap.NewNop()

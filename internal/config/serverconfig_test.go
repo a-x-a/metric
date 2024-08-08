@@ -20,6 +20,7 @@ func TestServerConfigLoadFromFile(t *testing.T) {
 			check: func(t *testing.T, cfg ServerConfig, err error) {
 				cfgExpected := ServerConfig{
 					ListenAddress:   "0.0.0.0:1234",
+					GRPCAddress:     "0.0.0.0:5678",
 					FileStoregePath: "/path/to/file.db",
 					DatabaseDSN:     "postgres://postgres:postgres@127.0.0.1:5432/praktikum?sslmode=disable",
 					StoreInterval:   time.Duration(5) * time.Second,

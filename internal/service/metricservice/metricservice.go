@@ -144,6 +144,65 @@ func (s *MetricService) PushGauge(ctx context.Context, name string, value metric
 	return value, nil
 }
 
+// Update обновляет значение метрики.
+//
+// Параметры:
+// - ctx - контекст;
+// - record - запись метрики.
+//
+// Возвращаемое значение:
+// - error - ошибка.
+func (s MetricService) Update(ctx context.Context, requestMetric metric.RequestMetric) (metric.RequestMetric, error) {
+	// определяем тип метрики
+	// если счётчик, то суммируем со старым значение
+	// обновляем метрику в базе
+	return requestMetric, nil
+}
+
+func (s MetricService) UpdateBatch(ctx context.Context, requestMetrics []metric.RequestMetric) error {
+	records := make([]storage.Record, 0)
+
+	for _, v := range requestMetrics {
+		record, err := storage.NewRecord(v.ID)
+		if err != nil {
+			// responseWithCode(w, http.StatusBadRequest, h.logger)
+			return err
+		}
+
+		kind, err := metric.GetKind(v.MType)
+		if err != nil {
+			// responseWithCode(w, http.StatusBadRequest, h.logger)
+			return err
+		}
+
+		switch kind {
+		case metric.KindCounter:
+			if v.Delta == nil {
+				// responseWithError(w, http.StatusBadRequest, err, h.logger)
+				return err
+			}
+			val := metric.Counter(*v.Delta)
+			record.SetValue(val)
+		case metric.KindGauge:
+			if v.Value == nil {
+				// responseWithError(w, http.StatusBadRequest, err, h.logger)
+				return err
+			}
+			val := metric.Gauge(*v.Value)
+			record.SetValue(val)
+		}
+
+		records = append(records, record)
+	}
+
+	if len(records) == 0 {
+		// responseWithCode(w, http.StatusBadRequest, h.logger)
+		return nil //err
+	}
+
+	return s.PushBatch(ctx, records)
+}
+
 // PushBatch добавляет набор метрик.
 //
 // Параметры:

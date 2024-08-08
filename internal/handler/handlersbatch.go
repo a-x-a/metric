@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
@@ -16,7 +15,7 @@ import (
 //	@Tags			updatebatch
 //	@ID				updatebatch
 //	@Produce		json
-//	@Param			data	body	[]adapter.RequestMetric	true	"Набор метрик"
+//	@Param			data	body	[]metric.RequestMetric	true	"Набор метрик"
 //	@Failure		400
 //	@Failure		500
 //	@Router			/updates [post]
@@ -26,7 +25,7 @@ import (
 //
 //line for correct view in godoc.
 func (h MetricHandlers) UpdateBatch(w http.ResponseWriter, r *http.Request) {
-	data := make([]adapter.RequestMetric, 0)
+	data := make([]metric.RequestMetric, 0)
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return

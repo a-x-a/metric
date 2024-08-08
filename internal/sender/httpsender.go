@@ -1,4 +1,3 @@
-// Package sender отвечает за оправку данных от агента к серверу.
 package sender
 
 import (
@@ -9,39 +8,39 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
-	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/encoder"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/security"
 )
 
-type httpSender struct {
+type HttpSender struct {
 	baseURL   string
 	client    *http.Client
 	signer    *security.Signer
 	cryptoKey security.PublicKey
-	batch     chan adapter.RequestMetric
+	batch     chan metric.RequestMetric
 	err       error
 }
 
-func newHTTPSender(serverAddress string, timeout time.Duration, key string, cryptoKey security.PublicKey) httpSender {
+func NewHTTPSender(serverAddress string, timeout time.Duration, secret string, publicKey security.PublicKey) *HttpSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
-	sgnr := security.NewSigner(key)
+	sgnr := security.NewSigner(secret)
 
-	return httpSender{
+	return &HttpSender{
 		baseURL:   baseURL,
 		client:    client,
 		signer:    sgnr,
-		cryptoKey: cryptoKey,
-		batch:     make(chan adapter.RequestMetric, 1024),
+		cryptoKey: publicKey,
+		batch:     make(chan metric.RequestMetric, 1024),
 		err:       nil,
 	}
 }
 
-func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric) error {
+func (hs *HttpSender) doSend(ctx context.Context, batch []metric.RequestMetric) error {
 	if len(batch) == 0 {
 		return fmt.Errorf("metrics send: batch is empty")
 	}
@@ -109,85 +108,70 @@ func (hs *httpSender) doSend(ctx context.Context, batch []adapter.RequestMetric)
 	return nil
 }
 
-func (hs *httpSender) add(rm adapter.RequestMetric) *httpSender {
-	if hs.err != nil {
-		return hs
-	}
-
-	hs.batch <- rm
-
-	return hs
-}
-
-// SendMetrics отправляет метрики на сервер.
-//
-// Parameters:
-// - ctx: контекст.
-// - serverAddress: адрес сервера сбора метрик.
-// - timeout: частота отправки метрик на сервер.
-// - key: ключ подписи данных.
-// - rateLimit: количество одновременно исходящих запросов на сервер.
-// - stats: коллекция мсетрик для отправки.
-// - сryptoKey публичныq ключ.
-func SendMetrics(ctx context.Context, serverAddress string, timeout time.Duration, key string, rateLimit int, stats metric.Metrics, cryptoKey security.PublicKey) error {
-	sender := newHTTPSender(serverAddress, timeout, key, cryptoKey)
-
-	for i := 0; i < rateLimit; i++ {
-		go sender.worker(ctx)
-	}
-
-	// отправляем метрики пакета runtime
-	sender.
-		add(adapter.NewUpdateRequestMetricGauge("Alloc", stats.Runtime.Alloc)).
-		add(adapter.NewUpdateRequestMetricGauge("BuckHashSys", stats.Runtime.BuckHashSys)).
-		add(adapter.NewUpdateRequestMetricGauge("Frees", stats.Runtime.Frees)).
-		add(adapter.NewUpdateRequestMetricGauge("GCCPUFraction", stats.Runtime.GCCPUFraction)).
-		add(adapter.NewUpdateRequestMetricGauge("GCSys", stats.Runtime.GCSys)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapAlloc", stats.Runtime.HeapAlloc)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapIdle", stats.Runtime.HeapIdle)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapInuse", stats.Runtime.HeapInuse)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapObjects", stats.Runtime.HeapObjects)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapReleased", stats.Runtime.HeapReleased)).
-		add(adapter.NewUpdateRequestMetricGauge("HeapSys", stats.Runtime.HeapSys)).
-		add(adapter.NewUpdateRequestMetricGauge("LastGC", stats.Runtime.LastGC)).
-		add(adapter.NewUpdateRequestMetricGauge("Lookups", stats.Runtime.Lookups)).
-		add(adapter.NewUpdateRequestMetricGauge("MCacheInuse", stats.Runtime.MCacheInuse)).
-		add(adapter.NewUpdateRequestMetricGauge("MCacheSys", stats.Runtime.MCacheSys)).
-		add(adapter.NewUpdateRequestMetricGauge("MSpanInuse", stats.Runtime.MSpanInuse)).
-		add(adapter.NewUpdateRequestMetricGauge("MSpanSys", stats.Runtime.MSpanSys)).
-		add(adapter.NewUpdateRequestMetricGauge("Mallocs", stats.Runtime.Mallocs)).
-		add(adapter.NewUpdateRequestMetricGauge("NextGC", stats.Runtime.NextGC)).
-		add(adapter.NewUpdateRequestMetricGauge("NumForcedGC", stats.Runtime.NumForcedGC)).
-		add(adapter.NewUpdateRequestMetricGauge("NumGC", stats.Runtime.NumGC)).
-		add(adapter.NewUpdateRequestMetricGauge("OtherSys", stats.Runtime.OtherSys)).
-		add(adapter.NewUpdateRequestMetricGauge("PauseTotalNs", stats.Runtime.PauseTotalNs)).
-		add(adapter.NewUpdateRequestMetricGauge("StackInuse", stats.Runtime.StackInuse)).
-		add(adapter.NewUpdateRequestMetricGauge("StackSys", stats.Runtime.StackSys)).
-		add(adapter.NewUpdateRequestMetricGauge("Sys", stats.Runtime.Sys)).
-		add(adapter.NewUpdateRequestMetricGauge("TotalAlloc", stats.Runtime.TotalAlloc))
-	// отправляем метрики пакета gopsutil
-	sender.
-		add(adapter.NewUpdateRequestMetricGauge("TotalMemory", stats.PS.TotalMemory)).
-		add(adapter.NewUpdateRequestMetricGauge("FreeMemory", stats.PS.FreeMemory)).
-		add(adapter.NewUpdateRequestMetricGauge("CPUutilization1", stats.PS.CPUutilization1))
-	// отправляем обновляемое произвольное значение
-	sender.
-		add(adapter.NewUpdateRequestMetricGauge("RandomValue", stats.RandomValue))
-	// отправляем счётчик обновления метрик пакета runtime
-	sender.
-		add(adapter.NewUpdateRequestMetricCounter("PollCount", stats.PollCount))
-
-	close(sender.batch)
-
-	return sender.err
-}
-
-func (hs *httpSender) worker(ctx context.Context) {
-	data := make([]adapter.RequestMetric, 0, len(hs.batch))
+func (hs *HttpSender) worker(ctx context.Context) {
+	data := make([]metric.RequestMetric, 0, len(hs.batch))
 
 	for r := range hs.batch {
 		data = append(data, r)
 	}
 
 	hs.err = hs.doSend(ctx, data)
+}
+
+func (hs *HttpSender) Add(name string, value metric.Metric) Sender {
+	if hs.err != nil {
+		return hs
+	}
+
+	val := metric.RequestMetric{
+		ID:    name,
+		MType: value.Kind(),
+	}
+
+	switch {
+	case value.IsCounter():
+		v, ok := value.(metric.Counter)
+		if !ok {
+			hs.err = fmt.Errorf("fail to convert counter %v", value)
+			return hs
+		}
+		val.Delta = (*int64)(&v)
+	case value.IsGauge():
+		v, ok := value.(metric.Gauge)
+		if !ok {
+			hs.err = fmt.Errorf("fail to convert gauge %v", value)
+			return hs
+		}
+		val.Value = (*float64)(&v)
+	}
+
+	hs.batch <- val
+
+	return hs
+}
+
+func (hs *HttpSender) Send(ctx context.Context, rateLimit int) error {
+	wg := sync.WaitGroup{}
+	wg.Add(rateLimit)
+	for i := 0; i < rateLimit; i++ {
+		go func() {
+			defer wg.Done()
+			hs.worker(ctx)
+		}()
+	}
+
+	close(hs.batch)
+
+	wg.Wait()
+
+	return hs.err
+}
+
+func (hs *HttpSender) Reset() {
+	hs.batch = make(chan metric.RequestMetric, 1024)
+	hs.err = nil
+}
+
+func (hs *HttpSender) Close() error {
+	return nil
 }

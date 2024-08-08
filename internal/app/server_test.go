@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"syscall"
 	"testing"
 	"time"
 
@@ -14,6 +13,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/config"
+	"github.com/a-x-a/go-metric/internal/grpcserver"
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
 	"github.com/a-x-a/go-metric/internal/storage"
 )
 
@@ -80,6 +81,7 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -100,7 +102,7 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 	defer conn.Close()
 	require.NotNil(conn)
 
-	srv.Shutdown(ctx, syscall.SIGTERM)
+	srv.Shutdown(ctx)
 
 	wg.Wait()
 }
@@ -121,11 +123,11 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 
 	stor := storage.NewWithFileStorage(fileName, false, log)
 	cfg := config.NewServerConfig()
-
 	srv := Server{
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -146,7 +148,7 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 	defer conn.Close()
 	require.NotNil(conn)
 
-	srv.Shutdown(ctx, syscall.SIGTERM)
+	srv.Shutdown(ctx)
 
 	wg.Wait()
 }
@@ -172,6 +174,7 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -199,6 +202,7 @@ func Test_server_saveWithMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -230,6 +234,7 @@ func Test_server_saveAndLoadWithFileStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -251,6 +256,7 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
@@ -269,9 +275,50 @@ func Test_server_loadWithError(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
 		logger:     zap.NewNop(),
 	}
 
 	err = srv.loadStorage()
 	require.Error(err)
+}
+
+func TestSserverWithTrustedSubnet(t *testing.T) {
+	require := require.New(t)
+	original, present := os.LookupEnv("TRUSTED_SUBNET")
+	os.Setenv("TRUSTED_SUBNET", "trusted.subnet")
+	if present {
+		defer os.Setenv("TRUSTED_SUBNET", original)
+	} else {
+		defer os.Unsetenv("TRUSTED_SUBNET")
+	}
+
+	t.Run("create new server with invalid trusted subnet", func(t *testing.T) {
+		defer func() {
+			r := recover()
+			require.NotNil(r)
+		}()
+		srv := NewServer("info")
+		require.NotNil(srv)
+	})
+}
+
+func TestSserverWithCryptoKey(t *testing.T) {
+	require := require.New(t)
+	original, present := os.LookupEnv("CRYPTO_KEY")
+	os.Setenv("CRYPTO_KEY", "path/to/crypto.key")
+	if present {
+		defer os.Setenv("CRYPTO_KEY", original)
+	} else {
+		defer os.Unsetenv("CRYPTO_KEY")
+	}
+
+	t.Run("create new server with invalid path to crypto key", func(t *testing.T) {
+		defer func() {
+			r := recover()
+			require.NotNil(r)
+		}()
+		srv := NewServer("info")
+		require.NotNil(srv)
+	})
 }

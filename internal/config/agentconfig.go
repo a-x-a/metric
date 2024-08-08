@@ -22,8 +22,10 @@ type (
 		ServerAddress string `env:"ADDRESS" json:"address"`
 		// Key ключ подписи
 		Key string `env:"KEY" json:"key"`
-		//CryptoKey путь до файла с публичным ключом в фомате PEM
+		// CryptoKey путь до файла с публичным ключом в фомате PEM
 		CryptoKey string `env:"CRYPTO_KEY" json:"crypto_key"`
+		// Transport тип протокола используемого для передачи метрик (http или grpc)
+		Transport string `env:"TRANSPORT" json:"transport"`
 	}
 )
 
@@ -36,6 +38,7 @@ func NewAgentConfig() AgentConfig {
 		ServerAddress:  "localhost:8080",
 		Key:            "",
 		CryptoKey:      "",
+		Transport:      "",
 	}
 }
 

@@ -14,6 +14,8 @@ type (
 	ServerConfig struct {
 		// ListenAddress - адрес сервера сбора метрик
 		ListenAddress string `env:"ADDRESS" json:"address"`
+		// GRPCAddress - адрес grpc сервера сбора метрик
+		GRPCAddress string `env:"GRPC_ADDRESS" json:"grpc_address"`
 		// StoreInterval - интервал времени в секундах, по истечении которого
 		// текущие показания сервера сохраняются на диск
 		// (по умолчанию 300 секунд, значение `0` делает запись синхронной).
@@ -41,6 +43,7 @@ func NewServerConfig() ServerConfig {
 	storeInterval := 300
 	cfg := ServerConfig{
 		ListenAddress:   "localhost:8080",
+		GRPCAddress:     "0.0.0.0:8081",
 		FileStoregePath: "/tmp/metrics-db.json",
 		Restore:         true,
 		DatabaseDSN:     "",

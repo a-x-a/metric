@@ -1,0 +1,88 @@
+package storage
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	// "github.com/chrisyxlee/pgxpoolmock"
+	"github.com/pashagolub/pgxmock/v3"
+	"github.com/stretchr/testify/require"
+	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/zap"
+)
+
+func TestDBStorage(t *testing.T) {
+	require := require.New(t)
+	tests := []struct {
+		name       string
+		buildStubs func(pool *MockPool)
+		// buildStubs func(pool pgxmock.PgxPoolIface)
+		testFn func(t *testing.T, db *DBStorage)
+	}{
+		// {
+		// 	name: "close ok",
+		// 	buildStubs: func(pool *MockPool) {
+		// 		pool.EXPECT().Close().Return()
+		// 	},
+		// 	testFn: func(t *testing.T, db *DBStorage) {
+		// 		err := db.Close()
+		// 		require.NoError(err)
+		// 	},
+		// },
+		// {
+		// 	name: "ping ok",
+		// 	buildStubs: func(pool *MockPool) {
+		// 		pool.EXPECT().Ping(context.Background()).Return(nil)
+		// 	},
+		// 	testFn: func(t *testing.T, db *DBStorage) {
+		// 		err := db.Ping(context.Background())
+		// 		require.NoError(err)
+		// 	},
+		// },
+		// {
+		// 	name: "ping err",
+		// 	buildStubs: func(pool *MockPool) {
+		// 		pool.EXPECT().Ping(context.Background()).Return(fmt.Errorf("dbPool.Ping error"))
+		// 	},
+		// 	testFn: func(t *testing.T, db *DBStorage) {
+		// 		err := db.Ping(context.Background())
+		// 		require.Error(err)
+		// 	},
+		// },
+		{
+			name: "get all ok",
+			// buildStubs: func(pool pgxmock.PgxPoolIface) {
+			buildStubs: func(pool *MockPool) {
+				queryText := `SELECT name, kind, value FROM metric;`
+				// pgxRows := pgx.Rows([]any{"Alloc", "gauge", 12.3456})
+				// columns := []string{"id", "price"}
+				// pgxRows := pgxpoolmock.NewRows(columns).AddRow(100, 100000.9).ToPgxRows()
+				columns := []string{"name", "kind", "value"}
+				// pgxRows := pgxpoolmock.NewRows(columns).AddRow("Alloc", "gauge", 12.3456).ToPgxRows()
+				pgxRows := pgxmock.NewRows(columns).AddRow("Alloc", "gauge", 12.3456)
+				// poll.AcceptFunc.pgxmock.ExpectedQuery
+				pool.EXPECT().Query(context.Background(), queryText).Return(pgxRows, nil)
+				// pgxRows := pgxmock.NewRows()
+			},
+			testFn: func(t *testing.T, db *DBStorage) {
+				r, err := db.GetAll(context.Background())
+				require.NoError(err)
+				fmt.Println("r=", r)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// pool := NewMockPool(ctrl)
+			// tt.buildStubs(pool)
+			pool, err := pgxmock.NewPool()
+			require.NoError(err)
+			db := NewDBStorage(pool, zap.L())
+			tt.testFn(t, db)
+		})
+	}
+}

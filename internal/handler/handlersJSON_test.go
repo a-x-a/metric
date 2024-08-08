@@ -44,7 +44,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		req      adapter.RequestMetric
+		req      metric.RequestMetric
 		expected result
 	}{
 		{
@@ -63,7 +63,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 		},
 		{
 			name: "push unknown metric kind",
-			req: adapter.RequestMetric{
+			req: metric.RequestMetric{
 				ID:    "X",
 				MType: "unknown",
 			},
@@ -106,7 +106,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 				require.NoError(err)
 				defer resp.Body.Close()
 
-				var resp adapter.RequestMetric
+				var resp metric.RequestMetric
 				err = json.Unmarshal(respBody, &resp)
 				require.NoError(err)
 
@@ -132,12 +132,12 @@ func TestUpdateJSONMetric(t *testing.T) {
 func TestGetJSONMetric(t *testing.T) {
 	type result struct {
 		code int
-		body adapter.RequestMetric
+		body metric.RequestMetric
 	}
 
 	tt := []struct {
 		name     string
-		req      adapter.RequestMetric
+		req      metric.RequestMetric
 		expected result
 	}{
 		{
@@ -158,7 +158,7 @@ func TestGetJSONMetric(t *testing.T) {
 		},
 		{
 			name: "get unknown metric kind",
-			req:  adapter.RequestMetric{ID: "Alloc", MType: "unknown"},
+			req:  metric.RequestMetric{ID: "Alloc", MType: "unknown"},
 			expected: result{
 				code: http.StatusBadRequest,
 			},
@@ -197,7 +197,7 @@ func TestGetJSONMetric(t *testing.T) {
 				require.NoError(err)
 				defer resp.Body.Close()
 
-				var resp adapter.RequestMetric
+				var resp metric.RequestMetric
 				err = json.Unmarshal(respBody, &resp)
 				require.NoError(err)
 				assert.Equal(tc.expected.body, resp)

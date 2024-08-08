@@ -12,12 +12,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/a-x-a/go-metric/internal/adapter"
+	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
 // Signer подписывает и проверяет переданные данные.
 type Signer struct {
-	key []byte
+	secret []byte
 }
 
 // New создаёт новый экземпляр Signer.
@@ -27,12 +27,12 @@ type Signer struct {
 //
 // Возвращаемое значение:
 //   - экземпляр Signer или nil в случае ошибки.
-func NewSigner(key string) *Signer {
-	if len(key) == 0 {
+func NewSigner(secret string) *Signer {
+	if len(secret) == 0 {
 		return nil
 	}
 
-	return &Signer{[]byte(key)}
+	return &Signer{[]byte(secret)}
 }
 
 // Hash подписывает данные и возвращает хэш.
@@ -43,7 +43,7 @@ func NewSigner(key string) *Signer {
 // Возвращаемое значение:
 //   - хэш или ошибку.
 func (s *Signer) Hash(data []byte) ([]byte, error) {
-	h := hmac.New(sha256.New, s.key)
+	h := hmac.New(sha256.New, s.secret)
 	h.Write(data)
 
 	return h.Sum(nil), nil
@@ -76,10 +76,10 @@ func (s *Signer) Verify(data []byte, hash string) (bool, error) {
 // Параметры:
 //   - log: логгер.
 //   - key: ключ для подписи.
-func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.Handler {
+func SignerMiddleware(log *zap.Logger, secret string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			sgnr := NewSigner(key)
+			sgnr := NewSigner(secret)
 			if sgnr == nil {
 				next.ServeHTTP(w, r)
 				return
@@ -97,7 +97,7 @@ func SignerMiddleware(log *zap.Logger, key string) func(next http.Handler) http.
 			rdr1 := io.NopCloser(bytes.NewBuffer(buf))
 			rdr2 := io.NopCloser(bytes.NewBuffer(buf))
 
-			data := make([]adapter.RequestMetric, 0)
+			data := make([]metric.RequestMetric, 0)
 			if err := json.NewDecoder(rdr1).Decode(&data); err != nil {
 				log.Info("SIGNER", zap.Error(err))
 				w.WriteHeader(http.StatusBadRequest)

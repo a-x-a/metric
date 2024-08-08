@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
@@ -15,7 +14,7 @@ import (
 //	@Tags			update
 //	@ID				updateJSON
 //	@Produce		json
-//	@Param			data	body	adapter.RequestMetric	true	"Параметры метрики: имя, тип, значение"
+//	@Param			data	body	metric.RequestMetric	true	"Параметры метрики: имя, тип, значение"
 //	@Success		200
 //	@Failure		404
 //	@Failure		500
@@ -25,7 +24,7 @@ import (
 //
 //line for correct view in godoc.
 func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
-	data := &adapter.RequestMetric{}
+	data := &metric.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return
@@ -77,7 +76,7 @@ func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 //	@ID				getJSON
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body	adapter.RequestMetric	true	"Параметры метрики: имя, тип"
+//	@Param			data	body	metric.RequestMetric	true	"Параметры метрики: имя, тип"
 //	@Success		200
 //	@Failure		400
 //	@Failure		404
@@ -88,7 +87,7 @@ func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 //
 //line for correct view in godoc.
 func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
-	data := &adapter.RequestMetric{}
+	data := &metric.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return

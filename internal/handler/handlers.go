@@ -19,22 +19,19 @@ type (
 	MetricService interface {
 		// Push добавляет метрику с указанным именем, типом и значением.
 		Push(ctx context.Context, name, kind, value string) error
-
 		// PushCounter добавляет метрику с указанным именем с типом counter и значением.
 		PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error)
-
 		// PushGauge добавляет метрику с указанным именем с типом gauge и значением.
 		PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error)
-
+		// Update обновляет значение метрики.
+		Update(ctx context.Context, requestMetric metric.RequestMetric) (metric.RequestMetric, error)
 		// PushBatch добавляет набор метрик.
 		PushBatch(ctx context.Context, records []storage.Record) error
-
+		UpdateBatch(ctx context.Context, requestMetrics []metric.RequestMetric) error
 		// Get получает текущее значение метрики с указанным именем и типом.
 		Get(ctx context.Context, name, kind string) (*storage.Record, error)
-
 		// GetAll получает текущее значение всех метрик.
 		GetAll(ctx context.Context) []storage.Record
-
 		// Ping проверяет состояние сервиса.
 		Ping(ctx context.Context) error
 	}

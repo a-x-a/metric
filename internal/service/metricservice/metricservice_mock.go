@@ -10,31 +10,31 @@ import (
 	storage "github.com/a-x-a/go-metric/internal/storage"
 )
 
-// MockmetricService is a mock of metricService interface.
-type MockmetricService struct {
+// MockMetricService is a mock of MetricService interface.
+type MockMetricService struct {
 	ctrl     *gomock.Controller
-	recorder *MockmetricServiceMockRecorder
+	recorder *MockMetricServiceMockRecorder
 }
 
-// MockmetricServiceMockRecorder is the mock recorder for MockmetricService.
-type MockmetricServiceMockRecorder struct {
-	mock *MockmetricService
+// MockMetricServiceMockRecorder is the mock recorder for MockMetricService.
+type MockMetricServiceMockRecorder struct {
+	mock *MockMetricService
 }
 
-// NewMockmetricService creates a new mock instance.
-func NewMockmetricService(ctrl *gomock.Controller) *MockmetricService {
-	mock := &MockmetricService{ctrl: ctrl}
-	mock.recorder = &MockmetricServiceMockRecorder{mock}
+// NewMockMetricService creates a new mock instance.
+func NewMockMetricService(ctrl *gomock.Controller) *MockMetricService {
+	mock := &MockMetricService{ctrl: ctrl}
+	mock.recorder = &MockMetricServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockmetricService) EXPECT() *MockmetricServiceMockRecorder {
+func (m *MockMetricService) EXPECT() *MockMetricServiceMockRecorder {
 	return m.recorder
 }
 
 // Get mocks base method.
-func (m *MockmetricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
+func (m *MockMetricService) Get(ctx context.Context, name, kind string) (*storage.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, name, kind)
 	ret0, _ := ret[0].(*storage.Record)
@@ -43,13 +43,13 @@ func (m *MockmetricService) Get(ctx context.Context, name, kind string) (*storag
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockmetricServiceMockRecorder) Get(ctx, name, kind any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) Get(ctx, name, kind any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockmetricService)(nil).Get), ctx, name, kind)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMetricService)(nil).Get), ctx, name, kind)
 }
 
 // GetAll mocks base method.
-func (m *MockmetricService) GetAll(ctx context.Context) []storage.Record {
+func (m *MockMetricService) GetAll(ctx context.Context) []storage.Record {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].([]storage.Record)
@@ -57,13 +57,13 @@ func (m *MockmetricService) GetAll(ctx context.Context) []storage.Record {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockmetricServiceMockRecorder) GetAll(ctx any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockmetricService)(nil).GetAll), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMetricService)(nil).GetAll), ctx)
 }
 
 // Ping mocks base method.
-func (m *MockmetricService) Ping(ctx context.Context) error {
+func (m *MockMetricService) Ping(ctx context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ping", ctx)
 	ret0, _ := ret[0].(error)
@@ -71,13 +71,13 @@ func (m *MockmetricService) Ping(ctx context.Context) error {
 }
 
 // Ping indicates an expected call of Ping.
-func (mr *MockmetricServiceMockRecorder) Ping(ctx any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) Ping(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockmetricService)(nil).Ping), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockMetricService)(nil).Ping), ctx)
 }
 
 // Push mocks base method.
-func (m *MockmetricService) Push(ctx context.Context, name, kind, value string) error {
+func (m *MockMetricService) Push(ctx context.Context, name, kind, value string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Push", ctx, name, kind, value)
 	ret0, _ := ret[0].(error)
@@ -85,13 +85,13 @@ func (m *MockmetricService) Push(ctx context.Context, name, kind, value string) 
 }
 
 // Push indicates an expected call of Push.
-func (mr *MockmetricServiceMockRecorder) Push(ctx, name, kind, value any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) Push(ctx, name, kind, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Push", reflect.TypeOf((*MockmetricService)(nil).Push), ctx, name, kind, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Push", reflect.TypeOf((*MockMetricService)(nil).Push), ctx, name, kind, value)
 }
 
 // PushBatch mocks base method.
-func (m *MockmetricService) PushBatch(ctx context.Context, records []storage.Record) error {
+func (m *MockMetricService) PushBatch(ctx context.Context, records []storage.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PushBatch", ctx, records)
 	ret0, _ := ret[0].(error)
@@ -99,13 +99,13 @@ func (m *MockmetricService) PushBatch(ctx context.Context, records []storage.Rec
 }
 
 // PushBatch indicates an expected call of PushBatch.
-func (mr *MockmetricServiceMockRecorder) PushBatch(ctx, records any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) PushBatch(ctx, records any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushBatch", reflect.TypeOf((*MockmetricService)(nil).PushBatch), ctx, records)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushBatch", reflect.TypeOf((*MockMetricService)(nil).PushBatch), ctx, records)
 }
 
 // PushCounter mocks base method.
-func (m *MockmetricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
+func (m *MockMetricService) PushCounter(ctx context.Context, name string, value metric.Counter) (metric.Counter, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PushCounter", ctx, name, value)
 	ret0, _ := ret[0].(metric.Counter)
@@ -114,13 +114,13 @@ func (m *MockmetricService) PushCounter(ctx context.Context, name string, value 
 }
 
 // PushCounter indicates an expected call of PushCounter.
-func (mr *MockmetricServiceMockRecorder) PushCounter(ctx, name, value any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) PushCounter(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushCounter", reflect.TypeOf((*MockmetricService)(nil).PushCounter), ctx, name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushCounter", reflect.TypeOf((*MockMetricService)(nil).PushCounter), ctx, name, value)
 }
 
 // PushGauge mocks base method.
-func (m *MockmetricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
+func (m *MockMetricService) PushGauge(ctx context.Context, name string, value metric.Gauge) (metric.Gauge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PushGauge", ctx, name, value)
 	ret0, _ := ret[0].(metric.Gauge)
@@ -129,7 +129,36 @@ func (m *MockmetricService) PushGauge(ctx context.Context, name string, value me
 }
 
 // PushGauge indicates an expected call of PushGauge.
-func (mr *MockmetricServiceMockRecorder) PushGauge(ctx, name, value any) *gomock.Call {
+func (mr *MockMetricServiceMockRecorder) PushGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushGauge", reflect.TypeOf((*MockmetricService)(nil).PushGauge), ctx, name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushGauge", reflect.TypeOf((*MockMetricService)(nil).PushGauge), ctx, name, value)
+}
+
+// Update mocks base method.
+func (m *MockMetricService) Update(ctx context.Context, requestMetric metric.RequestMetric) (metric.RequestMetric, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, requestMetric)
+	ret0, _ := ret[0].(metric.RequestMetric)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockMetricServiceMockRecorder) Update(ctx, requestMetric any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMetricService)(nil).Update), ctx, requestMetric)
+}
+
+// UpdateBatch mocks base method.
+func (m *MockMetricService) UpdateBatch(ctx context.Context, requestMetrics []metric.RequestMetric) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBatch", ctx, requestMetrics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateBatch indicates an expected call of UpdateBatch.
+func (mr *MockMetricServiceMockRecorder) UpdateBatch(ctx, requestMetrics any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBatch", reflect.TypeOf((*MockMetricService)(nil).UpdateBatch), ctx, requestMetrics)
 }
