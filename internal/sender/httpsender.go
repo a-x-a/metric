@@ -16,7 +16,7 @@ import (
 	"github.com/a-x-a/go-metric/internal/security"
 )
 
-type HttpSender struct {
+type HTTPSender struct {
 	baseURL   string
 	client    *http.Client
 	signer    *security.Signer
@@ -25,12 +25,12 @@ type HttpSender struct {
 	err       error
 }
 
-func NewHTTPSender(serverAddress string, timeout time.Duration, secret string, publicKey security.PublicKey) *HttpSender {
+func NewHTTPSender(serverAddress string, timeout time.Duration, secret string, publicKey security.PublicKey) *HTTPSender {
 	baseURL := fmt.Sprintf("http://%s", serverAddress)
 	client := &http.Client{Timeout: timeout}
 	sgnr := security.NewSigner(secret)
 
-	return &HttpSender{
+	return &HTTPSender{
 		baseURL:   baseURL,
 		client:    client,
 		signer:    sgnr,
@@ -40,7 +40,7 @@ func NewHTTPSender(serverAddress string, timeout time.Duration, secret string, p
 	}
 }
 
-func (hs *HttpSender) doSend(ctx context.Context, batch []metric.RequestMetric) error {
+func (hs *HTTPSender) doSend(ctx context.Context, batch []metric.RequestMetric) error {
 	if len(batch) == 0 {
 		return fmt.Errorf("metrics send: batch is empty")
 	}
@@ -108,7 +108,7 @@ func (hs *HttpSender) doSend(ctx context.Context, batch []metric.RequestMetric) 
 	return nil
 }
 
-func (hs *HttpSender) worker(ctx context.Context) {
+func (hs *HTTPSender) worker(ctx context.Context) {
 	data := make([]metric.RequestMetric, 0, len(hs.batch))
 
 	for r := range hs.batch {
@@ -118,7 +118,7 @@ func (hs *HttpSender) worker(ctx context.Context) {
 	hs.err = hs.doSend(ctx, data)
 }
 
-func (hs *HttpSender) Add(name string, value metric.Metric) Sender {
+func (hs *HTTPSender) Add(name string, value metric.Metric) Sender {
 	if hs.err != nil {
 		return hs
 	}
@@ -150,7 +150,7 @@ func (hs *HttpSender) Add(name string, value metric.Metric) Sender {
 	return hs
 }
 
-func (hs *HttpSender) Send(ctx context.Context, rateLimit int) error {
+func (hs *HTTPSender) Send(ctx context.Context, rateLimit int) error {
 	wg := sync.WaitGroup{}
 	wg.Add(rateLimit)
 	for i := 0; i < rateLimit; i++ {
@@ -167,11 +167,11 @@ func (hs *HttpSender) Send(ctx context.Context, rateLimit int) error {
 	return hs.err
 }
 
-func (hs *HttpSender) Reset() {
+func (hs *HTTPSender) Reset() {
 	hs.batch = make(chan metric.RequestMetric, 1024)
 	hs.err = nil
 }
 
-func (hs *HttpSender) Close() error {
+func (hs *HTTPSender) Close() error {
 	return nil
 }
