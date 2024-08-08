@@ -21,7 +21,6 @@ const (
 	TransportGRPC = "grpc"
 )
 
-// err := sender.SendMetrics(ctx, app.config.ServerAddress, app.config.PollInterval, app.config.Key, app.config.RateLimit, *metrics, app.key)
 func New(transport string, address string, pollInterval time.Duration, secret string, publicKey security.PublicKey) Sender {
 	if transport == TransportGRPC {
 		return NewGRPCSender(address, secret, publicKey)
