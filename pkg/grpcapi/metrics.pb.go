@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.34.2
 // 	protoc        v4.23.4
-// source: proto/metrics.proto
+// source: metrics.proto
 
 package grpcapi
 
@@ -20,21 +20,25 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Metric тип описывающий метрику.
 type Metric struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id    string  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtype string  `protobuf:"bytes,2,opt,name=mtype,proto3" json:"mtype,omitempty"`
-	Delta int64   `protobuf:"varint,3,opt,name=delta,proto3" json:"delta,omitempty"`
-	Value float64 `protobuf:"fixed64,4,opt,name=value,proto3" json:"value,omitempty"`
+	Id    string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`       // имя метрики
+	Mtype string `protobuf:"bytes,2,opt,name=mtype,proto3" json:"mtype,omitempty"` // тип метрики
+	// Types that are assignable to Value:
+	//
+	//	*Metric_Counter
+	//	*Metric_Gauge
+	Value isMetric_Value `protobuf_oneof:"value"`
 }
 
 func (x *Metric) Reset() {
 	*x = Metric{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[0]
+		mi := &file_metrics_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -47,7 +51,7 @@ func (x *Metric) String() string {
 func (*Metric) ProtoMessage() {}
 
 func (x *Metric) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[0]
+	mi := &file_metrics_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +64,7 @@ func (x *Metric) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Metric.ProtoReflect.Descriptor instead.
 func (*Metric) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{0}
+	return file_metrics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Metric) GetId() string {
@@ -77,21 +81,45 @@ func (x *Metric) GetMtype() string {
 	return ""
 }
 
-func (x *Metric) GetDelta() int64 {
-	if x != nil {
-		return x.Delta
+func (m *Metric) GetValue() isMetric_Value {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (x *Metric) GetCounter() int64 {
+	if x, ok := x.GetValue().(*Metric_Counter); ok {
+		return x.Counter
 	}
 	return 0
 }
 
-func (x *Metric) GetValue() float64 {
-	if x != nil {
-		return x.Value
+func (x *Metric) GetGauge() float64 {
+	if x, ok := x.GetValue().(*Metric_Gauge); ok {
+		return x.Gauge
 	}
 	return 0
 }
 
-type GetMetricRequest struct {
+type isMetric_Value interface {
+	isMetric_Value()
+}
+
+type Metric_Counter struct {
+	Counter int64 `protobuf:"varint,3,opt,name=counter,proto3,oneof"` // значение метрики типа счётчик
+}
+
+type Metric_Gauge struct {
+	Gauge float64 `protobuf:"fixed64,4,opt,name=gauge,proto3,oneof"` // значение метрики типа датчик
+}
+
+func (*Metric_Counter) isMetric_Value() {}
+
+func (*Metric_Gauge) isMetric_Value() {}
+
+// GetMetricRequest тип описывающий структуру запроса для получения текущего значения метрики.
+type GetMetricRequestV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -100,23 +128,23 @@ type GetMetricRequest struct {
 	Mtype string `protobuf:"bytes,2,opt,name=mtype,proto3" json:"mtype,omitempty"`
 }
 
-func (x *GetMetricRequest) Reset() {
-	*x = GetMetricRequest{}
+func (x *GetMetricRequestV1) Reset() {
+	*x = GetMetricRequestV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[1]
+		mi := &file_metrics_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *GetMetricRequest) String() string {
+func (x *GetMetricRequestV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetMetricRequest) ProtoMessage() {}
+func (*GetMetricRequestV1) ProtoMessage() {}
 
-func (x *GetMetricRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[1]
+func (x *GetMetricRequestV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,26 +155,27 @@ func (x *GetMetricRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetMetricRequest.ProtoReflect.Descriptor instead.
-func (*GetMetricRequest) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{1}
+// Deprecated: Use GetMetricRequestV1.ProtoReflect.Descriptor instead.
+func (*GetMetricRequestV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetMetricRequest) GetId() string {
+func (x *GetMetricRequestV1) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *GetMetricRequest) GetMtype() string {
+func (x *GetMetricRequestV1) GetMtype() string {
 	if x != nil {
 		return x.Mtype
 	}
 	return ""
 }
 
-type GetMetricResponse struct {
+// GetMetricResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
+type GetMetricResponseV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -154,23 +183,23 @@ type GetMetricResponse struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *GetMetricResponse) Reset() {
-	*x = GetMetricResponse{}
+func (x *GetMetricResponseV1) Reset() {
+	*x = GetMetricResponseV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[2]
+		mi := &file_metrics_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *GetMetricResponse) String() string {
+func (x *GetMetricResponseV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetMetricResponse) ProtoMessage() {}
+func (*GetMetricResponseV1) ProtoMessage() {}
 
-func (x *GetMetricResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[2]
+func (x *GetMetricResponseV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -181,19 +210,20 @@ func (x *GetMetricResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetMetricResponse.ProtoReflect.Descriptor instead.
-func (*GetMetricResponse) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{2}
+// Deprecated: Use GetMetricResponseV1.ProtoReflect.Descriptor instead.
+func (*GetMetricResponseV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetMetricResponse) GetMetric() *Metric {
+func (x *GetMetricResponseV1) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-type UpdateMetricRequest struct {
+// UpdateMetricRequest тип описывающий структуру запроса на обновление текущего значения метрики.
+type UpdateMetricRequestV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -201,23 +231,23 @@ type UpdateMetricRequest struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *UpdateMetricRequest) Reset() {
-	*x = UpdateMetricRequest{}
+func (x *UpdateMetricRequestV1) Reset() {
+	*x = UpdateMetricRequestV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[3]
+		mi := &file_metrics_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *UpdateMetricRequest) String() string {
+func (x *UpdateMetricRequestV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateMetricRequest) ProtoMessage() {}
+func (*UpdateMetricRequestV1) ProtoMessage() {}
 
-func (x *UpdateMetricRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[3]
+func (x *UpdateMetricRequestV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -228,19 +258,20 @@ func (x *UpdateMetricRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateMetricRequest.ProtoReflect.Descriptor instead.
-func (*UpdateMetricRequest) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use UpdateMetricRequestV1.ProtoReflect.Descriptor instead.
+func (*UpdateMetricRequestV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *UpdateMetricRequest) GetMetric() *Metric {
+func (x *UpdateMetricRequestV1) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-type UpdateMetricResponse struct {
+// UpdateMetricRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
+type UpdateMetricResponseV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -248,23 +279,23 @@ type UpdateMetricResponse struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *UpdateMetricResponse) Reset() {
-	*x = UpdateMetricResponse{}
+func (x *UpdateMetricResponseV1) Reset() {
+	*x = UpdateMetricResponseV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[4]
+		mi := &file_metrics_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *UpdateMetricResponse) String() string {
+func (x *UpdateMetricResponseV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateMetricResponse) ProtoMessage() {}
+func (*UpdateMetricResponseV1) ProtoMessage() {}
 
-func (x *UpdateMetricResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[4]
+func (x *UpdateMetricResponseV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -275,19 +306,20 @@ func (x *UpdateMetricResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateMetricResponse.ProtoReflect.Descriptor instead.
-func (*UpdateMetricResponse) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use UpdateMetricResponseV1.ProtoReflect.Descriptor instead.
+func (*UpdateMetricResponseV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *UpdateMetricResponse) GetMetric() *Metric {
+func (x *UpdateMetricResponseV1) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-type BatchUpdateMetricRequest struct {
+// UpdateBatchMetricRequest тип описывающий структуру запроса на обновление текущих значений метрик.
+type UpdateBatchMetricRequestV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -295,23 +327,23 @@ type BatchUpdateMetricRequest struct {
 	Data []*Metric `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
 }
 
-func (x *BatchUpdateMetricRequest) Reset() {
-	*x = BatchUpdateMetricRequest{}
+func (x *UpdateBatchMetricRequestV1) Reset() {
+	*x = UpdateBatchMetricRequestV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[5]
+		mi := &file_metrics_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *BatchUpdateMetricRequest) String() string {
+func (x *UpdateBatchMetricRequestV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchUpdateMetricRequest) ProtoMessage() {}
+func (*UpdateBatchMetricRequestV1) ProtoMessage() {}
 
-func (x *BatchUpdateMetricRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[5]
+func (x *UpdateBatchMetricRequestV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,41 +354,42 @@ func (x *BatchUpdateMetricRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchUpdateMetricRequest.ProtoReflect.Descriptor instead.
-func (*BatchUpdateMetricRequest) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{5}
+// Deprecated: Use UpdateBatchMetricRequestV1.ProtoReflect.Descriptor instead.
+func (*UpdateBatchMetricRequestV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *BatchUpdateMetricRequest) GetData() []*Metric {
+func (x *UpdateBatchMetricRequestV1) GetData() []*Metric {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-type BatchUpdateMetricResponse struct {
+// UpdateBatchMetricResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
+type UpdateBatchMetricResponseV1 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *BatchUpdateMetricResponse) Reset() {
-	*x = BatchUpdateMetricResponse{}
+func (x *UpdateBatchMetricResponseV1) Reset() {
+	*x = UpdateBatchMetricResponseV1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_metrics_proto_msgTypes[6]
+		mi := &file_metrics_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *BatchUpdateMetricResponse) String() string {
+func (x *UpdateBatchMetricResponseV1) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchUpdateMetricResponse) ProtoMessage() {}
+func (*UpdateBatchMetricResponseV1) ProtoMessage() {}
 
-func (x *BatchUpdateMetricResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_metrics_proto_msgTypes[6]
+func (x *UpdateBatchMetricResponseV1) ProtoReflect() protoreflect.Message {
+	mi := &file_metrics_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -367,96 +400,102 @@ func (x *BatchUpdateMetricResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchUpdateMetricResponse.ProtoReflect.Descriptor instead.
-func (*BatchUpdateMetricResponse) Descriptor() ([]byte, []int) {
-	return file_proto_metrics_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use UpdateBatchMetricResponseV1.ProtoReflect.Descriptor instead.
+func (*UpdateBatchMetricResponseV1) Descriptor() ([]byte, []int) {
+	return file_metrics_proto_rawDescGZIP(), []int{6}
 }
 
-var File_proto_metrics_proto protoreflect.FileDescriptor
+var File_metrics_proto protoreflect.FileDescriptor
 
-var file_proto_metrics_proto_rawDesc = []byte{
-	0x0a, 0x13, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x09, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x22, 0x5a, 0x0a, 0x06, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x74,
-	0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65,
-	0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52,
-	0x05, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
-	0x04, 0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x38, 0x0a, 0x10,
-	0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+var file_metrics_proto_rawDesc = []byte{
+	0x0a, 0x0d, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12,
+	0x0c, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x22, 0x6b, 0x0a,
+	0x06, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a,
+	0x07, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x48, 0x00,
+	0x52, 0x07, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x05, 0x67, 0x61, 0x75,
+	0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00, 0x52, 0x05, 0x67, 0x61, 0x75, 0x67,
+	0x65, 0x42, 0x07, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x3a, 0x0a, 0x12, 0x47, 0x65,
+	0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x31,
 	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
 	0x12, 0x14, 0x0a, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x22, 0x3e, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74,
-	0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x29, 0x0a, 0x06, 0x6d,
-	0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x67, 0x6f,
-	0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06,
-	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x40, 0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x29, 0x0a,
-	0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e,
-	0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x41, 0x0a, 0x14, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x29, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x11, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x4d, 0x65, 0x74,
-	0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x41, 0x0a, 0x18, 0x42,
-	0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18,
-	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69,
-	0x63, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x1b,
-	0x0a, 0x19, 0x42, 0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74,
-	0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xf0, 0x01, 0x0a, 0x07,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x12, 0x40, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x1b,
-	0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x65,
-	0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x67, 0x6f,
-	0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69,
-	0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x49, 0x0a, 0x06, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x12, 0x1e, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x58, 0x0a, 0x0b, 0x42, 0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x64,
+	0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x22, 0x43, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74,
+	0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x56, 0x31, 0x12, 0x2c, 0x0a,
+	0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e,
+	0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74,
+	0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x45, 0x0a, 0x15, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x56, 0x31, 0x12, 0x2c, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x22, 0x46, 0x0a, 0x16, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x56, 0x31, 0x12, 0x2c, 0x0a, 0x06,
+	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67,
+	0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x46, 0x0a, 0x1a, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x31, 0x12, 0x28, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x04, 0x64, 0x61,
+	0x74, 0x61, 0x22, 0x1d, 0x0a, 0x1b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x56,
+	0x31, 0x32, 0x8e, 0x02, 0x0a, 0x07, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x12, 0x4a, 0x0a,
+	0x03, 0x47, 0x65, 0x74, 0x12, 0x20, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x56, 0x31, 0x1a, 0x21, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x56, 0x31, 0x12, 0x53, 0x0a, 0x06, 0x55, 0x70, 0x64,
 	0x61, 0x74, 0x65, 0x12, 0x23, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e,
-	0x42, 0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69,
-	0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65,
-	0x74, 0x72, 0x69, 0x63, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x0d,
-	0x5a, 0x0b, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x31, 0x1a, 0x24, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x56, 0x31, 0x12, 0x62,
+	0x0a, 0x0b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x28, 0x2e,
+	0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x31, 0x1a, 0x29, 0x2e, 0x67, 0x6f, 0x2e, 0x6d, 0x65, 0x74,
+	0x72, 0x69, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x56, 0x31, 0x42, 0x28, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x2d, 0x78, 0x2d, 0x61, 0x2f, 0x67, 0x6f, 0x2d, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_proto_metrics_proto_rawDescOnce sync.Once
-	file_proto_metrics_proto_rawDescData = file_proto_metrics_proto_rawDesc
+	file_metrics_proto_rawDescOnce sync.Once
+	file_metrics_proto_rawDescData = file_metrics_proto_rawDesc
 )
 
-func file_proto_metrics_proto_rawDescGZIP() []byte {
-	file_proto_metrics_proto_rawDescOnce.Do(func() {
-		file_proto_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(file_proto_metrics_proto_rawDescData)
+func file_metrics_proto_rawDescGZIP() []byte {
+	file_metrics_proto_rawDescOnce.Do(func() {
+		file_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(file_metrics_proto_rawDescData)
 	})
-	return file_proto_metrics_proto_rawDescData
+	return file_metrics_proto_rawDescData
 }
 
-var file_proto_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_proto_metrics_proto_goTypes = []any{
-	(*Metric)(nil),                    // 0: go.metric.Metric
-	(*GetMetricRequest)(nil),          // 1: go.metric.GetMetricRequest
-	(*GetMetricResponse)(nil),         // 2: go.metric.GetMetricResponse
-	(*UpdateMetricRequest)(nil),       // 3: go.metric.UpdateMetricRequest
-	(*UpdateMetricResponse)(nil),      // 4: go.metric.UpdateMetricResponse
-	(*BatchUpdateMetricRequest)(nil),  // 5: go.metric.BatchUpdateMetricRequest
-	(*BatchUpdateMetricResponse)(nil), // 6: go.metric.BatchUpdateMetricResponse
+var file_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_metrics_proto_goTypes = []any{
+	(*Metric)(nil),                      // 0: go.metric.v1.Metric
+	(*GetMetricRequestV1)(nil),          // 1: go.metric.v1.GetMetricRequestV1
+	(*GetMetricResponseV1)(nil),         // 2: go.metric.v1.GetMetricResponseV1
+	(*UpdateMetricRequestV1)(nil),       // 3: go.metric.v1.UpdateMetricRequestV1
+	(*UpdateMetricResponseV1)(nil),      // 4: go.metric.v1.UpdateMetricResponseV1
+	(*UpdateBatchMetricRequestV1)(nil),  // 5: go.metric.v1.UpdateBatchMetricRequestV1
+	(*UpdateBatchMetricResponseV1)(nil), // 6: go.metric.v1.UpdateBatchMetricResponseV1
 }
-var file_proto_metrics_proto_depIdxs = []int32{
-	0, // 0: go.metric.GetMetricResponse.metric:type_name -> go.metric.Metric
-	0, // 1: go.metric.UpdateMetricRequest.metric:type_name -> go.metric.Metric
-	0, // 2: go.metric.UpdateMetricResponse.metric:type_name -> go.metric.Metric
-	0, // 3: go.metric.BatchUpdateMetricRequest.data:type_name -> go.metric.Metric
-	1, // 4: go.metric.Metrics.Get:input_type -> go.metric.GetMetricRequest
-	3, // 5: go.metric.Metrics.Update:input_type -> go.metric.UpdateMetricRequest
-	5, // 6: go.metric.Metrics.BatchUpdate:input_type -> go.metric.BatchUpdateMetricRequest
-	2, // 7: go.metric.Metrics.Get:output_type -> go.metric.GetMetricResponse
-	4, // 8: go.metric.Metrics.Update:output_type -> go.metric.UpdateMetricResponse
-	6, // 9: go.metric.Metrics.BatchUpdate:output_type -> go.metric.BatchUpdateMetricResponse
+var file_metrics_proto_depIdxs = []int32{
+	0, // 0: go.metric.v1.GetMetricResponseV1.metric:type_name -> go.metric.v1.Metric
+	0, // 1: go.metric.v1.UpdateMetricRequestV1.metric:type_name -> go.metric.v1.Metric
+	0, // 2: go.metric.v1.UpdateMetricResponseV1.metric:type_name -> go.metric.v1.Metric
+	0, // 3: go.metric.v1.UpdateBatchMetricRequestV1.data:type_name -> go.metric.v1.Metric
+	1, // 4: go.metric.v1.Metrics.Get:input_type -> go.metric.v1.GetMetricRequestV1
+	3, // 5: go.metric.v1.Metrics.Update:input_type -> go.metric.v1.UpdateMetricRequestV1
+	5, // 6: go.metric.v1.Metrics.UpdateBatch:input_type -> go.metric.v1.UpdateBatchMetricRequestV1
+	2, // 7: go.metric.v1.Metrics.Get:output_type -> go.metric.v1.GetMetricResponseV1
+	4, // 8: go.metric.v1.Metrics.Update:output_type -> go.metric.v1.UpdateMetricResponseV1
+	6, // 9: go.metric.v1.Metrics.UpdateBatch:output_type -> go.metric.v1.UpdateBatchMetricResponseV1
 	7, // [7:10] is the sub-list for method output_type
 	4, // [4:7] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -464,13 +503,13 @@ var file_proto_metrics_proto_depIdxs = []int32{
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_proto_metrics_proto_init() }
-func file_proto_metrics_proto_init() {
-	if File_proto_metrics_proto != nil {
+func init() { file_metrics_proto_init() }
+func file_metrics_proto_init() {
+	if File_metrics_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_proto_metrics_proto_msgTypes[0].Exporter = func(v any, i int) any {
+		file_metrics_proto_msgTypes[0].Exporter = func(v any, i int) any {
 			switch v := v.(*Metric); i {
 			case 0:
 				return &v.state
@@ -482,8 +521,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*GetMetricRequest); i {
+		file_metrics_proto_msgTypes[1].Exporter = func(v any, i int) any {
+			switch v := v.(*GetMetricRequestV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -494,8 +533,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*GetMetricResponse); i {
+		file_metrics_proto_msgTypes[2].Exporter = func(v any, i int) any {
+			switch v := v.(*GetMetricResponseV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -506,8 +545,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*UpdateMetricRequest); i {
+		file_metrics_proto_msgTypes[3].Exporter = func(v any, i int) any {
+			switch v := v.(*UpdateMetricRequestV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -518,8 +557,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[4].Exporter = func(v any, i int) any {
-			switch v := v.(*UpdateMetricResponse); i {
+		file_metrics_proto_msgTypes[4].Exporter = func(v any, i int) any {
+			switch v := v.(*UpdateMetricResponseV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -530,8 +569,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[5].Exporter = func(v any, i int) any {
-			switch v := v.(*BatchUpdateMetricRequest); i {
+		file_metrics_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*UpdateBatchMetricRequestV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -542,8 +581,8 @@ func file_proto_metrics_proto_init() {
 				return nil
 			}
 		}
-		file_proto_metrics_proto_msgTypes[6].Exporter = func(v any, i int) any {
-			switch v := v.(*BatchUpdateMetricResponse); i {
+		file_metrics_proto_msgTypes[6].Exporter = func(v any, i int) any {
+			switch v := v.(*UpdateBatchMetricResponseV1); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -555,22 +594,26 @@ func file_proto_metrics_proto_init() {
 			}
 		}
 	}
+	file_metrics_proto_msgTypes[0].OneofWrappers = []any{
+		(*Metric_Counter)(nil),
+		(*Metric_Gauge)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_proto_metrics_proto_rawDesc,
+			RawDescriptor: file_metrics_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_metrics_proto_goTypes,
-		DependencyIndexes: file_proto_metrics_proto_depIdxs,
-		MessageInfos:      file_proto_metrics_proto_msgTypes,
+		GoTypes:           file_metrics_proto_goTypes,
+		DependencyIndexes: file_metrics_proto_depIdxs,
+		MessageInfos:      file_metrics_proto_msgTypes,
 	}.Build()
-	File_proto_metrics_proto = out.File
-	file_proto_metrics_proto_rawDesc = nil
-	file_proto_metrics_proto_goTypes = nil
-	file_proto_metrics_proto_depIdxs = nil
+	File_metrics_proto = out.File
+	file_metrics_proto_rawDesc = nil
+	file_metrics_proto_goTypes = nil
+	file_metrics_proto_depIdxs = nil
 }

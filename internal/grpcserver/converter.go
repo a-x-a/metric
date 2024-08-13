@@ -23,13 +23,17 @@ func recordToGRPCMetric(r storage.Record) (*grpcapi.Metric, error) {
 		if !ok {
 			return nil, status.Error(codes.Internal, "fail to convert counter")
 		}
-		result.Delta = int64(v)
+		result.Value = &grpcapi.Metric_Counter{
+			Counter: int64(v),
+		}
 	case value.IsGauge():
 		v, ok := value.(metric.Gauge)
 		if !ok {
 			return nil, status.Error(codes.Internal, "fail to convert gauge")
 		}
-		result.Value = float64(v)
+		result.Value = &grpcapi.Metric_Gauge{
+			Gauge: float64(v),
+		}
 	}
 
 	return result, nil
@@ -37,24 +41,19 @@ func recordToGRPCMetric(r storage.Record) (*grpcapi.Metric, error) {
 
 // grpcMetricToRecord преобразует grpcapi.Metric в storage.Record.
 func grpcMetricToRecord(mr *grpcapi.Metric) (storage.Record, error) {
-	record, err := storage.NewRecord(mr.Id)
+	record, err := storage.NewRecord(mr.GetId())
 	if err != nil {
 		return record, status.Error(codes.Internal, "fail to convert record")
 	}
 
-	kind, err := metric.GetKind(mr.Mtype)
-	if err != nil {
-		return record, status.Error(codes.Internal, "fail to get kind")
-	}
-
 	var value metric.Metric
-
-	switch kind {
-	case metric.KindCounter:
-		value = metric.Counter(mr.Delta)
-
-	case metric.KindGauge:
-		value = metric.Gauge(mr.Value)
+	switch v := mr.Value.(type) {
+	case *grpcapi.Metric_Counter:
+		value = metric.Counter(v.Counter)
+	case *grpcapi.Metric_Gauge:
+		value = metric.Gauge(v.Gauge)
+	default:
+		return record, status.Error(codes.Internal, "fail to convert value")
 	}
 
 	record.SetValue(value)
@@ -64,20 +63,46 @@ func grpcMetricToRecord(mr *grpcapi.Metric) (storage.Record, error) {
 
 // grpcMetricToRequestMetric преобразует grpcapi.Metric в metric.RequestMetric.
 func grpcMetricToRequestMetric(mr *grpcapi.Metric) (metric.RequestMetric, error) {
-	return metric.RequestMetric{
-		ID:    mr.Id,
-		MType: mr.Mtype,
-		Delta: &mr.Delta,
-		Value: &mr.Value,
-	}, nil
+	result := metric.RequestMetric{
+		ID: mr.GetId(),
+	}
+
+	switch v := mr.Value.(type) {
+	case *grpcapi.Metric_Counter:
+		result.MType = string(metric.KindCounter)
+		val := float64(v.Counter)
+		result.Value = &val
+	case *grpcapi.Metric_Gauge:
+		result.MType = string(metric.KindGauge)
+		val := float64(v.Gauge)
+		result.Value = &val
+	default:
+		return result, status.Error(codes.Internal, "fail to convert value")
+	}
+
+	return result, nil
 }
 
 // requestMetricToGRPCMetric преобразует grpcapi.Metric в metric.RequestMetric.
 func requestMetricToGRPCMetric(mr metric.RequestMetric) (*grpcapi.Metric, error) {
-	return &grpcapi.Metric{
+	result := &grpcapi.Metric{
 		Id:    mr.ID,
 		Mtype: mr.MType,
-		Delta: *mr.Delta,
-		Value: *mr.Value,
-	}, nil
+	}
+
+	switch mr.MType {
+	case string(metric.KindCounter):
+		result.Value = &grpcapi.Metric_Counter{
+			Counter: int64(*mr.Delta),
+		}
+	case string(metric.KindGauge):
+		result.Value = &grpcapi.Metric_Gauge{
+			Gauge: float64(*mr.Value),
+		}
+	default:
+		return nil, status.Error(codes.Internal, "fail to convert value")
+	}
+
+	return result, nil
+
 }

@@ -97,7 +97,7 @@ func NewServer(logLevel string) *Server {
 		Handler: rt,
 	}
 
-	grpcMetricServer := grpcserver.New(ms, cfg.GRPCAddress, trustedSubnet)
+	grpcMetricServer := grpcserver.New(ms, cfg.GRPCAddress, trustedSubnet, log)
 
 	return &Server{
 		config:     cfg,

@@ -81,7 +81,7 @@ func Test_serverRunWithMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -127,7 +127,7 @@ func Test_serverRunWithFileStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -174,7 +174,7 @@ func Test_serverErrorListenAndServe(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -202,7 +202,7 @@ func Test_server_saveWithMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -234,7 +234,7 @@ func Test_server_saveAndLoadWithFileStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -256,7 +256,7 @@ func Test_server_loadWitMemStorage(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 
@@ -275,7 +275,7 @@ func Test_server_loadWithError(t *testing.T) {
 		config:     cfg,
 		storage:    stor,
 		httpServer: &http.Server{Addr: cfg.ListenAddress},
-		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil),
+		grpcServer: grpcserver.New(&metricservice.MockMetricService{}, cfg.GRPCAddress, nil, zap.L()),
 		logger:     zap.NewNop(),
 	}
 

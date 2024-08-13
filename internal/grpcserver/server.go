@@ -4,10 +4,12 @@ import (
 	"context"
 	"net"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/a-x-a/go-metric/internal/logger"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
 	"github.com/a-x-a/go-metric/pkg/grpcapi"
@@ -21,11 +23,6 @@ type (
 		trustedSubnet *net.IPNet
 		address       string
 		notify        chan error
-		// config     config.ServerConfig
-		// storage    storage.Storage
-		// grpcServer *grpc.Server
-		// logger     *zap.Logger
-		// key        security.PrivateKey
 	}
 
 	// MetricService содержит описание методов сервиса сбора метрик.
@@ -42,8 +39,12 @@ type (
 
 var _ grpcapi.MetricsServer = MetricServer{}
 
-func New(s MetricService, address string, trustedSubnet *net.IPNet) *MetricServer {
-	grpcServer := grpc.NewServer()
+func New(s MetricService, address string, trustedSubnet *net.IPNet, log *zap.Logger) *MetricServer {
+	opts := make([]grpc.UnaryServerInterceptor, 0, 1)
+	opts = append(opts, logger.UnaryRequestsInterceptor(log))
+
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(opts...))
+
 	srvc := MetricServer{
 		grpcServer:    grpcServer,
 		service:       s,
@@ -79,7 +80,7 @@ func (s MetricServer) Notify() chan error {
 	return s.notify
 }
 
-func (s MetricServer) Get(ctx context.Context, value *grpcapi.GetMetricRequest) (*grpcapi.GetMetricResponse, error) {
+func (s MetricServer) Get(ctx context.Context, value *grpcapi.GetMetricRequestV1) (*grpcapi.GetMetricResponseV1, error) {
 	if len(value.Id) == 0 || len(value.Mtype) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id and mtype is required")
 	}
@@ -94,10 +95,10 @@ func (s MetricServer) Get(ctx context.Context, value *grpcapi.GetMetricRequest) 
 		return nil, err
 	}
 
-	return &grpcapi.GetMetricResponse{Metric: data}, nil
+	return &grpcapi.GetMetricResponseV1{Metric: data}, nil
 }
 
-func (s MetricServer) Update(ctx context.Context, value *grpcapi.UpdateMetricRequest) (*grpcapi.UpdateMetricResponse, error) {
+func (s MetricServer) Update(ctx context.Context, value *grpcapi.UpdateMetricRequestV1) (*grpcapi.UpdateMetricResponseV1, error) {
 	m := value.GetMetric()
 	if len(m.Id) == 0 || len(m.Mtype) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id and mtype is required")
@@ -118,19 +119,20 @@ func (s MetricServer) Update(ctx context.Context, value *grpcapi.UpdateMetricReq
 		return nil, err
 	}
 
-	return &grpcapi.UpdateMetricResponse{Metric: data}, nil
+	return &grpcapi.UpdateMetricResponseV1{Metric: data}, nil
 }
 
-func (s MetricServer) BatchUpdate(ctx context.Context, batch *grpcapi.BatchUpdateMetricRequest) (*grpcapi.BatchUpdateMetricResponse, error) {
+func (s MetricServer) UpdateBatch(ctx context.Context, batch *grpcapi.UpdateBatchMetricRequestV1) (*grpcapi.UpdateBatchMetricResponseV1, error) {
+	response := new(grpcapi.UpdateBatchMetricResponseV1)
 	data := make([]metric.RequestMetric, len(batch.Data))
 	for _, v := range batch.Data {
 		value, err := grpcMetricToRequestMetric(v)
 		if err != nil {
-			return new(grpcapi.BatchUpdateMetricResponse), err
+			return response, err
 		}
 		data = append(data, value)
 	}
 
 	s.service.UpdateBatch(ctx, data)
-	return new(grpcapi.BatchUpdateMetricResponse), nil
+	return response, nil
 }

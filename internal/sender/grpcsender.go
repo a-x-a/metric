@@ -94,11 +94,11 @@ func (gs *GRPCSender) doSend(ctx context.Context, batch []*grpcapi.Metric) error
 	// 	md["HashSHA256"] = hex.EncodeToString(hash)
 	// }
 
-	req := &grpcapi.BatchUpdateMetricRequest{Data: batch}
+	req := &grpcapi.UpdateBatchMetricRequestV1{Data: batch}
 	grpcClient := grpcapi.NewMetricsClient(gs.client)
 	ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
 
-	_, err = grpcClient.BatchUpdate(ctx, req)
+	_, err = grpcClient.UpdateBatch(ctx, req)
 
 	if err != nil {
 		return fmt.Errorf("metrics send failed: (%w)", err)
@@ -111,12 +111,6 @@ func (gs *GRPCSender) worker(ctx context.Context) {
 	data := make([]*grpcapi.Metric, 0, len(gs.batch))
 
 	for r := range gs.batch {
-		// v := grpcapi.Metric{
-		// 	Id:    r.ID,
-		// 	Mtype: r.MType,
-		// 	Delta: *r.Delta,
-		// 	Value: *r.Value,
-		// }
 		data = append(data, r)
 	}
 
@@ -140,14 +134,18 @@ func (gs *GRPCSender) Add(name string, value metric.Metric) Sender {
 			gs.err = fmt.Errorf("fail to convert counter %v", value)
 			return gs
 		}
-		val.Delta = int64(v)
+		val.Value = &grpcapi.Metric_Counter{
+			Counter: int64(v),
+		}
 	case value.IsGauge():
 		v, ok := value.(metric.Gauge)
 		if !ok {
 			gs.err = fmt.Errorf("fail to convert gauge %v", value)
 			return gs
 		}
-		val.Value = float64(v)
+		val.Value = &grpcapi.Metric_Gauge{
+			Gauge: float64(v),
+		}
 	}
 
 	gs.batch <- &val
