@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-// package go.metric.v1;
+package api.proto.v1;
 
 option go_package = "github.com/a-x-a/go-metric/pkg/grpcapi";
 
@@ -44,7 +44,7 @@ message MetricsUpdateBatchRequest {
 message MetricsUpdateBatchResponse {}
 
 // Metrics описание интерфейса сервиса MetricService.
-service Metrics {
+service MetricsService {
   // Get получает текущее значение метрики с указанным именем и типом.
   rpc Get(MetricsGetRequest) returns (MetricsGetResponse);
   // Update обновляет значение метрики.

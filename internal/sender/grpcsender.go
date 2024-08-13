@@ -95,7 +95,7 @@ func (gs *GRPCSender) doSend(ctx context.Context, batch []*grpcapi.Metric) error
 	// }
 
 	req := &grpcapi.MetricsUpdateBatchRequest{Data: batch}
-	grpcClient := grpcapi.NewMetricsClient(gs.client)
+	grpcClient := grpcapi.NewMetricsServiceClient(gs.client)
 	ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
 
 	_, err = grpcClient.UpdateBatch(ctx, req)

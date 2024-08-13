@@ -17,7 +17,7 @@ import (
 
 type (
 	MetricServer struct {
-		grpcapi.UnimplementedMetricsServer
+		grpcapi.UnimplementedMetricsServiceServer
 		grpcServer    *grpc.Server
 		service       MetricService
 		trustedSubnet *net.IPNet
@@ -37,7 +37,7 @@ type (
 	}
 )
 
-var _ grpcapi.MetricsServer = MetricServer{}
+var _ grpcapi.MetricsServiceServer = MetricServer{}
 
 func New(s MetricService, address string, trustedSubnet *net.IPNet, log *zap.Logger) *MetricServer {
 	opts := make([]grpc.UnaryServerInterceptor, 0, 1)
@@ -53,7 +53,7 @@ func New(s MetricService, address string, trustedSubnet *net.IPNet, log *zap.Log
 		notify:        make(chan error, 1),
 	}
 
-	grpcapi.RegisterMetricsServer(grpcServer, srvc)
+	grpcapi.RegisterMetricsServiceServer(grpcServer, srvc)
 
 	return &srvc
 }

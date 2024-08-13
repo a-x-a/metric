@@ -19,15 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metrics_Get_FullMethodName         = "/Metrics/Get"
-	Metrics_Update_FullMethodName      = "/Metrics/Update"
-	Metrics_UpdateBatch_FullMethodName = "/Metrics/UpdateBatch"
+	MetricsService_Get_FullMethodName         = "/api.proto.v1.MetricsService/Get"
+	MetricsService_Update_FullMethodName      = "/api.proto.v1.MetricsService/Update"
+	MetricsService_UpdateBatch_FullMethodName = "/api.proto.v1.MetricsService/UpdateBatch"
 )
 
-// MetricsClient is the client API for Metrics service.
+// MetricsServiceClient is the client API for MetricsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type MetricsClient interface {
+type MetricsServiceClient interface {
 	// Get получает текущее значение метрики с указанным именем и типом.
 	Get(ctx context.Context, in *MetricsGetRequest, opts ...grpc.CallOption) (*MetricsGetResponse, error)
 	// Update обновляет значение метрики.
@@ -36,152 +36,152 @@ type MetricsClient interface {
 	UpdateBatch(ctx context.Context, in *MetricsUpdateBatchRequest, opts ...grpc.CallOption) (*MetricsUpdateBatchResponse, error)
 }
 
-type metricsClient struct {
+type metricsServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewMetricsClient(cc grpc.ClientConnInterface) MetricsClient {
-	return &metricsClient{cc}
+func NewMetricsServiceClient(cc grpc.ClientConnInterface) MetricsServiceClient {
+	return &metricsServiceClient{cc}
 }
 
-func (c *metricsClient) Get(ctx context.Context, in *MetricsGetRequest, opts ...grpc.CallOption) (*MetricsGetResponse, error) {
+func (c *metricsServiceClient) Get(ctx context.Context, in *MetricsGetRequest, opts ...grpc.CallOption) (*MetricsGetResponse, error) {
 	out := new(MetricsGetResponse)
-	err := c.cc.Invoke(ctx, Metrics_Get_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MetricsService_Get_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metricsClient) Update(ctx context.Context, in *MetricsUpdateRequest, opts ...grpc.CallOption) (*MetricsUpdateResponse, error) {
+func (c *metricsServiceClient) Update(ctx context.Context, in *MetricsUpdateRequest, opts ...grpc.CallOption) (*MetricsUpdateResponse, error) {
 	out := new(MetricsUpdateResponse)
-	err := c.cc.Invoke(ctx, Metrics_Update_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MetricsService_Update_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metricsClient) UpdateBatch(ctx context.Context, in *MetricsUpdateBatchRequest, opts ...grpc.CallOption) (*MetricsUpdateBatchResponse, error) {
+func (c *metricsServiceClient) UpdateBatch(ctx context.Context, in *MetricsUpdateBatchRequest, opts ...grpc.CallOption) (*MetricsUpdateBatchResponse, error) {
 	out := new(MetricsUpdateBatchResponse)
-	err := c.cc.Invoke(ctx, Metrics_UpdateBatch_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MetricsService_UpdateBatch_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// MetricsServer is the server API for Metrics service.
-// All implementations must embed UnimplementedMetricsServer
+// MetricsServiceServer is the server API for MetricsService service.
+// All implementations must embed UnimplementedMetricsServiceServer
 // for forward compatibility
-type MetricsServer interface {
+type MetricsServiceServer interface {
 	// Get получает текущее значение метрики с указанным именем и типом.
 	Get(context.Context, *MetricsGetRequest) (*MetricsGetResponse, error)
 	// Update обновляет значение метрики.
 	Update(context.Context, *MetricsUpdateRequest) (*MetricsUpdateResponse, error)
 	// UpdateBatch обновляет значение набора метрик.
 	UpdateBatch(context.Context, *MetricsUpdateBatchRequest) (*MetricsUpdateBatchResponse, error)
-	mustEmbedUnimplementedMetricsServer()
+	mustEmbedUnimplementedMetricsServiceServer()
 }
 
-// UnimplementedMetricsServer must be embedded to have forward compatible implementations.
-type UnimplementedMetricsServer struct {
+// UnimplementedMetricsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedMetricsServiceServer struct {
 }
 
-func (UnimplementedMetricsServer) Get(context.Context, *MetricsGetRequest) (*MetricsGetResponse, error) {
+func (UnimplementedMetricsServiceServer) Get(context.Context, *MetricsGetRequest) (*MetricsGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedMetricsServer) Update(context.Context, *MetricsUpdateRequest) (*MetricsUpdateResponse, error) {
+func (UnimplementedMetricsServiceServer) Update(context.Context, *MetricsUpdateRequest) (*MetricsUpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedMetricsServer) UpdateBatch(context.Context, *MetricsUpdateBatchRequest) (*MetricsUpdateBatchResponse, error) {
+func (UnimplementedMetricsServiceServer) UpdateBatch(context.Context, *MetricsUpdateBatchRequest) (*MetricsUpdateBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBatch not implemented")
 }
-func (UnimplementedMetricsServer) mustEmbedUnimplementedMetricsServer() {}
+func (UnimplementedMetricsServiceServer) mustEmbedUnimplementedMetricsServiceServer() {}
 
-// UnsafeMetricsServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to MetricsServer will
+// UnsafeMetricsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MetricsServiceServer will
 // result in compilation errors.
-type UnsafeMetricsServer interface {
-	mustEmbedUnimplementedMetricsServer()
+type UnsafeMetricsServiceServer interface {
+	mustEmbedUnimplementedMetricsServiceServer()
 }
 
-func RegisterMetricsServer(s grpc.ServiceRegistrar, srv MetricsServer) {
-	s.RegisterService(&Metrics_ServiceDesc, srv)
+func RegisterMetricsServiceServer(s grpc.ServiceRegistrar, srv MetricsServiceServer) {
+	s.RegisterService(&MetricsService_ServiceDesc, srv)
 }
 
-func _Metrics_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetricsService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MetricsGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetricsServer).Get(ctx, in)
+		return srv.(MetricsServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Metrics_Get_FullMethodName,
+		FullMethod: MetricsService_Get_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Get(ctx, req.(*MetricsGetRequest))
+		return srv.(MetricsServiceServer).Get(ctx, req.(*MetricsGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Metrics_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetricsService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MetricsUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetricsServer).Update(ctx, in)
+		return srv.(MetricsServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Metrics_Update_FullMethodName,
+		FullMethod: MetricsService_Update_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Update(ctx, req.(*MetricsUpdateRequest))
+		return srv.(MetricsServiceServer).Update(ctx, req.(*MetricsUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Metrics_UpdateBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetricsService_UpdateBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MetricsUpdateBatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetricsServer).UpdateBatch(ctx, in)
+		return srv.(MetricsServiceServer).UpdateBatch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Metrics_UpdateBatch_FullMethodName,
+		FullMethod: MetricsService_UpdateBatch_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).UpdateBatch(ctx, req.(*MetricsUpdateBatchRequest))
+		return srv.(MetricsServiceServer).UpdateBatch(ctx, req.(*MetricsUpdateBatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Metrics_ServiceDesc is the grpc.ServiceDesc for Metrics service.
+// MetricsService_ServiceDesc is the grpc.ServiceDesc for MetricsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Metrics_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Metrics",
-	HandlerType: (*MetricsServer)(nil),
+var MetricsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.proto.v1.MetricsService",
+	HandlerType: (*MetricsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Get",
-			Handler:    _Metrics_Get_Handler,
+			Handler:    _MetricsService_Get_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _Metrics_Update_Handler,
+			Handler:    _MetricsService_Update_Handler,
 		},
 		{
 			MethodName: "UpdateBatch",
-			Handler:    _Metrics_UpdateBatch_Handler,
+			Handler:    _MetricsService_UpdateBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
