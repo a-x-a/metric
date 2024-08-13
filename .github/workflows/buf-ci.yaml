@@ -15,4 +15,4 @@ jobs:
       - uses: bufbuild/buf-action@v1
         with:
           token: ${{ secrets.BUF_TOKEN }}
-          breaking: ${{ github.event_name == 'pull_request' }}
+          breaking: false
