@@ -80,7 +80,7 @@ func (s MetricServer) Notify() chan error {
 	return s.notify
 }
 
-func (s MetricServer) Get(ctx context.Context, value *grpcapi.MetricGetRequestV1) (*grpcapi.MetricGetResponseV1, error) {
+func (s MetricServer) Get(ctx context.Context, value *grpcapi.MetricGetRequest) (*grpcapi.MetricGetResponse, error) {
 	if len(value.Id) == 0 || len(value.Mtype) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id and mtype is required")
 	}
@@ -95,10 +95,10 @@ func (s MetricServer) Get(ctx context.Context, value *grpcapi.MetricGetRequestV1
 		return nil, err
 	}
 
-	return &grpcapi.MetricGetResponseV1{Metric: data}, nil
+	return &grpcapi.MetricGetResponse{Metric: data}, nil
 }
 
-func (s MetricServer) Update(ctx context.Context, value *grpcapi.MetricUpdateRequestV1) (*grpcapi.MetricUpdateResponseV1, error) {
+func (s MetricServer) Update(ctx context.Context, value *grpcapi.MetricUpdateRequest) (*grpcapi.MetricUpdateResponse, error) {
 	m := value.GetMetric()
 	if len(m.Id) == 0 || len(m.Mtype) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id and mtype is required")
@@ -119,11 +119,11 @@ func (s MetricServer) Update(ctx context.Context, value *grpcapi.MetricUpdateReq
 		return nil, err
 	}
 
-	return &grpcapi.MetricUpdateResponseV1{Metric: data}, nil
+	return &grpcapi.MetricUpdateResponse{Metric: data}, nil
 }
 
-func (s MetricServer) UpdateBatch(ctx context.Context, batch *grpcapi.MetricUpdateBatchRequestV1) (*grpcapi.MetricUpdateBatchResponseV1, error) {
-	response := new(grpcapi.MetricUpdateBatchResponseV1)
+func (s MetricServer) UpdateBatch(ctx context.Context, batch *grpcapi.MetricUpdateBatchRequest) (*grpcapi.MetricUpdateBatchResponse, error) {
+	response := new(grpcapi.MetricUpdateBatchResponse)
 	data := make([]metric.RequestMetric, len(batch.Data))
 	for _, v := range batch.Data {
 		value, err := grpcMetricToRequestMetric(v)

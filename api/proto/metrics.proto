@@ -14,41 +14,41 @@ message Metric {
   }
 }
 
-// MetricGetRequestV1 тип описывающий структуру запроса для получения текущего значения метрики.
-message MetricGetRequestV1 {
+// MetricGetRequest тип описывающий структуру запроса для получения текущего значения метрики.
+message MetricGetRequest {
   string id = 1;
   string mtype = 2;
 }
 
 // MetricGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
-message MetricGetResponseV1 {
+message MetricGetResponse {
   Metric metric = 1;
 }
 
 // MetricUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
-message MetricUpdateRequestV1 {
+message MetricUpdateRequest {
    Metric metric = 1;
 }
 
 // MetricUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
-message MetricUpdateResponseV1 {
+message MetricUpdateResponse {
   Metric metric = 1;
 }
 
 // MetricUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
-message MetricUpdateBatchRequestV1 {
+message MetricUpdateBatchRequest {
   repeated Metric data = 1;
 }
 
 // MetricUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
-message MetricUpdateBatchResponseV1 {}
+message MetricUpdateBatchResponse {}
 
 // Metrics описание интерфейса сервиса MetricService.
 service Metrics {
   // Get получает текущее значение метрики с указанным именем и типом.
-  rpc Get(MetricGetRequestV1) returns (MetricGetResponseV1);
+  rpc Get(MetricGetRequest) returns (MetricGetResponse);
   // Update обновляет значение метрики.
-  rpc Update(MetricUpdateRequestV1) returns (MetricUpdateResponseV1);
+  rpc Update(MetricUpdateRequest) returns (MetricUpdateResponse);
   // UpdateBatch обновляет значение набора метрик.
-  rpc UpdateBatch(MetricUpdateBatchRequestV1) returns (MetricUpdateBatchResponseV1);
+  rpc UpdateBatch(MetricUpdateBatchRequest) returns (MetricUpdateBatchResponse);
 }
