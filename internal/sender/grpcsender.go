@@ -64,19 +64,6 @@ func (gs *GRPCSender) doSend(ctx context.Context, batch []*grpcapi.Metric) error
 		}
 	}
 
-	// var buf bytes.Buffer
-	// if err = encoder.Encoding(data, &buf); err != nil {
-	// 	return err
-	// }
-
-	// if hs.cryptoKey != nil {
-	// 	b, err := security.Encrypt(&buf, hs.cryptoKey)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	buf = *b
-	// }
-
 	md := make(map[string]string)
 	ip, err := getOutboundIP()
 	if err != nil {
@@ -85,16 +72,7 @@ func (gs *GRPCSender) doSend(ctx context.Context, batch []*grpcapi.Metric) error
 
 	md["X-Real-IP"] = ip.String()
 
-	// if gs.signer != nil {
-	// 	var hash []byte
-	// 	hash, err = gs.signer.Hash(data)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	md["HashSHA256"] = hex.EncodeToString(hash)
-	// }
-
-	req := &grpcapi.MetricsUpdateBatchRequest{Data: batch}
+	req := &grpcapi.UpdateBatchRequest{Data: batch}
 	grpcClient := grpcapi.NewMetricsServiceClient(gs.client)
 	ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
 
