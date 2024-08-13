@@ -128,6 +128,8 @@ func (cfg *ServerConfig) Parse() error {
 			cfg.CryptoKey = tmp.CryptoKey
 		case "t":
 			cfg.TrustedSubnet = tmp.TrustedSubnet
+		case "grpc-address":
+			cfg.GRPCAddress = tmp.GRPCAddress
 		}
 	})
 
@@ -140,7 +142,7 @@ func (cfg *ServerConfig) Parse() error {
 
 func declarateServerFlags(cfg *ServerConfig) {
 	if flag.Lookup("a") == nil {
-		flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт сервера сбора метрик")
+		flag.StringVar(&cfg.ListenAddress, "a", cfg.ListenAddress, "адрес и порт HTTP сервера сбора метрик")
 	}
 
 	if flag.Lookup("f") == nil {
@@ -165,5 +167,9 @@ func declarateServerFlags(cfg *ServerConfig) {
 
 	if flag.Lookup("t") == nil {
 		flag.StringVar(&cfg.TrustedSubnet, "t", cfg.TrustedSubnet, "доверенная подсеть в нотации CIDR")
+	}
+
+	if flag.Lookup("grpc-address") == nil {
+		flag.StringVar(&cfg.GRPCAddress, "grpc-address", cfg.GRPCAddress, "адрес и порт GRPC сервера сбора метрик")
 	}
 }

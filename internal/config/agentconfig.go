@@ -123,6 +123,8 @@ func (cfg *AgentConfig) Parse() error {
 			cfg.RateLimit = tmp.RateLimit
 		case "crypto-key":
 			cfg.CryptoKey = tmp.CryptoKey
+		case "transport":
+			cfg.Transport = tmp.Transport
 		}
 	})
 
@@ -152,5 +154,9 @@ func declarateAgentFlags(cfg *AgentConfig) {
 
 	if flag.Lookup("crypto-key") == nil {
 		flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "путь до файла с публичным ключом в формате PEM")
+	}
+
+	if flag.Lookup("transport") == nil {
+		flag.StringVar(&cfg.Transport, "transport", cfg.Transport, "протокол передачи данных (http, grpc)")
 	}
 }
