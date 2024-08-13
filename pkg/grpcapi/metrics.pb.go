@@ -118,8 +118,8 @@ func (*Metric_Counter) isMetric_Value() {}
 
 func (*Metric_Gauge) isMetric_Value() {}
 
-// MetricGetRequest тип описывающий структуру запроса для получения текущего значения метрики.
-type MetricGetRequest struct {
+// MetricsGetRequest тип описывающий структуру запроса для получения текущего значения метрики.
+type MetricsGetRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -128,8 +128,8 @@ type MetricGetRequest struct {
 	Mtype string `protobuf:"bytes,2,opt,name=mtype,proto3" json:"mtype,omitempty"`
 }
 
-func (x *MetricGetRequest) Reset() {
-	*x = MetricGetRequest{}
+func (x *MetricsGetRequest) Reset() {
+	*x = MetricsGetRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -137,13 +137,13 @@ func (x *MetricGetRequest) Reset() {
 	}
 }
 
-func (x *MetricGetRequest) String() string {
+func (x *MetricsGetRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricGetRequest) ProtoMessage() {}
+func (*MetricsGetRequest) ProtoMessage() {}
 
-func (x *MetricGetRequest) ProtoReflect() protoreflect.Message {
+func (x *MetricsGetRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -155,27 +155,27 @@ func (x *MetricGetRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricGetRequest.ProtoReflect.Descriptor instead.
-func (*MetricGetRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsGetRequest.ProtoReflect.Descriptor instead.
+func (*MetricsGetRequest) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *MetricGetRequest) GetId() string {
+func (x *MetricsGetRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *MetricGetRequest) GetMtype() string {
+func (x *MetricsGetRequest) GetMtype() string {
 	if x != nil {
 		return x.Mtype
 	}
 	return ""
 }
 
-// MetricGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
-type MetricGetResponse struct {
+// MetricsGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
+type MetricsGetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -183,8 +183,8 @@ type MetricGetResponse struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *MetricGetResponse) Reset() {
-	*x = MetricGetResponse{}
+func (x *MetricsGetResponse) Reset() {
+	*x = MetricsGetResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -192,13 +192,13 @@ func (x *MetricGetResponse) Reset() {
 	}
 }
 
-func (x *MetricGetResponse) String() string {
+func (x *MetricsGetResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricGetResponse) ProtoMessage() {}
+func (*MetricsGetResponse) ProtoMessage() {}
 
-func (x *MetricGetResponse) ProtoReflect() protoreflect.Message {
+func (x *MetricsGetResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -210,20 +210,20 @@ func (x *MetricGetResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricGetResponse.ProtoReflect.Descriptor instead.
-func (*MetricGetResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsGetResponse.ProtoReflect.Descriptor instead.
+func (*MetricsGetResponse) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *MetricGetResponse) GetMetric() *Metric {
+func (x *MetricsGetResponse) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-// MetricUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
-type MetricUpdateRequest struct {
+// MetricsUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
+type MetricsUpdateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -231,8 +231,8 @@ type MetricUpdateRequest struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *MetricUpdateRequest) Reset() {
-	*x = MetricUpdateRequest{}
+func (x *MetricsUpdateRequest) Reset() {
+	*x = MetricsUpdateRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -240,13 +240,13 @@ func (x *MetricUpdateRequest) Reset() {
 	}
 }
 
-func (x *MetricUpdateRequest) String() string {
+func (x *MetricsUpdateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricUpdateRequest) ProtoMessage() {}
+func (*MetricsUpdateRequest) ProtoMessage() {}
 
-func (x *MetricUpdateRequest) ProtoReflect() protoreflect.Message {
+func (x *MetricsUpdateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -258,20 +258,20 @@ func (x *MetricUpdateRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricUpdateRequest.ProtoReflect.Descriptor instead.
-func (*MetricUpdateRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsUpdateRequest.ProtoReflect.Descriptor instead.
+func (*MetricsUpdateRequest) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *MetricUpdateRequest) GetMetric() *Metric {
+func (x *MetricsUpdateRequest) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-// MetricUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
-type MetricUpdateResponse struct {
+// MetricsUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
+type MetricsUpdateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -279,8 +279,8 @@ type MetricUpdateResponse struct {
 	Metric *Metric `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
 }
 
-func (x *MetricUpdateResponse) Reset() {
-	*x = MetricUpdateResponse{}
+func (x *MetricsUpdateResponse) Reset() {
+	*x = MetricsUpdateResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -288,13 +288,13 @@ func (x *MetricUpdateResponse) Reset() {
 	}
 }
 
-func (x *MetricUpdateResponse) String() string {
+func (x *MetricsUpdateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricUpdateResponse) ProtoMessage() {}
+func (*MetricsUpdateResponse) ProtoMessage() {}
 
-func (x *MetricUpdateResponse) ProtoReflect() protoreflect.Message {
+func (x *MetricsUpdateResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -306,20 +306,20 @@ func (x *MetricUpdateResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricUpdateResponse.ProtoReflect.Descriptor instead.
-func (*MetricUpdateResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsUpdateResponse.ProtoReflect.Descriptor instead.
+func (*MetricsUpdateResponse) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *MetricUpdateResponse) GetMetric() *Metric {
+func (x *MetricsUpdateResponse) GetMetric() *Metric {
 	if x != nil {
 		return x.Metric
 	}
 	return nil
 }
 
-// MetricUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
-type MetricUpdateBatchRequest struct {
+// MetricsUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
+type MetricsUpdateBatchRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -327,8 +327,8 @@ type MetricUpdateBatchRequest struct {
 	Data []*Metric `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
 }
 
-func (x *MetricUpdateBatchRequest) Reset() {
-	*x = MetricUpdateBatchRequest{}
+func (x *MetricsUpdateBatchRequest) Reset() {
+	*x = MetricsUpdateBatchRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -336,13 +336,13 @@ func (x *MetricUpdateBatchRequest) Reset() {
 	}
 }
 
-func (x *MetricUpdateBatchRequest) String() string {
+func (x *MetricsUpdateBatchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricUpdateBatchRequest) ProtoMessage() {}
+func (*MetricsUpdateBatchRequest) ProtoMessage() {}
 
-func (x *MetricUpdateBatchRequest) ProtoReflect() protoreflect.Message {
+func (x *MetricsUpdateBatchRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -354,27 +354,27 @@ func (x *MetricUpdateBatchRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricUpdateBatchRequest.ProtoReflect.Descriptor instead.
-func (*MetricUpdateBatchRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsUpdateBatchRequest.ProtoReflect.Descriptor instead.
+func (*MetricsUpdateBatchRequest) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *MetricUpdateBatchRequest) GetData() []*Metric {
+func (x *MetricsUpdateBatchRequest) GetData() []*Metric {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-// MetricUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
-type MetricUpdateBatchResponse struct {
+// MetricsUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
+type MetricsUpdateBatchResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *MetricUpdateBatchResponse) Reset() {
-	*x = MetricUpdateBatchResponse{}
+func (x *MetricsUpdateBatchResponse) Reset() {
+	*x = MetricsUpdateBatchResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_metrics_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -382,13 +382,13 @@ func (x *MetricUpdateBatchResponse) Reset() {
 	}
 }
 
-func (x *MetricUpdateBatchResponse) String() string {
+func (x *MetricsUpdateBatchResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MetricUpdateBatchResponse) ProtoMessage() {}
+func (*MetricsUpdateBatchResponse) ProtoMessage() {}
 
-func (x *MetricUpdateBatchResponse) ProtoReflect() protoreflect.Message {
+func (x *MetricsUpdateBatchResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_metrics_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -400,8 +400,8 @@ func (x *MetricUpdateBatchResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MetricUpdateBatchResponse.ProtoReflect.Descriptor instead.
-func (*MetricUpdateBatchResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use MetricsUpdateBatchResponse.ProtoReflect.Descriptor instead.
+func (*MetricsUpdateBatchResponse) Descriptor() ([]byte, []int) {
 	return file_metrics_proto_rawDescGZIP(), []int{6}
 }
 
@@ -415,41 +415,42 @@ var file_metrics_proto_rawDesc = []byte{
 	0x1a, 0x0a, 0x07, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03,
 	0x48, 0x00, 0x52, 0x07, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x05, 0x67,
 	0x61, 0x75, 0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00, 0x52, 0x05, 0x67, 0x61,
-	0x75, 0x67, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x38, 0x0a, 0x10,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x14, 0x0a, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x22, 0x34, 0x0a, 0x11, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x06, 0x6d,
-	0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d, 0x65,
-	0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x36, 0x0a, 0x13,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65,
-	0x74, 0x72, 0x69, 0x63, 0x22, 0x37, 0x0a, 0x14, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70,
-	0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x06,
-	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d,
-	0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x37, 0x0a,
-	0x18, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x04, 0x64, 0x61, 0x74,
-	0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x1b, 0x0a, 0x19, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x32, 0xb4, 0x01, 0x0a, 0x07, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x12,
-	0x2c, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x11, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x47,
-	0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x4d, 0x65, 0x74, 0x72,
-	0x69, 0x63, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x35, 0x0a,
-	0x06, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x14, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e,
-	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x44, 0x0a, 0x0b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61,
-	0x74, 0x63, 0x68, 0x12, 0x19, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a,
-	0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x28, 0x5a, 0x26, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x2d, 0x78, 0x2d, 0x61, 0x2f, 0x67,
-	0x6f, 0x2d, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x72, 0x70,
-	0x63, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x75, 0x67, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x39, 0x0a, 0x11,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
+	0x64, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x6d, 0x74, 0x79, 0x70, 0x65, 0x22, 0x35, 0x0a, 0x12, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x73, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a,
+	0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x37,
+	0x0a, 0x14, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52,
+	0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x38, 0x0a, 0x15, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x1f, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x07, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x22, 0x38, 0x0a, 0x19, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b,
+	0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x1c, 0x0a, 0x1a, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xba, 0x01, 0x0a, 0x07, 0x4d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x12, 0x2e, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x13, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x06, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12,
+	0x15, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73,
+	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x46,
+	0x0a, 0x0b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x1a, 0x2e,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x4d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x28, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x2d, 0x78, 0x2d, 0x61, 0x2f, 0x67, 0x6f, 0x2d, 0x6d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x61, 0x70, 0x69,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -466,25 +467,25 @@ func file_metrics_proto_rawDescGZIP() []byte {
 
 var file_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_metrics_proto_goTypes = []any{
-	(*Metric)(nil),                    // 0: Metric
-	(*MetricGetRequest)(nil),          // 1: MetricGetRequest
-	(*MetricGetResponse)(nil),         // 2: MetricGetResponse
-	(*MetricUpdateRequest)(nil),       // 3: MetricUpdateRequest
-	(*MetricUpdateResponse)(nil),      // 4: MetricUpdateResponse
-	(*MetricUpdateBatchRequest)(nil),  // 5: MetricUpdateBatchRequest
-	(*MetricUpdateBatchResponse)(nil), // 6: MetricUpdateBatchResponse
+	(*Metric)(nil),                     // 0: Metric
+	(*MetricsGetRequest)(nil),          // 1: MetricsGetRequest
+	(*MetricsGetResponse)(nil),         // 2: MetricsGetResponse
+	(*MetricsUpdateRequest)(nil),       // 3: MetricsUpdateRequest
+	(*MetricsUpdateResponse)(nil),      // 4: MetricsUpdateResponse
+	(*MetricsUpdateBatchRequest)(nil),  // 5: MetricsUpdateBatchRequest
+	(*MetricsUpdateBatchResponse)(nil), // 6: MetricsUpdateBatchResponse
 }
 var file_metrics_proto_depIdxs = []int32{
-	0, // 0: MetricGetResponse.metric:type_name -> Metric
-	0, // 1: MetricUpdateRequest.metric:type_name -> Metric
-	0, // 2: MetricUpdateResponse.metric:type_name -> Metric
-	0, // 3: MetricUpdateBatchRequest.data:type_name -> Metric
-	1, // 4: Metrics.Get:input_type -> MetricGetRequest
-	3, // 5: Metrics.Update:input_type -> MetricUpdateRequest
-	5, // 6: Metrics.UpdateBatch:input_type -> MetricUpdateBatchRequest
-	2, // 7: Metrics.Get:output_type -> MetricGetResponse
-	4, // 8: Metrics.Update:output_type -> MetricUpdateResponse
-	6, // 9: Metrics.UpdateBatch:output_type -> MetricUpdateBatchResponse
+	0, // 0: MetricsGetResponse.metric:type_name -> Metric
+	0, // 1: MetricsUpdateRequest.metric:type_name -> Metric
+	0, // 2: MetricsUpdateResponse.metric:type_name -> Metric
+	0, // 3: MetricsUpdateBatchRequest.data:type_name -> Metric
+	1, // 4: Metrics.Get:input_type -> MetricsGetRequest
+	3, // 5: Metrics.Update:input_type -> MetricsUpdateRequest
+	5, // 6: Metrics.UpdateBatch:input_type -> MetricsUpdateBatchRequest
+	2, // 7: Metrics.Get:output_type -> MetricsGetResponse
+	4, // 8: Metrics.Update:output_type -> MetricsUpdateResponse
+	6, // 9: Metrics.UpdateBatch:output_type -> MetricsUpdateBatchResponse
 	7, // [7:10] is the sub-list for method output_type
 	4, // [4:7] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -511,7 +512,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricGetRequest); i {
+			switch v := v.(*MetricsGetRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -523,7 +524,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricGetResponse); i {
+			switch v := v.(*MetricsGetResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -535,7 +536,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricUpdateRequest); i {
+			switch v := v.(*MetricsUpdateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -547,7 +548,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[4].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricUpdateResponse); i {
+			switch v := v.(*MetricsUpdateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -559,7 +560,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[5].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricUpdateBatchRequest); i {
+			switch v := v.(*MetricsUpdateBatchRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -571,7 +572,7 @@ func file_metrics_proto_init() {
 			}
 		}
 		file_metrics_proto_msgTypes[6].Exporter = func(v any, i int) any {
-			switch v := v.(*MetricUpdateBatchResponse); i {
+			switch v := v.(*MetricsUpdateBatchResponse); i {
 			case 0:
 				return &v.state
 			case 1:

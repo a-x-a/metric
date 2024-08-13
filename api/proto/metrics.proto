@@ -14,41 +14,41 @@ message Metric {
   }
 }
 
-// MetricGetRequest тип описывающий структуру запроса для получения текущего значения метрики.
-message MetricGetRequest {
+// MetricsGetRequest тип описывающий структуру запроса для получения текущего значения метрики.
+message MetricsGetRequest {
   string id = 1;
   string mtype = 2;
 }
 
-// MetricGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
-message MetricGetResponse {
+// MetricsGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
+message MetricsGetResponse {
   Metric metric = 1;
 }
 
-// MetricUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
-message MetricUpdateRequest {
+// MetricsUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
+message MetricsUpdateRequest {
    Metric metric = 1;
 }
 
-// MetricUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
-message MetricUpdateResponse {
+// MetricsUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
+message MetricsUpdateResponse {
   Metric metric = 1;
 }
 
-// MetricUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
-message MetricUpdateBatchRequest {
+// MetricsUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
+message MetricsUpdateBatchRequest {
   repeated Metric data = 1;
 }
 
-// MetricUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
-message MetricUpdateBatchResponse {}
+// MetricsUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
+message MetricsUpdateBatchResponse {}
 
 // Metrics описание интерфейса сервиса MetricService.
 service Metrics {
   // Get получает текущее значение метрики с указанным именем и типом.
-  rpc Get(MetricGetRequest) returns (MetricGetResponse);
+  rpc Get(MetricsGetRequest) returns (MetricsGetResponse);
   // Update обновляет значение метрики.
-  rpc Update(MetricUpdateRequest) returns (MetricUpdateResponse);
+  rpc Update(MetricsUpdateRequest) returns (MetricsUpdateResponse);
   // UpdateBatch обновляет значение набора метрик.
-  rpc UpdateBatch(MetricUpdateBatchRequest) returns (MetricUpdateBatchResponse);
+  rpc UpdateBatch(MetricsUpdateBatchRequest) returns (MetricsUpdateBatchResponse);
 }
