@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metrics_Get_FullMethodName         = "/go.metric.v1.Metrics/Get"
-	Metrics_Update_FullMethodName      = "/go.metric.v1.Metrics/Update"
-	Metrics_UpdateBatch_FullMethodName = "/go.metric.v1.Metrics/UpdateBatch"
+	Metrics_Get_FullMethodName         = "/Metrics/Get"
+	Metrics_Update_FullMethodName      = "/Metrics/Update"
+	Metrics_UpdateBatch_FullMethodName = "/Metrics/UpdateBatch"
 )
 
 // MetricsClient is the client API for Metrics service.
@@ -29,11 +29,11 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricsClient interface {
 	// Get получает текущее значение метрики с указанным именем и типом.
-	Get(ctx context.Context, in *GetMetricRequestV1, opts ...grpc.CallOption) (*GetMetricResponseV1, error)
+	Get(ctx context.Context, in *MetricGetRequestV1, opts ...grpc.CallOption) (*MetricGetResponseV1, error)
 	// Update обновляет значение метрики.
-	Update(ctx context.Context, in *UpdateMetricRequestV1, opts ...grpc.CallOption) (*UpdateMetricResponseV1, error)
+	Update(ctx context.Context, in *MetricUpdateRequestV1, opts ...grpc.CallOption) (*MetricUpdateResponseV1, error)
 	// UpdateBatch обновляет значение набора метрик.
-	UpdateBatch(ctx context.Context, in *UpdateBatchMetricRequestV1, opts ...grpc.CallOption) (*UpdateBatchMetricResponseV1, error)
+	UpdateBatch(ctx context.Context, in *MetricUpdateBatchRequestV1, opts ...grpc.CallOption) (*MetricUpdateBatchResponseV1, error)
 }
 
 type metricsClient struct {
@@ -44,8 +44,8 @@ func NewMetricsClient(cc grpc.ClientConnInterface) MetricsClient {
 	return &metricsClient{cc}
 }
 
-func (c *metricsClient) Get(ctx context.Context, in *GetMetricRequestV1, opts ...grpc.CallOption) (*GetMetricResponseV1, error) {
-	out := new(GetMetricResponseV1)
+func (c *metricsClient) Get(ctx context.Context, in *MetricGetRequestV1, opts ...grpc.CallOption) (*MetricGetResponseV1, error) {
+	out := new(MetricGetResponseV1)
 	err := c.cc.Invoke(ctx, Metrics_Get_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -53,8 +53,8 @@ func (c *metricsClient) Get(ctx context.Context, in *GetMetricRequestV1, opts ..
 	return out, nil
 }
 
-func (c *metricsClient) Update(ctx context.Context, in *UpdateMetricRequestV1, opts ...grpc.CallOption) (*UpdateMetricResponseV1, error) {
-	out := new(UpdateMetricResponseV1)
+func (c *metricsClient) Update(ctx context.Context, in *MetricUpdateRequestV1, opts ...grpc.CallOption) (*MetricUpdateResponseV1, error) {
+	out := new(MetricUpdateResponseV1)
 	err := c.cc.Invoke(ctx, Metrics_Update_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (c *metricsClient) Update(ctx context.Context, in *UpdateMetricRequestV1, o
 	return out, nil
 }
 
-func (c *metricsClient) UpdateBatch(ctx context.Context, in *UpdateBatchMetricRequestV1, opts ...grpc.CallOption) (*UpdateBatchMetricResponseV1, error) {
-	out := new(UpdateBatchMetricResponseV1)
+func (c *metricsClient) UpdateBatch(ctx context.Context, in *MetricUpdateBatchRequestV1, opts ...grpc.CallOption) (*MetricUpdateBatchResponseV1, error) {
+	out := new(MetricUpdateBatchResponseV1)
 	err := c.cc.Invoke(ctx, Metrics_UpdateBatch_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -76,11 +76,11 @@ func (c *metricsClient) UpdateBatch(ctx context.Context, in *UpdateBatchMetricRe
 // for forward compatibility
 type MetricsServer interface {
 	// Get получает текущее значение метрики с указанным именем и типом.
-	Get(context.Context, *GetMetricRequestV1) (*GetMetricResponseV1, error)
+	Get(context.Context, *MetricGetRequestV1) (*MetricGetResponseV1, error)
 	// Update обновляет значение метрики.
-	Update(context.Context, *UpdateMetricRequestV1) (*UpdateMetricResponseV1, error)
+	Update(context.Context, *MetricUpdateRequestV1) (*MetricUpdateResponseV1, error)
 	// UpdateBatch обновляет значение набора метрик.
-	UpdateBatch(context.Context, *UpdateBatchMetricRequestV1) (*UpdateBatchMetricResponseV1, error)
+	UpdateBatch(context.Context, *MetricUpdateBatchRequestV1) (*MetricUpdateBatchResponseV1, error)
 	mustEmbedUnimplementedMetricsServer()
 }
 
@@ -88,13 +88,13 @@ type MetricsServer interface {
 type UnimplementedMetricsServer struct {
 }
 
-func (UnimplementedMetricsServer) Get(context.Context, *GetMetricRequestV1) (*GetMetricResponseV1, error) {
+func (UnimplementedMetricsServer) Get(context.Context, *MetricGetRequestV1) (*MetricGetResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedMetricsServer) Update(context.Context, *UpdateMetricRequestV1) (*UpdateMetricResponseV1, error) {
+func (UnimplementedMetricsServer) Update(context.Context, *MetricUpdateRequestV1) (*MetricUpdateResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedMetricsServer) UpdateBatch(context.Context, *UpdateBatchMetricRequestV1) (*UpdateBatchMetricResponseV1, error) {
+func (UnimplementedMetricsServer) UpdateBatch(context.Context, *MetricUpdateBatchRequestV1) (*MetricUpdateBatchResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBatch not implemented")
 }
 func (UnimplementedMetricsServer) mustEmbedUnimplementedMetricsServer() {}
@@ -111,7 +111,7 @@ func RegisterMetricsServer(s grpc.ServiceRegistrar, srv MetricsServer) {
 }
 
 func _Metrics_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMetricRequestV1)
+	in := new(MetricGetRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -123,13 +123,13 @@ func _Metrics_Get_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: Metrics_Get_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Get(ctx, req.(*GetMetricRequestV1))
+		return srv.(MetricsServer).Get(ctx, req.(*MetricGetRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Metrics_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateMetricRequestV1)
+	in := new(MetricUpdateRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -141,13 +141,13 @@ func _Metrics_Update_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: Metrics_Update_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Update(ctx, req.(*UpdateMetricRequestV1))
+		return srv.(MetricsServer).Update(ctx, req.(*MetricUpdateRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Metrics_UpdateBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateBatchMetricRequestV1)
+	in := new(MetricUpdateBatchRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func _Metrics_UpdateBatch_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Metrics_UpdateBatch_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).UpdateBatch(ctx, req.(*UpdateBatchMetricRequestV1))
+		return srv.(MetricsServer).UpdateBatch(ctx, req.(*MetricUpdateBatchRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -168,7 +168,7 @@ func _Metrics_UpdateBatch_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Metrics_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "go.metric.v1.Metrics",
+	ServiceName: "Metrics",
 	HandlerType: (*MetricsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -94,7 +94,7 @@ func (gs *GRPCSender) doSend(ctx context.Context, batch []*grpcapi.Metric) error
 	// 	md["HashSHA256"] = hex.EncodeToString(hash)
 	// }
 
-	req := &grpcapi.UpdateBatchMetricRequestV1{Data: batch}
+	req := &grpcapi.MetricUpdateBatchRequestV1{Data: batch}
 	grpcClient := grpcapi.NewMetricsClient(gs.client)
 	ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
 

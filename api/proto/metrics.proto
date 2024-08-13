@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package go.metric.v1;
+// package go.metric.v1;
 
 option go_package = "github.com/a-x-a/go-metric/pkg/grpcapi";
 
@@ -14,41 +14,41 @@ message Metric {
   }
 }
 
-// GetMetricRequest тип описывающий структуру запроса для получения текущего значения метрики.
-message GetMetricRequestV1 {
+// MetricGetRequestV1 тип описывающий структуру запроса для получения текущего значения метрики.
+message MetricGetRequestV1 {
   string id = 1;
   string mtype = 2;
 }
 
-// GetMetricResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
-message GetMetricResponseV1 {
+// MetricGetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
+message MetricGetResponseV1 {
   Metric metric = 1;
 }
 
-// UpdateMetricRequest тип описывающий структуру запроса на обновление текущего значения метрики.
-message UpdateMetricRequestV1 {
+// MetricUpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
+message MetricUpdateRequestV1 {
    Metric metric = 1;
 }
 
-// UpdateMetricRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
-message UpdateMetricResponseV1 {
+// MetricUpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
+message MetricUpdateResponseV1 {
   Metric metric = 1;
 }
 
-// UpdateBatchMetricRequest тип описывающий структуру запроса на обновление текущих значений метрик.
-message UpdateBatchMetricRequestV1 {
+// MetricUpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
+message MetricUpdateBatchRequestV1 {
   repeated Metric data = 1;
 }
 
-// UpdateBatchMetricResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
-message UpdateBatchMetricResponseV1 {}
+// MetricUpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.
+message MetricUpdateBatchResponseV1 {}
 
 // Metrics описание интерфейса сервиса MetricService.
 service Metrics {
   // Get получает текущее значение метрики с указанным именем и типом.
-  rpc Get(GetMetricRequestV1) returns (GetMetricResponseV1);
+  rpc Get(MetricGetRequestV1) returns (MetricGetResponseV1);
   // Update обновляет значение метрики.
-  rpc Update(UpdateMetricRequestV1) returns (UpdateMetricResponseV1);
+  rpc Update(MetricUpdateRequestV1) returns (MetricUpdateResponseV1);
   // UpdateBatch обновляет значение набора метрик.
-  rpc UpdateBatch(UpdateBatchMetricRequestV1) returns (UpdateBatchMetricResponseV1);
+  rpc UpdateBatch(MetricUpdateBatchRequestV1) returns (MetricUpdateBatchResponseV1);
 }
