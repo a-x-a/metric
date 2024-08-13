@@ -104,5 +104,4 @@ func requestMetricToGRPCMetric(mr metric.RequestMetric) (*grpcapi.Metric, error)
 	}
 
 	return result, nil
-
 }
