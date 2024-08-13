@@ -2,11 +2,15 @@
 package logger
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func InitLogger(level string) *zap.Logger {
@@ -80,4 +84,33 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	// записываем код статуса, используя оригинальный http.ResponseWriter.
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode // захватываем код статуса.
+}
+
+// UnaryRequestsInterceptor GRPC interceptor для логирования запросов.
+func UnaryRequestsInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	fn := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		logger.Info("grpc request",
+			zap.Any("srv", info.Server),
+			zap.String("method", info.FullMethod),
+		)
+		md, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			values := md.Get("x-real-ip")
+			if len(values) > 0 {
+				logger.Info("client address", zap.String("x-real-ip", values[0]))
+			}
+		}
+
+		resp, err := handler(ctx, req)
+
+		status, ok := status.FromError(err)
+		if ok {
+			logger.Info("response", zap.String("status", status.Code().String()))
+		} else {
+			logger.Info("response", zap.Error(err))
+		}
+
+		return resp, err
+	}
+	return fn
 }

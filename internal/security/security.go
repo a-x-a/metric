@@ -2,14 +2,20 @@ package security
 
 import (
 	"bytes"
+	"context"
 	"encoding/pem"
 	"errors"
 	"io"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -70,4 +76,39 @@ func TrustedSubnetMiddleware(logger *zap.Logger, subnet *net.IPNet) func(next ht
 
 		return http.HandlerFunc(fn)
 	}
+}
+
+// UnaryRequestsInterceptor GRPC interceptor выполняет проверку на разрешённые IP адреса.
+func UnaryRequestsInterceptor(logger *zap.Logger, subnet *net.IPNet) grpc.UnaryServerInterceptor {
+	fn := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		logger.Info("grpc request",
+			zap.Any("srv", info.Server),
+			zap.String("method", info.FullMethod),
+		)
+
+		if !strings.HasSuffix(info.FullMethod, "UpdateBatch") {
+			return handler(ctx, req)
+		}
+
+		var rip net.IP
+
+		md, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			values := md.Get("x-real-ip")
+			if len(values) > 0 {
+				rip = net.ParseIP(values[0])
+			}
+		}
+
+		logger.Info("client address", zap.String("x-real-ip", rip.String()))
+
+		if !subnet.Contains(rip) {
+			logger.Error("security.UnaryRequestsInterceptor subnet.Contains", zap.Error(ErrUntrustedSource))
+			return nil, status.Error(codes.PermissionDenied, ErrUntrustedSource.Error())
+		}
+
+		return handler(ctx, req)
+	}
+
+	return fn
 }
