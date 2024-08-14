@@ -8,8 +8,8 @@ option go_package = "github.com/a-x-a/go-metric/api/proto/v1";
 
 // Metric тип описывающий метрику.
 message Metric {
-  required string id = 1 [(validate.field).string.min_len = 1]; // имя метрики
-  required string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
+  string id = 1 [(validate.field).string.min_len = 1]; // имя метрики
+  string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
   oneof value {
     int64 counter = 3; // значение метрики типа счётчик
     double gauge = 4; // значение метрики типа датчик
@@ -18,23 +18,23 @@ message Metric {
 
 // GetRequest тип описывающий структуру запроса для получения текущего значения метрики.
 message GetRequest {
-  required string id = 1 [(buf.validate.field).string.min_len = 1]; // имя метрики
-  required string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
+  string id = 1 [(buf.validate.field).string.min_len = 1]; // имя метрики
+  string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
 }
 
 // GetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
 message GetResponse {
-  required Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1 [(buf.validate.field).required = true];
 }
 
 // UpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
 message UpdateRequest {
-  required Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1 [(buf.validate.field).required = true];
 }
 
 // UpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
 message UpdateResponse {
-  required Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1 [(buf.validate.field).required = true];
 }
 
 // UpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
