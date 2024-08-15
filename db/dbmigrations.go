@@ -1,6 +1,6 @@
-package app
+package db
 
 import "embed"
 
 //go:embed migrations/*.sql
-var migrationFS embed.FS
+var FS embed.FS

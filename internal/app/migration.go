@@ -9,6 +9,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"go.uber.org/zap"
+
+	dbmigrations "github.com/a-x-a/go-metric/db"
 )
 
 func migrationRun(dsn string, log *zap.Logger) error {
@@ -22,7 +24,7 @@ func migrationRun(dsn string, log *zap.Logger) error {
 		return err
 	}
 
-	d, err := iofs.New(migrationFS, "migrations")
+	d, err := iofs.New(dbmigrations.FS, "migrations")
 	if err != nil {
 		return err
 	}
