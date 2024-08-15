@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package api.proto.v1;
 
-import "buf/validate/validate.proto";
+// import "buf/validate/validate.proto";
 
 option go_package = "github.com/a-x-a/go-metric/api/proto/v1";
 
 // Metric тип описывающий метрику.
 message Metric {
-  string id = 1 [(validate.field).string.min_len = 1]; // имя метрики
-  string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
+  string id = 1;// [(validate.field).string.min_len = 1]; // имя метрики
+  string mtype = 2;// [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
   oneof value {
     int64 counter = 3; // значение метрики типа счётчик
     double gauge = 4; // значение метрики типа датчик
@@ -18,28 +18,28 @@ message Metric {
 
 // GetRequest тип описывающий структуру запроса для получения текущего значения метрики.
 message GetRequest {
-  string id = 1 [(buf.validate.field).string.min_len = 1]; // имя метрики
-  string mtype = 2 [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
+  string id = 1;// [(buf.validate.field).string.min_len = 1]; // имя метрики
+  string mtype = 2;// [(buf.validate.field).string = {in: ["gauge", "counter"]}]; // тип метрики
 }
 
 // GetResponse  тип описывающий структуру ответа на запрос о получении текущего значения метрики.
 message GetResponse {
-  Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1;// [(buf.validate.field).required = true];
 }
 
 // UpdateRequest тип описывающий структуру запроса на обновление текущего значения метрики.
 message UpdateRequest {
-  Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1;// [(buf.validate.field).required = true];
 }
 
 // UpdateRequest тип описывающий структуру ответа на запрос на обновление текущего значения метрики.
 message UpdateResponse {
-  Metric metric = 1 [(buf.validate.field).required = true];
+  Metric metric = 1;// [(buf.validate.field).required = true];
 }
 
 // UpdateBatchRequest тип описывающий структуру запроса на обновление текущих значений метрик.
 message UpdateBatchRequest {
-  repeated Metric data = 1 [(buf.validate.field).repeated.min_items = 1];
+  repeated Metric data = 1;// [(buf.validate.field).repeated.min_items = 1];
 }
 
 // UpdateBatchResponse тип описывающий структуру ответа на запроса на обновление текущих значений метрик.

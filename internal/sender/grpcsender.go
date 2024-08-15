@@ -11,9 +11,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
+	grpcapi "github.com/a-x-a/go-metric/api/proto/v1"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/security"
-	"github.com/a-x-a/go-metric/pkg/grpcapi"
 )
 
 type GRPCSender struct {

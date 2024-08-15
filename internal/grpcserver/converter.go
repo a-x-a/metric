@@ -4,9 +4,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	grpcapi "github.com/a-x-a/go-metric/api/proto/v1"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 	"github.com/a-x-a/go-metric/internal/storage"
-	"github.com/a-x-a/go-metric/pkg/grpcapi"
 )
 
 // recordToGRPCMetric преобразует storage.Record в grpcapi.Metric.
