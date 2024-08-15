@@ -2,21 +2,27 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/adapter"
+	"github.com/a-x-a/go-metric/internal/models/metric"
+	"github.com/a-x-a/go-metric/internal/service/metricservice"
+	"github.com/a-x-a/go-metric/internal/storage"
 )
 
 func sendTestRequest(t *testing.T, method, path string, data []byte) *http.Response {
-	rt := NewRouter(mockService{}, zap.NewNop())
+	rt := NewRouter(mockService{}, zap.L(), "", nil, nil)
 	srv := httptest.NewServer(rt)
 	defer srv.Close()
 
@@ -38,7 +44,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		req      adapter.RequestMetric
+		req      metric.RequestMetric
 		expected result
 	}{
 		{
@@ -57,7 +63,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 		},
 		{
 			name: "push unknown metric kind",
-			req: adapter.RequestMetric{
+			req: metric.RequestMetric{
 				ID:    "X",
 				MType: "unknown",
 			},
@@ -100,7 +106,7 @@ func TestUpdateJSONMetric(t *testing.T) {
 				require.NoError(err)
 				defer resp.Body.Close()
 
-				var resp adapter.RequestMetric
+				var resp metric.RequestMetric
 				err = json.Unmarshal(respBody, &resp)
 				require.NoError(err)
 
@@ -126,12 +132,12 @@ func TestUpdateJSONMetric(t *testing.T) {
 func TestGetJSONMetric(t *testing.T) {
 	type result struct {
 		code int
-		body adapter.RequestMetric
+		body metric.RequestMetric
 	}
 
 	tt := []struct {
 		name     string
-		req      adapter.RequestMetric
+		req      metric.RequestMetric
 		expected result
 	}{
 		{
@@ -152,7 +158,7 @@ func TestGetJSONMetric(t *testing.T) {
 		},
 		{
 			name: "get unknown metric kind",
-			req:  adapter.RequestMetric{ID: "Alloc", MType: "unknown"},
+			req:  metric.RequestMetric{ID: "Alloc", MType: "unknown"},
 			expected: result{
 				code: http.StatusBadRequest,
 			},
@@ -182,7 +188,6 @@ func TestGetJSONMetric(t *testing.T) {
 			require.NoError(err)
 
 			resp := sendTestRequest(t, http.MethodPost, "/value/", data)
-
 			assert.Equal(tc.expected.code, resp.StatusCode)
 
 			if tc.expected.code == http.StatusOK {
@@ -192,10 +197,9 @@ func TestGetJSONMetric(t *testing.T) {
 				require.NoError(err)
 				defer resp.Body.Close()
 
-				var resp adapter.RequestMetric
+				var resp metric.RequestMetric
 				err = json.Unmarshal(respBody, &resp)
 				require.NoError(err)
-
 				assert.Equal(tc.expected.body, resp)
 			}
 		})
@@ -213,4 +217,34 @@ func TestGetJSONMetric(t *testing.T) {
 
 		require.Equal(http.StatusBadRequest, resp.StatusCode)
 	})
+}
+
+type serviceWithMockStorage struct {
+	storage.Storage
+}
+
+func sendTestRequestWithMocStorage(t *testing.T, method, path string, data []byte) *http.Response {
+	ctrl := gomock.NewController(t)
+	ds := storage.NewMockStorage(ctrl)
+	srvc := metricservice.New(ds, zap.L())
+	rt := NewRouter(srvc, zap.L(), "", nil, nil)
+	srv := httptest.NewServer(rt)
+	defer srv.Close()
+
+	r, _ := storage.NewRecord("PollCount")
+	r.SetValue(metric.Counter(10))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	ds.EXPECT().Get(ctx, "PollCount").Return(&r, nil)
+
+	body := bytes.NewReader(data)
+
+	req, err := http.NewRequest(method, srv.URL+path, body)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	return resp
 }

@@ -2,65 +2,33 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"go.uber.org/zap"
+	"fmt"
 
 	"github.com/a-x-a/go-metric/internal/app"
-	"github.com/a-x-a/go-metric/internal/config"
 )
 
-const (
-	// logLevel - уровень логирования, по умолчанию info.
-	logLevel = "info"
+//	@title			Сервис сбора метрик и алертинга.
+//	@description	Сервис для сбора рантайм-метрик.
+//	@version		0.1
+
+// @host		localhost:8080
+// @BasePath	/
+
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
 )
 
 func main() {
-	sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint,
-		os.Interrupt,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-	)
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
 
-	logger := initLogger(logLevel)
-	defer logger.Sync()
-
-	cfg := config.NewServerConfig()
-	srv := app.NewServer(cfg, logger)
+	srv := app.NewServer("info")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go srv.Run(ctx)
-
-	signal := <-sigint
-
-	ctxShutdown, cancelShutdown := context.WithTimeout(ctx, time.Second*5)
-	defer cancelShutdown()
-
-	srv.Shutdown(ctxShutdown, signal)
-}
-
-func initLogger(level string) *zap.Logger {
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cfg := zap.NewProductionConfig()
-	cfg.Level = lvl
-
-	zl, err := cfg.Build()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return zl
+	srv.Run(ctx)
 }

@@ -4,12 +4,27 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/a-x-a/go-metric/internal/adapter"
 	"github.com/a-x-a/go-metric/internal/models/metric"
 )
 
-func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
-	data := &adapter.RequestMetric{}
+//	UpdateJSON godoc
+//
+//	@Summary		UpdateJSON
+//	@Description	Обновляет текущее значение метрики с указанным имененм и типом.
+//	@Tags			update
+//	@ID				updateJSON
+//	@Produce		json
+//	@Param			data	body	metric.RequestMetric	true	"Параметры метрики: имя, тип, значение"
+//	@Success		200
+//	@Failure		404
+//	@Failure		500
+//	@Router			/update [post]
+//
+// UpdateJSON обновляет текущее значение метрики с указанным именем и типом полученные в формате JSON.
+//
+//line for correct view in godoc.
+func (h MetricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
+	data := &metric.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return
@@ -23,7 +38,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 
 	switch kind {
 	case metric.KindCounter:
-		val, err := h.service.PushCounter(data.ID, metric.Counter(*data.Delta))
+		val, err := h.service.PushCounter(r.Context(), data.ID, metric.Counter(*data.Delta))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -33,7 +48,7 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := h.service.PushGauge(data.ID, metric.Gauge(*data.Value))
+		val, err := h.service.PushGauge(r.Context(), data.ID, metric.Gauge(*data.Value))
 		if err != nil {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
@@ -53,8 +68,26 @@ func (h metricHandlers) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	responseWithCode(w, http.StatusOK, h.logger)
 }
 
-func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
-	data := &adapter.RequestMetric{}
+//	GetJSON godoc
+//
+//	@Summary		GetJSON
+//	@Description	Возвращает текущее значение метрики в формате JSON с указанным имененм и типом.
+//	@Tags			value
+//	@ID				getJSON
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body	metric.RequestMetric	true	"Параметры метрики: имя, тип"
+//	@Success		200
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/value [get]
+//
+// GetJSON возвращает текущее значение метрики в формате JSON с указанным имененм и типом в формате.
+//
+//line for correct view in godoc.
+func (h MetricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
+	data := &metric.RequestMetric{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		responseWithError(w, http.StatusBadRequest, err, h.logger)
 		return
@@ -66,16 +99,18 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, err := h.service.Get(data.ID, data.MType)
+	record, err := h.service.Get(r.Context(), data.ID, data.MType)
 	if err != nil {
 		responseWithCode(w, http.StatusNotFound, h.logger)
 		return
 	}
 
+	value := record.GetValue()
+
 	switch kind {
 	case metric.KindCounter:
-		val, err := metric.ToCounter(value)
-		if err != nil {
+		val, ok := value.(metric.Counter)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}
@@ -84,8 +119,8 @@ func (h metricHandlers) GetJSON(w http.ResponseWriter, r *http.Request) {
 		data.Delta = &newDelta
 
 	case metric.KindGauge:
-		val, err := metric.ToGauge(value)
-		if err != nil {
+		val, ok := value.(metric.Gauge)
+		if !ok {
 			responseWithError(w, http.StatusInternalServerError, err, h.logger)
 			return
 		}

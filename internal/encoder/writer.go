@@ -11,6 +11,7 @@ type compressWriter struct {
 	Writer io.Writer
 }
 
+// Write реализация метода Write для zip-сжатия данных.
 func (c compressWriter) Write(p []byte) (int, error) {
 	if c.Writer == nil {
 		zw, err := gzip.NewWriterLevel(c.ResponseWriter, gzip.BestSpeed)

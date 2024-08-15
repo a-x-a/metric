@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/config"
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -18,7 +19,7 @@ func TestNewAgent(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("create new agent", func(t *testing.T) {
-		got := NewAgent()
+		got := NewAgent("info")
 		require.NotNil(got)
 	})
 }
@@ -32,6 +33,7 @@ func Test_agent_Poll(t *testing.T) {
 		ServerAddress:  "",
 	}
 	metrics := &metric.Metrics{}
+	log := zap.L()
 
 	type args struct {
 		ctx     context.Context
@@ -39,12 +41,15 @@ func Test_agent_Poll(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		app  *agent
+		app  *Agent
 		args args
 	}{
 		{
 			name: "poll",
-			app:  &agent{Config: cfg},
+			app: &Agent{
+				config: cfg,
+				logger: log,
+			},
 			args: args{
 				ctx:     context.Background(),
 				metrics: metrics,
@@ -54,10 +59,10 @@ func Test_agent_Poll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.Config.PollInterval*2)
+			cancellingCtx, cancel := context.WithTimeout(tt.args.ctx, tt.app.config.PollInterval*2)
 			defer cancel()
 
-			tt.app.Poll(cancellingCtx, tt.args.metrics)
+			tt.app.poll(cancellingCtx, tt.args.metrics)
 
 			require.NotEmpty(tt.args.metrics)
 			require.NotEmpty(tt.args.metrics.PollCount)
@@ -87,16 +92,20 @@ func Test_agent_Report(t *testing.T) {
 	metrics := metric.Metrics{
 		PollCount: metric.Counter(12),
 	}
+	log := zap.L()
 
 	tests := []struct {
 		name    string
-		app     *agent
+		app     *Agent
 		ctx     context.Context
 		metrics *metric.Metrics
 	}{
 		{
-			name:    "report",
-			app:     &agent{Config: cfg},
+			name: "report",
+			app: &Agent{
+				config: cfg,
+				logger: log,
+			},
 			ctx:     context.Background(),
 			metrics: &metrics,
 		},
@@ -104,9 +113,9 @@ func Test_agent_Report(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.Config.ReportInterval)
+			cancellingCtx, cancel := context.WithTimeout(tt.ctx, tt.app.config.ReportInterval)
 			defer cancel()
-			tt.app.Report(cancellingCtx, tt.metrics)
+			tt.app.report(cancellingCtx, tt.metrics)
 		})
 	}
 }
