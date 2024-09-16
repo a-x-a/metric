@@ -57,5 +57,11 @@ func (m *memStorage) GetSnapShot() *memStorage {
 		snap[k] = v
 	}
 
-	return &memStorage{data: snap}
+	return &memStorage{
+		data: snap,
+	}
+}
+
+func (m *memStorage) Close() error {
+	return nil
 }

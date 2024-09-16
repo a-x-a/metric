@@ -56,7 +56,7 @@ func Test_FileStorage(t *testing.T) {
 		m2.Push(v.name, v)
 	}
 
-	err = m2.Save()
+	err = m2.Close()
 	require.NoError(t, err)
 	require.FileExists(t, fileName)
 

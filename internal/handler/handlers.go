@@ -19,7 +19,9 @@ type (
 		PushGauge(name string, value metric.Gauge) (metric.Gauge, error)
 		Get(name, kind string) (string, error)
 		GetAll() []storage.Record
+		Ping() error
 	}
+
 	metricHandlers struct {
 		service metricService
 		logger  *zap.Logger
@@ -71,6 +73,15 @@ func (h metricHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Push(name, kind, value)
 	if err != nil {
 		responseWithCode(w, http.StatusBadRequest, h.logger)
+		return
+	}
+
+	responseWithCode(w, http.StatusOK, h.logger)
+}
+
+func (h metricHandlers) Ping(w http.ResponseWriter, r *http.Request) {
+	if err := h.service.Ping(); err != nil {
+		responseWithCode(w, http.StatusInternalServerError, h.logger)
 		return
 	}
 

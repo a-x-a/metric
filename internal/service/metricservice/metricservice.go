@@ -1,6 +1,10 @@
 package metricservice
 
 import (
+	"context"
+	"errors"
+	"time"
+
 	"go.uber.org/zap"
 
 	"github.com/a-x-a/go-metric/internal/models/metric"
@@ -12,7 +16,13 @@ type (
 		storage storage.Storage
 		logger  *zap.Logger
 	}
+
+	dbStorage interface {
+		Ping(ctx context.Context) error
+	}
 )
+
+var ErrNotSupportedMethod = errors.New("storage doesn't support method")
 
 func New(stor storage.Storage, logger *zap.Logger) *metricService {
 	return &metricService{
@@ -108,4 +118,17 @@ func (s metricService) GetAll() []storage.Record {
 	records := s.storage.GetAll()
 
 	return records
+}
+
+func (s metricService) Ping() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dbStorage, ok := s.storage.(dbStorage)
+
+	if !ok {
+		return ErrNotSupportedMethod
+	}
+
+	return dbStorage.Ping(ctx)
 }
